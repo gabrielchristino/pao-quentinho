@@ -1,7 +1,7 @@
 <div class="map-container">
   <div #map id="map"></div>
 
-  <mat-button-toggle-group class="radius-filter" [value]="raio" (change)="definirRaio($event.value)">
+  <mat-button-toggle-group class="radius-filter" [value]="raio" (change)="definirRaio($event.value)" *ngIf="!routingControl">
     <mat-button-toggle [value]="500">500m</mat-button-toggle>
     <mat-button-toggle [value]="1000">1km</mat-button-toggle>
     <mat-button-toggle [value]="5000">5km</mat-button-toggle>
@@ -9,16 +9,14 @@
 
   <!-- Botão para Sair da Rota -->
   <button
-    mat-fab
+    mat-fab extended
     color="warn"
     class="exit-route-button"
     *ngIf="routingControl"
     (click)="fecharDetalhe()"
-    matTooltip="Sair do modo de navegação"
-    matTooltipClass="tooltip-with-arrow"
-    #exitRouteTooltip="matTooltip"
   >
     <mat-icon>close</mat-icon>
+    Sair da Navegação
   </button>
 
 </div>
