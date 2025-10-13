@@ -12,7 +12,7 @@
 /* Posiciona o filtro de raio no topo */
 .radius-filter {
   position: absolute;
-  bottom: 150px; /* Ajustado para ficar acima do bottom sheet */
+  bottom: 80px; /* Ajustado para ficar acima do bottom sheet */
   left: 50%;
   transform: translateX(-50%);
   z-index: 1001; /* Aumentado para ficar acima do bottom sheet */
@@ -20,9 +20,12 @@
   border-radius: 8px;
 }
 
-/* Remove o botão FAB que não será mais usado */
-.list-fab-button {
-  display: none;
+/* Botão para sair da rota */
+.exit-route-button {
+  position: absolute;
+  bottom: 80px; /* Posição acima do filtro e do bottom sheet */
+  right: 16px;
+  z-index: 1001;
 }
 
 /* Estilos para o conteúdo dentro do Bottom Sheet */
@@ -42,7 +45,7 @@
   left: 0;
   right: 0;
   max-height: calc(100vh - 100px);
-  transform: translateY(calc(100% - 80px)); /* Altura visível quando fechado */
+  transform: translateY(calc(100% - 60px)); /* Altura visível quando fechado */
   transition: transform 0.3s ease-in-out;
   background: white;
   z-index: 1000;
@@ -62,7 +65,7 @@
   }
 
   .handle {
-    padding: 16px;
+    padding: 8px;
     cursor: grab;
     display: flex;
     justify-content: center;
@@ -81,5 +84,71 @@
     padding: 0 16px 16px;
     overflow-y: auto;
     flex-grow: 1;
+  }
+}
+
+/* Card de Detalhes do Estabelecimento */
+.establishment-details-container {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 1002; /* Acima do filtro e do bottom sheet */
+  display: flex;
+  justify-content: center;
+  align-items: flex-end; /* Adicione esta linha */
+  padding: 8px;
+  background: linear-gradient(to top, rgba(0,0,0,0.3), transparent); /* Fundo sutil para destacar o card */
+
+  .establishment-card {
+    width: 100%;
+    max-width: 500px;
+    animation: slide-up 0.3s ease-out;
+
+    mat-card-header {
+      padding-bottom: 8px;
+    }
+
+    mat-card-content p {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .address {
+      color: rgba(0,0,0,0.6);
+      cursor: pointer;
+      text-decoration: underline;
+    }
+  }
+}
+
+@keyframes slide-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+/* Estilo para adicionar uma seta ao tooltip */
+/* Usamos ::ng-deep porque o tooltip é renderizado fora do escopo do componente */
+::ng-deep .tooltip-with-arrow {
+  /* Adiciona um pequeno espaço para a seta não ficar colada no botão */
+  margin-top: 10px;
+
+  &::after {
+    content: '';
+    position: absolute;
+    /* Posiciona a seta no topo e à direita do tooltip */
+    bottom: 100%;
+    right: 15px;
+    border-width: 6px;
+    border-style: solid;
+    /* A cor deve ser a mesma do fundo do tooltip (#616161 por padrão) */
+    border-color: transparent transparent #616161 transparent;
   }
 }

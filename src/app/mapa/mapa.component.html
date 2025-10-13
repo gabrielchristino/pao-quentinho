@@ -7,12 +7,27 @@
     <mat-button-toggle [value]="5000">5km</mat-button-toggle>
   </mat-button-toggle-group>
 
+  <!-- Botão para Sair da Rota -->
+  <button
+    mat-fab
+    color="warn"
+    class="exit-route-button"
+    *ngIf="routingControl"
+    (click)="fecharDetalhe()"
+    matTooltip="Sair do modo de navegação"
+    matTooltipClass="tooltip-with-arrow"
+    #exitRouteTooltip="matTooltip"
+  >
+    <mat-icon>close</mat-icon>
+  </button>
+
 </div>
 
 <!-- Bottom Sheet customizado -->
 <div
   id="bottomSheet"
   [class.open]="isListOpen"
+  *ngIf="!routingControl"
   (touchstart)="onTouchStart($event)"
   (touchmove)="onTouchMove($event)"
   (touchend)="onTouchEnd($event)"
@@ -28,7 +43,7 @@
       <h4>Nenhum local encontrado neste raio.</h4>
     </ng-template>
     <mat-nav-list>
-      <a mat-list-item *ngFor="let est of estabelecimentosVisiveis" (click)="centerOnEstablishment(est)">
+      <a mat-list-item *ngFor="let est of estabelecimentosVisiveis" (click)="selecionarEstabelecimento(est)">
         <div matListItemTitle>{{ est.nome }}</div>
         <div matListItemLine>{{ est.tipo }}</div>
         <span class="list-item-spacer"></span>
@@ -36,4 +51,32 @@
       </a>
     </mat-nav-list>
   </div>
+</div>
+
+<!-- Card de Detalhes do Estabelecimento -->
+<div class="establishment-details-container" *ngIf="selectedEstabelecimento" (click)="fecharDetalhe()">
+  <mat-card class="establishment-card" (click)="$event.stopPropagation()">
+    <mat-card-header>
+      <mat-card-title>{{ selectedEstabelecimento.nome }}</mat-card-title>
+      <mat-card-subtitle>{{ selectedEstabelecimento.endereco.bairro }} - {{ selectedEstabelecimento.distanciaKm.toFixed(2) }} km</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <p>
+        <mat-icon>bakery_dining</mat-icon>
+        Próxima fornada quentinha às <b>{{ selectedEstabelecimento.proximaFornada }}</b>
+      </p>
+      <p>{{ selectedEstabelecimento.info }}</p>
+      <p class="address" (click)="iniciarNavegacao(selectedEstabelecimento, $event)">
+        <mat-icon>location_on</mat-icon>
+        {{ selectedEstabelecimento.endereco.rua }}, {{ selectedEstabelecimento.endereco.numero }}
+      </p>
+    </mat-card-content>
+    <mat-card-actions align="end">
+      <button mat-flat-button color="primary" (click)="seguirEstabelecimento(selectedEstabelecimento, $event)">
+        <mat-icon>notifications</mat-icon>
+        Seguir
+      </button>
+      <button mat-button (click)="fecharDetalhe()">FECHAR</button>
+    </mat-card-actions>
+  </mat-card>
 </div>
