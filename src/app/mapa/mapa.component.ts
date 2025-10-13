@@ -2,6 +2,7 @@ import { Component, AfterViewInit, ViewChild, ElementRef, Input, OnChanges, Simp
 import * as L from 'leaflet';
 import { Estabelecimento, EstabelecimentosService } from '../services/estabelecimentos.service';
 import { FormsModule } from '@angular/forms';
+import 'leaflet-routing-machine';
 import { CommonModule } from '@angular/common';
 import { MatBottomSheetModule } from '@angular/material/bottom-sheet';
 import { MatListModule } from '@angular/material/list';
@@ -9,6 +10,7 @@ import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
+import { MatTooltip, MatTooltipModule } from '@angular/material/tooltip';
 
 const iconRetinaUrl = 'assets/marker-icon-2x.png';
 const iconUrl = 'assets/marker-icon.png';
@@ -41,12 +43,23 @@ const SWIPE_THRESHOLD = 50; // Distância mínima em pixels para considerar um g
     MatButtonToggleModule,
     MatButtonModule,
     MatIconModule,
-    MatCardModule
+    MatCardModule,
+    MatTooltipModule
   ],
   templateUrl: './mapa.component.html',
   styleUrl: './mapa.component.scss',
 })
 export class MapaComponent implements AfterViewInit, OnChanges {
+  private _exitRouteTooltip: MatTooltip | undefined;
+  @ViewChild('exitRouteTooltip') set exitRouteTooltip(tooltip: MatTooltip | undefined) {
+    if (tooltip && tooltip !== this._exitRouteTooltip) {
+      this._exitRouteTooltip = tooltip;
+      // Usamos um setTimeout para garantir que o tooltip seja exibido após a renderização do botão.
+      this._ngZone.runOutsideAngular(() => {
+        setTimeout(() => tooltip.show(), 0);
+      });
+    }
+  }
   @ViewChild('map', { static: true }) mapElementRef!: ElementRef<HTMLDivElement>;
   @Input() latitude: number | null = null;
   @Input() longitude: number | null = null;
@@ -55,8 +68,10 @@ export class MapaComponent implements AfterViewInit, OnChanges {
   private circle?: L.Circle;
   private userMarker?: L.Marker;
   private establishmentMarkers: L.Marker[] = [];
+  routingControl: L.Routing.Control | null = null;
   todosEstabelecimentos: Estabelecimento[] = [];
   estabelecimentosVisiveis: Estabelecimento[] = [];
+  selectedEstabelecimento: Estabelecimento | null = null;
   isListOpen = false;
   isDragging = false;
   private touchStartY = 0;
@@ -171,17 +186,15 @@ export class MapaComponent implements AfterViewInit, OnChanges {
           })
         });
 
-        marker
-          .bindPopup(`
-            <b>${estabelecimento.nome}</b><br><br>
-            Próxima fornada quentinha às <b>${estabelecimento.proximaFornada}</b><br><br>
-            ${estabelecimento.info}<br><br>
-            ${estabelecimento.endereco.rua}, ${estabelecimento.endereco.numero} - ${estabelecimento.endereco.bairro}<br>
-            ${estabelecimento.endereco.cidade} - ${estabelecimento.endereco.estado}<br>
-            distância ${estabelecimento.distanciaKm.toFixed(2)} km
-          `, {maxWidth: window.innerWidth - 100});
+        marker.on('click', () => {
+          this._ngZone.run(() => {
+            this.selecionarEstabelecimento(estabelecimento);
+          });
+        });
 
-        marker.addTo(this.map!);
+        if (this.map) {
+          marker.addTo(this.map);
+        }
         this.establishmentMarkers.push(marker);
       }
     });
@@ -208,11 +221,125 @@ export class MapaComponent implements AfterViewInit, OnChanges {
     this.isListOpen = !this.isListOpen;
   }
 
-  centerOnEstablishment(est: Estabelecimento): void {
+  selecionarEstabelecimento(est: Estabelecimento): void {
+    this.selectedEstabelecimento = est;
+    this.isListOpen = false; // Fecha a lista para dar espaço ao card de detalhe
+    if (this.routingControl) {
+      this.routingControl.remove();
+      this.routingControl = null;
+    }
     if (this.map) {
       this.map.flyTo([est.latitude, est.longitude], 17); // 17 é um bom nível de zoom para ver de perto
-      this.isListOpen = false;
     }
+  }
+
+  fecharDetalhe(recentralizar = true): void {
+    this._exitRouteTooltip?.hide(0); // Esconde o tooltip imediatamente ao fechar
+    this.selectedEstabelecimento = null;
+    if (this.routingControl) {
+      this.routingControl.remove();
+      this.routingControl = null;
+    }
+    if (recentralizar && this.map && this.latitude !== null && this.longitude !== null) {
+      const zoomLevel = this.calculateZoomLevel(this.raio);
+      this.map.flyTo([this.latitude, this.longitude], zoomLevel);
+    }
+
+    // Desabilita o zoom ao sair do modo de navegação
+    if (this.map) {
+      this.map.scrollWheelZoom.disable();
+      this.map.touchZoom.disable();
+      this.map.doubleClickZoom.disable();
+    }
+  }
+
+  mostrarRota(est: Estabelecimento, event: MouseEvent): void {
+    event.stopPropagation(); // Impede que o clique no endereço feche o card de detalhes
+    if (!this.map || this.latitude === null || this.longitude === null) return;
+
+    // Remove a rota anterior, se houver
+    if (this.routingControl) {
+      this.routingControl.remove();
+    }
+
+    this.routingControl = L.Routing.control({
+      waypoints: [
+        L.latLng(this.latitude, this.longitude),
+        L.latLng(est.latitude, est.longitude)
+      ],
+      routeWhileDragging: true,
+      show: false, // Oculta o painel de instruções de rota (se houver)
+      addWaypoints: false, // Impede que o usuário adicione/mova os pontos da rota
+      fitSelectedRoutes: false, // Desativamos o ajuste automático do plugin
+      lineOptions: {
+        styles: [{color: '#6200ee', opacity: 0.8, weight: 6}]
+      } as any // Adicionado para contornar tipagem estrita
+    }).addTo(this.map);
+
+    // Ajusta o mapa manualmente APÓS a rota ser encontrada
+    this.routingControl.on('routesfound', (e) => {
+      if (this.map) {
+        const routes = (e as any).routes;
+        if (routes && routes.length > 0) {
+          const bounds = routes[0].bounds;
+          const cardEl = this._elementRef.nativeElement.querySelector('.establishment-card');
+          const cardHeight = cardEl ? cardEl.clientHeight + 24 : 150; // Pega a altura do card + um respiro
+
+          this.map.fitBounds(bounds, { paddingBottomRight: [0, cardHeight] });
+        }
+      }
+    });
+  }
+
+  iniciarNavegacao(est: Estabelecimento, event: MouseEvent): void {
+    event.stopPropagation(); // Impede que o clique se propague para outros elementos
+
+    // 1. Fecha o modal de detalhes sem recentralizar o mapa
+    this.fecharDetalhe(false);
+
+    if (!this.map || this.latitude === null || this.longitude === null) return;
+
+    // 2. Remove qualquer rota anterior
+    if (this.routingControl) {
+      this.routingControl.remove();
+    }
+
+    // 3. Cria e exibe a nova rota
+    this.routingControl = L.Routing.control({
+      waypoints: [
+        L.latLng(this.latitude, this.longitude),
+        L.latLng(est.latitude, est.longitude)
+      ],
+      routeWhileDragging: true,
+      show: false, // Oculta o painel de instruções
+      addWaypoints: false,
+      fitSelectedRoutes: false, // Desativamos o ajuste automático para controlar manualmente
+      lineOptions: {
+        styles: [{color: '#6200ee', opacity: 0.8, weight: 6}]
+      } as any
+    }).addTo(this.map);
+
+    // 4. Ajusta o mapa manualmente para enquadrar a rota
+    const bounds = L.latLngBounds([
+      L.latLng(this.latitude, this.longitude),
+      L.latLng(est.latitude, est.longitude)
+    ]);
+
+    // Adiciona um "respiro" (padding) nas bordas do mapa
+    this.map.fitBounds(bounds, { padding: [50, 50] });
+
+    // 5. Habilita o zoom no modo de navegação
+    if (this.map) {
+      this.map.scrollWheelZoom.enable();
+      this.map.touchZoom.enable();
+      this.map.doubleClickZoom.enable();
+    }
+  }
+
+  seguirEstabelecimento(est: Estabelecimento, event: MouseEvent): void {
+    event.stopPropagation(); // Impede que o clique feche o card
+    alert(`Você agora está seguindo a ${est.nome}!`);
+    // Aqui você implementaria a lógica de inscrição
   }
 
   onTouchStart(event: TouchEvent): void {
