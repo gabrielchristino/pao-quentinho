@@ -12,7 +12,7 @@
 /* Posiciona o filtro de raio no topo */
 .radius-filter {
   position: absolute;
-  bottom: 90px; /* Ajustado para ficar acima do bottom sheet */
+  bottom: 150px; /* Ajustado para ficar acima do bottom sheet */
   left: 50%;
   transform: translateX(-50%);
   z-index: 1001; /* Aumentado para ficar acima do bottom sheet */
