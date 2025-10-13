@@ -1,5 +1,5 @@
 import { Component, AfterViewInit, ViewChild, ElementRef, Input, OnChanges, SimpleChanges, NgZone } from '@angular/core';
-import * as L from 'leaflet';
+import L from 'leaflet';
 import { Estabelecimento, EstabelecimentosService } from '../services/estabelecimentos.service';
 import { FormsModule } from '@angular/forms';
 import 'leaflet-routing-machine';
