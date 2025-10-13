@@ -10,7 +10,7 @@ import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
-import { MatTooltip, MatTooltipModule } from '@angular/material/tooltip';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 const iconRetinaUrl = 'assets/marker-icon-2x.png';
 const iconUrl = 'assets/marker-icon.png';
@@ -50,16 +50,6 @@ const SWIPE_THRESHOLD = 50; // Distância mínima em pixels para considerar um g
   styleUrl: './mapa.component.scss',
 })
 export class MapaComponent implements AfterViewInit, OnChanges {
-  private _exitRouteTooltip: MatTooltip | undefined;
-  @ViewChild('exitRouteTooltip') set exitRouteTooltip(tooltip: MatTooltip | undefined) {
-    if (tooltip && tooltip !== this._exitRouteTooltip) {
-      this._exitRouteTooltip = tooltip;
-      // Usamos um setTimeout para garantir que o tooltip seja exibido após a renderização do botão.
-      this._ngZone.runOutsideAngular(() => {
-        setTimeout(() => tooltip.show(), 0);
-      });
-    }
-  }
   @ViewChild('map', { static: true }) mapElementRef!: ElementRef<HTMLDivElement>;
   @Input() latitude: number | null = null;
   @Input() longitude: number | null = null;
@@ -234,7 +224,6 @@ export class MapaComponent implements AfterViewInit, OnChanges {
   }
 
   fecharDetalhe(recentralizar = true): void {
-    this._exitRouteTooltip?.hide(0); // Esconde o tooltip imediatamente ao fechar
     this.selectedEstabelecimento = null;
     if (this.routingControl) {
       this.routingControl.remove();

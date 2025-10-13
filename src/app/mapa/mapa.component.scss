@@ -23,8 +23,9 @@
 /* Botão para sair da rota */
 .exit-route-button {
   position: absolute;
-  bottom: 80px; /* Posição acima do filtro e do bottom sheet */
-  right: 16px;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
   z-index: 1001;
 }
 
@@ -131,24 +132,5 @@
   }
   to {
     transform: translateY(0);
-  }
-}
-
-/* Estilo para adicionar uma seta ao tooltip */
-/* Usamos ::ng-deep porque o tooltip é renderizado fora do escopo do componente */
-::ng-deep .tooltip-with-arrow {
-  /* Adiciona um pequeno espaço para a seta não ficar colada no botão */
-  margin-top: 10px;
-
-  &::after {
-    content: '';
-    position: absolute;
-    /* Posiciona a seta no topo e à direita do tooltip */
-    bottom: 100%;
-    right: 15px;
-    border-width: 6px;
-    border-style: solid;
-    /* A cor deve ser a mesma do fundo do tooltip (#616161 por padrão) */
-    border-color: transparent transparent #616161 transparent;
   }
 }
