@@ -1,0 +1,39 @@
+<div class="map-container">
+  <div #map id="map"></div>
+
+  <mat-button-toggle-group class="radius-filter" [value]="raio" (change)="definirRaio($event.value)">
+    <mat-button-toggle [value]="500">500m</mat-button-toggle>
+    <mat-button-toggle [value]="1000">1km</mat-button-toggle>
+    <mat-button-toggle [value]="5000">5km</mat-button-toggle>
+  </mat-button-toggle-group>
+
+</div>
+
+<!-- Bottom Sheet customizado -->
+<div
+  id="bottomSheet"
+  [class.open]="isListOpen"
+  (touchstart)="onTouchStart($event)"
+  (touchmove)="onTouchMove($event)"
+  (touchend)="onTouchEnd($event)"
+>
+  <div class="handle" (click)="toggleList()">
+    <div class="handle-bar"></div>
+  </div>
+  <div class="sheet-content">
+    <h4 *ngIf="estabelecimentosVisiveis.length > 0; else noResults">
+      Exibindo {{ estabelecimentosVisiveis.length }} de {{ todosEstabelecimentos.length }} locais
+    </h4>
+    <ng-template #noResults>
+      <h4>Nenhum local encontrado neste raio.</h4>
+    </ng-template>
+    <mat-nav-list>
+      <a mat-list-item *ngFor="let est of estabelecimentosVisiveis" (click)="centerOnEstablishment(est)">
+        <div matListItemTitle>{{ est.nome }}</div>
+        <div matListItemLine>{{ est.tipo }}</div>
+        <span class="list-item-spacer"></span>
+        <div matListItemMeta class="distancia-meta">{{ est.distanciaKm.toFixed(2) }} km</div>
+      </a>
+    </mat-nav-list>
+  </div>
+</div>

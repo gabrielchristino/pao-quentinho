@@ -35,10 +35,12 @@ export class EstabelecimentosService {
    * @returns Um objeto com a nova latitude e longitude.
    */
   private generateRandomPoint(centerLat: number, centerLng: number, radiusInKm: number) {
+    const maxRadiusKm = 5;
     const earthRadiusKm = 6371;
 
+    const effectiveRadiusInKm = Math.min(radiusInKm, maxRadiusKm);
     // Converte o raio para radianos
-    const radiusInRad = radiusInKm / earthRadiusKm;
+    const radiusInRad = effectiveRadiusInKm / earthRadiusKm;
 
     // Gera um ângulo e uma distância aleatórios
     const randomAngle = Math.random() * 2 * Math.PI;
@@ -87,7 +89,6 @@ export class EstabelecimentosService {
 
   getEstabelecimentosProximos(userLat: number, userLng: number): Observable<HttpResponse<Estabelecimento[]>> {
     const estabelecimentos: Estabelecimento[] = [
-      // Dentro de 1km
       {
         nome: 'Padaria Pão do Bairro',
         tipo: 'padaria',
@@ -105,9 +106,8 @@ export class EstabelecimentosService {
         },
         info: 'Pão francês quentinho toda hora! Venha experimentar nossos salgados.',
         distanciaKm: 1,
-        latitude: 0, longitude: 0 // Valores iniciais, serão sobrescritos
+        latitude: 0, longitude: 0
       },
-      // Dentro de 1km
       {
         nome: 'Doceria Sabor Real',
         tipo: 'doceria',
@@ -126,7 +126,6 @@ export class EstabelecimentosService {
         distanciaKm: 1,
         latitude: 0, longitude: 0
       },
-      // Dentro de 5km
       {
         nome: 'Confeitaria Delícias da Vila',
         tipo: 'outros',
@@ -143,10 +142,9 @@ export class EstabelecimentosService {
           complemento: 'Próximo ao parque'
         },
         info: 'Tortas e doces caseiros. Venha provar nossa torta de limão!',
-        distanciaKm: 5,
+        distanciaKm: 1,
         latitude: 0, longitude: 0
       },
-      // Dentro de 10km
       {
         nome: 'Casa de Bolos Dona Benta',
         tipo: 'casaDeBolos',
@@ -162,10 +160,9 @@ export class EstabelecimentosService {
           cep: '04813-000'
         },
         info: 'Bolos caseiros e receitas tradicionais. Sinta o sabor da infância!',
-        distanciaKm: 10,
+        distanciaKm: 5,
         latitude: 0, longitude: 0
       },
-      // Dentro de 10km
       {
         nome: 'Padaria e Confeitaria Nova Era',
         tipo: 'padaria',
@@ -182,7 +179,7 @@ export class EstabelecimentosService {
           complemento: 'Em frente à escola'
         },
         info: 'Pães, doces e bolos fresquinhos todos os dias. Venha conferir nossas promoções!',
-        distanciaKm: 10,
+        distanciaKm: 5,
         latitude: 0, longitude: 0
       }
     ];
