@@ -11,6 +11,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatRippleModule } from '@angular/material/core';
 
 const iconRetinaUrl = 'assets/marker-icon-2x.png';
 const iconUrl = 'assets/marker-icon.png';
@@ -44,7 +45,8 @@ const SWIPE_THRESHOLD = 50; // Distância mínima em pixels para considerar um g
     MatButtonModule,
     MatIconModule,
     MatCardModule,
-    MatTooltipModule
+    MatTooltipModule,
+    MatRippleModule
   ],
   templateUrl: './mapa.component.html',
   styleUrl: './mapa.component.scss',
@@ -242,44 +244,6 @@ export class MapaComponent implements AfterViewInit, OnChanges {
     }
   }
 
-  mostrarRota(est: Estabelecimento, event: MouseEvent): void {
-    event.stopPropagation(); // Impede que o clique no endereço feche o card de detalhes
-    if (!this.map || this.latitude === null || this.longitude === null) return;
-
-    // Remove a rota anterior, se houver
-    if (this.routingControl) {
-      this.routingControl.remove();
-    }
-
-    this.routingControl = L.Routing.control({
-      waypoints: [
-        L.latLng(this.latitude, this.longitude),
-        L.latLng(est.latitude, est.longitude)
-      ],
-      routeWhileDragging: true,
-      show: false, // Oculta o painel de instruções de rota (se houver)
-      addWaypoints: false, // Impede que o usuário adicione/mova os pontos da rota
-      fitSelectedRoutes: false, // Desativamos o ajuste automático do plugin
-      lineOptions: {
-        styles: [{color: '#6200ee', opacity: 0.8, weight: 6}]
-      } as any // Adicionado para contornar tipagem estrita
-    }).addTo(this.map);
-
-    // Ajusta o mapa manualmente APÓS a rota ser encontrada
-    this.routingControl.on('routesfound', (e) => {
-      if (this.map) {
-        const routes = (e as any).routes;
-        if (routes && routes.length > 0) {
-          const bounds = routes[0].bounds;
-          const cardEl = this._elementRef.nativeElement.querySelector('.establishment-card');
-          const cardHeight = cardEl ? cardEl.clientHeight + 24 : 150; // Pega a altura do card + um respiro
-
-          this.map.fitBounds(bounds, { paddingBottomRight: [0, cardHeight] });
-        }
-      }
-    });
-  }
-
   iniciarNavegacao(est: Estabelecimento, event: MouseEvent): void {
     event.stopPropagation(); // Impede que o clique se propague para outros elementos
 
@@ -410,3 +374,4 @@ export class MapaComponent implements AfterViewInit, OnChanges {
     return zoomLevels[radiusInMeters as keyof typeof zoomLevels] || 12;
   }
 }
+

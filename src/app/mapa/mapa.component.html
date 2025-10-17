@@ -34,16 +34,24 @@
     <div class="handle-bar"></div>
   </div>
   <div class="sheet-content">
-    <h4 *ngIf="estabelecimentosVisiveis.length > 0; else noResults">
+    <h4 class="sheet-title" *ngIf="estabelecimentosVisiveis.length > 0; else noResults">
       Exibindo {{ estabelecimentosVisiveis.length }} de {{ todosEstabelecimentos.length }} locais
     </h4>
     <ng-template #noResults>
-      <h4>Nenhum local encontrado neste raio.</h4>
+      <h4 class="sheet-title">Nenhum local encontrado neste raio.</h4>
     </ng-template>
     <mat-nav-list>
-      <a mat-list-item *ngFor="let est of estabelecimentosVisiveis" (click)="selecionarEstabelecimento(est)">
-        <div matListItemTitle>{{ est.nome }}</div>
-        <div matListItemLine>{{ est.tipo }}</div>
+      <a mat-list-item *ngFor="let est of estabelecimentosVisiveis" (click)="selecionarEstabelecimento(est)" class="establishment-list-item">
+        <mat-icon matListItemIcon class="list-item-icon">
+          @switch (est.tipo) {
+            @case ('padaria') { bakery_dining }
+            @case ('confeitaria') { cake }
+            @case ('doceria') { icecream }
+            @default { storefront }
+          }
+        </mat-icon>
+        <div matListItemTitle class="list-item-title">{{ est.nome }}</div>
+        <div matListItemLine class="list-item-line">{{ est.tipo }}</div>
         <span class="list-item-spacer"></span>
         <div matListItemMeta class="distancia-meta">{{ est.distanciaKm.toFixed(2) }} km</div>
       </a>
@@ -91,3 +99,4 @@
     </mat-card-actions>
   </mat-card>
 </div>
+
