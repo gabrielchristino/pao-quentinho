@@ -16,7 +16,7 @@ export interface Estabelecimento {
   latitude: number;
   longitude: number;
   nome: string;
-  tipo: 'padaria' | 'doceria' | 'casaDeBolos' | 'outros' | 'confeitaria'; // camelCase
+  tipo: 'padaria' | 'doceria' | 'casaDeBolos' | 'outros' | 'confeitaria' | 'mercado'; // camelCase
   horarioAbertura: string;
   horarioFechamento: string;
   proximaFornada: string;
