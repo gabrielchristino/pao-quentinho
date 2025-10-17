@@ -332,12 +332,12 @@ export class MapaComponent implements AfterViewInit, OnChanges {
     }
 
     try {
-      // Busca a chave VAPID do backend
-      this.notificationService.getVapidPublicKey().subscribe(async (vapidPublicKey) => {
-        const sub = await this.swPush.requestSubscription({
-          serverPublicKey: vapidPublicKey,
-        });
-        this.notificationService.addPushSubscriber(sub).subscribe();
+      // IMPORTANTE: Esta chave pública deve ser gerada no seu backend.
+      // Esta é uma chave de exemplo, você PRECISA gerar a sua.
+      const VAPID_PUBLIC_KEY = 'BFz_rrRRymdPKoVE8Cq-jVTkyi095ueG00U6S5HtiQIxcfNrz7LCAISyiJA6x2broJZbPiLHUlndKoUPHnznGh4';
+
+      const sub = await this.swPush.requestSubscription({
+        serverPublicKey: VAPID_PUBLIC_KEY,
       });
 
       console.log('Inscrição para Push Notification obtida:', sub.toJSON());
@@ -345,6 +345,9 @@ export class MapaComponent implements AfterViewInit, OnChanges {
         duration: 3000,
         panelClass: ['pao-quentinho-snackbar']
       });
+
+      // Envia a inscrição para o backend
+      this.notificationService.addPushSubscriber(sub).subscribe();
 
     } catch (err) {
       console.error('Não foi possível se inscrever para notificações push', err);

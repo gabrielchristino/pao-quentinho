@@ -1,11 +1,36 @@
+<div class="install-banner" *ngIf="installPrompt && showInstallBanner">
+  <div class="install-banner-content">
+    <mat-icon>add_to_home_screen</mat-icon>
+    <div class="install-banner-text">
+      <strong>Instale o Pão Quentinho!</strong>
+      <span>Acesse mais rápido, direto da sua tela inicial.</span>
+    </div>
+    <button mat-flat-button color="primary" (click)="instalarPWA()">Instalar</button>
+    <button mat-icon-button (click)="dismissInstallBanner()" aria-label="Dispensar instalação">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+</div>
 <div class="map-container">
   <div #map id="map"></div>
 
-  <mat-button-toggle-group class="radius-filter" [value]="raio" (change)="definirRaio($event.value)">
+  <mat-button-toggle-group class="radius-filter" [value]="raio" (change)="definirRaio($event.value)" *ngIf="!routingControl">
     <mat-button-toggle [value]="500">500m</mat-button-toggle>
     <mat-button-toggle [value]="1000">1km</mat-button-toggle>
     <mat-button-toggle [value]="5000">5km</mat-button-toggle>
   </mat-button-toggle-group>
+
+  <!-- Botão para Sair da Rota -->
+  <button
+    mat-fab extended
+    color="warn"
+    class="exit-route-button"
+    *ngIf="routingControl"
+    (click)="fecharDetalhe()"
+  >
+    <mat-icon>close</mat-icon>
+    Sair da Navegação
+  </button>
 
 </div>
 
@@ -13,27 +38,77 @@
 <div
   id="bottomSheet"
   [class.open]="isListOpen"
+  *ngIf="!routingControl"
   (touchstart)="onTouchStart($event)"
   (touchmove)="onTouchMove($event)"
   (touchend)="onTouchEnd($event)"
 >
-  <div class="handle" (click)="toggleList()">
+  <div class="handle" (click)="alternarLista()">
     <div class="handle-bar"></div>
   </div>
   <div class="sheet-content">
-    <h4 *ngIf="estabelecimentosVisiveis.length > 0; else noResults">
+    <h4 class="sheet-title" *ngIf="estabelecimentosVisiveis.length > 0; else noResults">
       Exibindo {{ estabelecimentosVisiveis.length }} de {{ todosEstabelecimentos.length }} locais
     </h4>
     <ng-template #noResults>
-      <h4>Nenhum local encontrado neste raio.</h4>
+      <h4 class="sheet-title">Nenhum local encontrado neste raio.</h4>
     </ng-template>
     <mat-nav-list>
-      <a mat-list-item *ngFor="let est of estabelecimentosVisiveis" (click)="centerOnEstablishment(est)">
-        <div matListItemTitle>{{ est.nome }}</div>
-        <div matListItemLine>{{ est.tipo }}</div>
+      <a mat-list-item *ngFor="let est of estabelecimentosVisiveis" (click)="selecionarEstabelecimento(est)" class="establishment-list-item">
+        <mat-icon matListItemIcon class="list-item-icon">
+          @switch (est.tipo) {
+            @case ('padaria') { bakery_dining }
+            @case ('confeitaria') { cake }
+            @case ('doceria') { icecream }
+            @default { storefront }
+          }
+        </mat-icon>
+        <div matListItemTitle class="list-item-title">{{ est.nome }}</div>
+        <div matListItemLine class="list-item-line">{{ est.tipo }}</div>
         <span class="list-item-spacer"></span>
         <div matListItemMeta class="distancia-meta">{{ est.distanciaKm.toFixed(2) }} km</div>
       </a>
     </mat-nav-list>
   </div>
+</div>
+
+<!-- Card de Detalhes do Estabelecimento -->
+<div class="establishment-details-container" *ngIf="selectedEstabelecimento" (click)="fecharDetalhe()">
+  <mat-card class="establishment-card" (click)="$event.stopPropagation()">
+    <mat-card-header>
+      <mat-card-title>{{ selectedEstabelecimento.nome }}</mat-card-title>
+      <mat-card-subtitle>{{ selectedEstabelecimento.endereco.bairro }} - {{ selectedEstabelecimento.distanciaKm.toFixed(2) }} km</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+
+      <!-- Destaque da Próxima Fornada -->
+      <div class="fornada-highlight">
+        <mat-icon>bakery_dining</mat-icon>
+        <span>Próxima fornada quentinha às <b>{{ selectedEstabelecimento.proximaFornada }}</b></span>
+      </div>
+
+      <!-- Informações -->
+      <p class="info-text">{{ selectedEstabelecimento.info }}</p>
+
+      <!-- Endereço Clicável -->
+      <a class="address-container" (click)="iniciarNavegacao(selectedEstabelecimento, $event)" mat-ripple>
+        <div class="address-content">
+          <mat-icon class="location-icon">location_on</mat-icon>
+          <div class="address-text">
+            <p>{{ selectedEstabelecimento.endereco.rua }}, {{ selectedEstabelecimento.endereco.numero }}</p>
+            <small>Toque para ver a rota</small>
+          </div>
+        </div>
+        <mat-icon>chevron_right</mat-icon>
+      </a>
+
+    </mat-card-content>
+    <mat-card-actions class="card-actions-wrapper">
+      <button mat-flat-button color="primary" class="follow-button" (click)="seguirEstabelecimento(selectedEstabelecimento, $event)">
+        <mat-icon>notifications</mat-icon>
+        Seguir e receber alertas
+      </button>
+      <button mat-button (click)="fecharDetalhe()">Fechar</button>
+    </mat-card-actions>
+  </mat-card>
 </div>

@@ -16,7 +16,7 @@ export interface Estabelecimento {
   latitude: number;
   longitude: number;
   nome: string;
-  tipo: 'padaria' | 'doceria' | 'casaDeBolos' | 'outros'; // camelCase
+  tipo: 'padaria' | 'doceria' | 'casaDeBolos' | 'outros' | 'confeitaria'; // camelCase
   horarioAbertura: string;
   horarioFechamento: string;
   proximaFornada: string;
@@ -30,8 +30,13 @@ export class EstabelecimentosService {
   private readonly apiUrl = 'https://pao-quentinho-backend-production.up.railway.app/api';
 
   constructor(private http: HttpClient) {}
+  private readonly apiUrl = 'https://pao-quentinho-backend-production.up.railway.app/api';
+
+  constructor(private http: HttpClient) {}
 
   getEstabelecimentosProximos(userLat: number, userLng: number): Observable<HttpResponse<Estabelecimento[]>> {
+    // Passa a localização do usuário como query params para o backend calcular a distância
+    return this.http.get<Estabelecimento[]>(`${this.apiUrl}/estabelecimentos?lat=${userLat}&lng=${userLng}`, { observe: 'response' });
     // Passa a localização do usuário como query params para o backend calcular a distância
     return this.http.get<Estabelecimento[]>(`${this.apiUrl}/estabelecimentos?lat=${userLat}&lng=${userLng}`, { observe: 'response' });
   }
