@@ -6,8 +6,7 @@ import { Observable } from 'rxjs';
   providedIn: 'root'
 })
 export class NotificationService {
-  // URL da sua API no Railway
-  private readonly apiUrl = 'https://pao-quentinho-api-production.up.railway.app/api';
+  private readonly apiUrl = 'https://pao-quentinho-backend-production.up.railway.app/api';
 
   constructor(private http: HttpClient) { }
 

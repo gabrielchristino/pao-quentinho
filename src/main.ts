@@ -4,6 +4,7 @@ import { AppComponent } from './app/app.component';
 import { provideServiceWorker } from '@angular/service-worker';
 import { isDevMode } from '@angular/core';
 import { provideAnimations } from '@angular/platform-browser/animations';
+import { provideHttpClient } from '@angular/common/http';
  
 bootstrapApplication(AppComponent, {
   ...appConfig,
@@ -13,6 +14,7 @@ bootstrapApplication(AppComponent, {
         registrationStrategy: 'registerWhenStable:30000'
     }),
     provideAnimations(),
+    provideHttpClient(),
     ...(appConfig.providers || [])
   ]
 })
