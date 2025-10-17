@@ -32,8 +32,7 @@ export class EstabelecimentosService {
   constructor(private http: HttpClient) {}
 
   getEstabelecimentosProximos(userLat: number, userLng: number): Observable<HttpResponse<Estabelecimento[]>> {
-    // No futuro, você pode passar a lat/lng do usuário como query params
-    // ex: `${this.apiUrl}/estabelecimentos?lat=${userLat}&lng=${userLng}`
-    return this.http.get<Estabelecimento[]>(`${this.apiUrl}/estabelecimentos`, { observe: 'response' });
+    // Passa a localização do usuário como query params para o backend calcular a distância
+    return this.http.get<Estabelecimento[]>(`${this.apiUrl}/estabelecimentos?lat=${userLat}&lng=${userLng}`, { observe: 'response' });
   }
 }
