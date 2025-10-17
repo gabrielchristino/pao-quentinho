@@ -12,6 +12,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatRippleModule } from '@angular/material/core';
+import { SwPush } from '@angular/service-worker';
 
 const iconRetinaUrl = 'assets/marker-icon-2x.png';
 const iconUrl = 'assets/marker-icon.png';
@@ -75,7 +76,8 @@ export class MapaComponent implements AfterViewInit, OnChanges {
   constructor(
     private estabelecimentoService: EstabelecimentosService,
     private _ngZone: NgZone,
-    private _elementRef: ElementRef<HTMLElement>
+    private _elementRef: ElementRef<HTMLElement>,
+    private swPush: SwPush
   ) {}
 
   @HostListener('window:beforeinstallprompt', ['$event'])
@@ -317,10 +319,33 @@ export class MapaComponent implements AfterViewInit, OnChanges {
     }
   }
 
-  seguirEstabelecimento(est: Estabelecimento, event: MouseEvent): void {
+  async seguirEstabelecimento(est: Estabelecimento, event: MouseEvent): Promise<void> {
     event.stopPropagation(); // Impede que o clique feche o card
-    alert(`Você agora está seguindo a ${est.nome}!`);
-    // Aqui você implementaria a lógica de inscrição
+
+    if (!this.swPush.isEnabled) {
+      alert('As notificações push não são suportadas ou estão desabilitadas neste navegador.');
+      return;
+    }
+
+    try {
+      // IMPORTANTE: Esta chave pública deve ser gerada no seu backend.
+      // Esta é uma chave de exemplo, você PRECISA gerar a sua.
+      const VAPID_PUBLIC_KEY = 'BFz_rrRRymdPKoVE8Cq-jVTkyi095ueG00U6S5HtiQIxcfNrz7LCAISyiJA6x2broJZbPiLHUlndKoUPHnznGh4';
+
+      const sub = await this.swPush.requestSubscription({
+        serverPublicKey: VAPID_PUBLIC_KEY,
+      });
+
+      console.log('Inscrição para Push Notification obtida:', sub.toJSON());
+      alert(`Inscrição realizada com sucesso para a ${est.nome}!`);
+
+      // AQUI você enviaria o objeto 'sub' para o seu backend para ser armazenado.
+      // Ex: this.meuServicoDeBackend.salvarInscricao(sub, est.id);
+
+    } catch (err) {
+      console.error('Não foi possível se inscrever para notificações push', err);
+      alert('Não foi possível realizar a inscrição. Verifique se as notificações não estão bloqueadas para este site.');
+    }
   }
 
   onTouchStart(event: TouchEvent): void {
