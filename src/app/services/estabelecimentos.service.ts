@@ -34,7 +34,5 @@ export class EstabelecimentosService {
   getEstabelecimentosProximos(userLat: number, userLng: number): Observable<HttpResponse<Estabelecimento[]>> {
     // Passa a localização do usuário como query params para o backend calcular a distância
     return this.http.get<Estabelecimento[]>(`${this.apiUrl}/estabelecimentos?lat=${userLat}&lng=${userLng}`, { observe: 'response' });
-    // Passa a localização do usuário como query params para o backend calcular a distância
-    return this.http.get<Estabelecimento[]>(`${this.apiUrl}/estabelecimentos?lat=${userLat}&lng=${userLng}`, { observe: 'response' });
   }
 }
