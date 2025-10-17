@@ -1,6 +1,7 @@
 import { Component, AfterViewInit, ViewChild, ElementRef, Input, OnChanges, SimpleChanges, NgZone, HostListener } from '@angular/core';
 import L from 'leaflet';
 import { Estabelecimento, EstabelecimentosService } from '../services/estabelecimentos.service';
+import { NotificationService } from '../services/notification.service';
 import { FormsModule } from '@angular/forms';
 import 'leaflet-routing-machine';
 import { CommonModule } from '@angular/common';
@@ -78,7 +79,8 @@ export class MapaComponent implements AfterViewInit, OnChanges {
     private _ngZone: NgZone,
     private _elementRef: ElementRef<HTMLElement>,
     private swPush: SwPush,
-    private _snackBar: MatSnackBar
+    private _snackBar: MatSnackBar,
+    private notificationService: NotificationService
   ) {}
 
   @HostListener('window:beforeinstallprompt', ['$event'])
@@ -344,8 +346,8 @@ export class MapaComponent implements AfterViewInit, OnChanges {
         panelClass: ['pao-quentinho-snackbar']
       });
 
-      // AQUI você enviaria o objeto 'sub' para o seu backend para ser armazenado.
-      // Ex: this.meuServicoDeBackend.salvarInscricao(sub, est.id);
+      // Envia a inscrição para o backend
+      this.notificationService.addPushSubscriber(sub).subscribe();
 
     } catch (err) {
       console.error('Não foi possível se inscrever para notificações push', err);
