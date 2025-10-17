@@ -12,6 +12,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatRippleModule } from '@angular/material/core';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { SwPush } from '@angular/service-worker';
 
 const iconRetinaUrl = 'assets/marker-icon-2x.png';
@@ -47,7 +48,8 @@ const SWIPE_THRESHOLD = 50; // Distância mínima em pixels para considerar um g
     MatIconModule,
     MatCardModule,
     MatTooltipModule,
-    MatRippleModule
+    MatRippleModule,
+    MatSnackBarModule
   ],
   templateUrl: './mapa.component.html',
   styleUrl: './mapa.component.scss',
@@ -77,7 +79,8 @@ export class MapaComponent implements AfterViewInit, OnChanges {
     private estabelecimentoService: EstabelecimentosService,
     private _ngZone: NgZone,
     private _elementRef: ElementRef<HTMLElement>,
-    private swPush: SwPush
+    private swPush: SwPush,
+    private _snackBar: MatSnackBar
   ) {}
 
   @HostListener('window:beforeinstallprompt', ['$event'])
@@ -323,7 +326,10 @@ export class MapaComponent implements AfterViewInit, OnChanges {
     event.stopPropagation(); // Impede que o clique feche o card
 
     if (!this.swPush.isEnabled) {
-      alert('As notificações push não são suportadas ou estão desabilitadas neste navegador.');
+      this._snackBar.open('As notificações push não são suportadas ou estão desabilitadas.', 'Fechar', {
+        duration: 5000,
+        panelClass: ['pao-quentinho-snackbar']
+      });
       return;
     }
 
@@ -337,14 +343,20 @@ export class MapaComponent implements AfterViewInit, OnChanges {
       });
 
       console.log('Inscrição para Push Notification obtida:', sub.toJSON());
-      alert(`Inscrição realizada com sucesso para a ${est.nome}!`);
+      this._snackBar.open(`Inscrição realizada com sucesso para a ${est.nome}!`, 'Ok', {
+        duration: 3000,
+        panelClass: ['pao-quentinho-snackbar']
+      });
 
       // AQUI você enviaria o objeto 'sub' para o seu backend para ser armazenado.
       // Ex: this.meuServicoDeBackend.salvarInscricao(sub, est.id);
 
     } catch (err) {
       console.error('Não foi possível se inscrever para notificações push', err);
-      alert('Não foi possível realizar a inscrição. Verifique se as notificações não estão bloqueadas para este site.');
+      this._snackBar.open('Não foi possível se inscrever. Verifique se as notificações não estão bloqueadas.', 'Fechar', {
+        duration: 5000,
+        panelClass: ['pao-quentinho-snackbar']
+      });
     }
   }
 

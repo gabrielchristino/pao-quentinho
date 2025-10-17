@@ -15,3 +15,9 @@ html, body {
     overflow: hidden; /* Impede o scroll da página inteira */
     font-family: Roboto, "Helvetica Neue", sans-serif;
 }
+
+/* Garante que todos os componentes de overlay do Material (SnackBar, Dialog, etc.)
+   apareçam sobre os outros elementos da aplicação. */
+.cdk-overlay-container {
+    z-index: 1050; /* Um valor alto para garantir a sobreposição */
+}

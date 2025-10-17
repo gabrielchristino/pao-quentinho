@@ -6,7 +6,7 @@
     "start": "ng serve",
     "build": "ng build",
     "build:git": "ng build --base-href /pao-quentinho/",
-    "build:dev": "ng build",
+    "build:dev": "ng build && cd docs && angular-http-server -p 8080",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "test:ci": "ng test --watch=false --browsers=ChromeHeadlessNoSandbox"
