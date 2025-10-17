@@ -1,7 +1,9 @@
-import { Component, AfterViewInit, ViewChild, ElementRef, Input, OnChanges, SimpleChanges, NgZone } from '@angular/core';
-import * as L from 'leaflet';
+import { Component, AfterViewInit, ViewChild, ElementRef, Input, OnChanges, SimpleChanges, NgZone, HostListener } from '@angular/core';
+import L from 'leaflet';
 import { Estabelecimento, EstabelecimentosService } from '../services/estabelecimentos.service';
+import { NotificationService } from '../services/notification.service';
 import { FormsModule } from '@angular/forms';
+import 'leaflet-routing-machine';
 import { CommonModule } from '@angular/common';
 import { MatBottomSheetModule } from '@angular/material/bottom-sheet';
 import { MatListModule } from '@angular/material/list';
@@ -9,6 +11,10 @@ import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatRippleModule } from '@angular/material/core';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { SwPush } from '@angular/service-worker';
 
 const iconRetinaUrl = 'assets/marker-icon-2x.png';
 const iconUrl = 'assets/marker-icon.png';
@@ -41,7 +47,10 @@ const SWIPE_THRESHOLD = 50; // Distância mínima em pixels para considerar um g
     MatButtonToggleModule,
     MatButtonModule,
     MatIconModule,
-    MatCardModule
+    MatCardModule,
+    MatTooltipModule,
+    MatRippleModule,
+    MatSnackBarModule
   ],
   templateUrl: './mapa.component.html',
   styleUrl: './mapa.component.scss',
@@ -55,52 +64,50 @@ export class MapaComponent implements AfterViewInit, OnChanges {
   private circle?: L.Circle;
   private userMarker?: L.Marker;
   private establishmentMarkers: L.Marker[] = [];
+  routingControl: L.Routing.Control | null = null;
   todosEstabelecimentos: Estabelecimento[] = [];
   estabelecimentosVisiveis: Estabelecimento[] = [];
+  selectedEstabelecimento: Estabelecimento | null = null;
   isListOpen = false;
   isDragging = false;
-  private touchStartY = 0;
-  private currentTranslateY = 0;
   private bottomSheetEl: HTMLElement | null = null;
+  installPrompt: any = null;
+  showInstallBanner = true;
 
   constructor(
     private estabelecimentoService: EstabelecimentosService,
     private _ngZone: NgZone,
-    private _elementRef: ElementRef<HTMLElement>
+    private _elementRef: ElementRef<HTMLElement>,
+    private swPush: SwPush,
+    private _snackBar: MatSnackBar,
+    private notificationService: NotificationService
   ) {}
+
+  @HostListener('window:beforeinstallprompt', ['$event'])
+  onBeforeInstallPrompt(event: any) {
+    // Previne que o mini-infobar do Chrome apareça em mobile.
+    event.preventDefault();
+    // Guarda o evento para que ele possa ser acionado depois.
+    this.installPrompt = event;
+    this.showInstallBanner = true;
+  }
 
   ngAfterViewInit(): void {
     this.bottomSheetEl = this._elementRef.nativeElement.querySelector('#bottomSheet');
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    // Verifica se temos coordenadas válidas
-    if (this.latitude !== null && this.longitude !== null) {
-      if (!this.map) {
-        // Se o mapa não foi inicializado, inicializa agora com as coordenadas recebidas.
-        this.initMap();
-      } else {
-        // Se o mapa já existe e as coordenadas mudaram, apenas atualiza a localização.
-        this.updateMapLocation();
-      }
+    // Se as coordenadas foram recebidas pela primeira vez e o mapa ainda não foi criado.
+    if (this.latitude !== null && this.longitude !== null && !this.map) {
+      this.inicializarMapa();
+    } 
+    // Se as coordenadas mudaram DEPOIS que o mapa já foi inicializado.
+    else if (this.map && (changes['latitude'] || changes['longitude'])) {
+      this.atualizarLocalizacaoMapa();
     }
   }
 
-  private updateMapLocation(): void {
-    if (!this.map || this.latitude === null || this.longitude === null) return;
-    const newLatLng = new L.LatLng(this.latitude, this.longitude);
-    this.map.setView(newLatLng);
-
-    if (this.userMarker) {
-      this.userMarker.setLatLng(newLatLng);
-    }
-    if (this.circle) {
-      this.circle.setLatLng(newLatLng);
-    }
-    this.loadEstabelecimentos();
-  }
-
-  private initMap(): void {
+  private inicializarMapa(): void {
     if (this.map || this.latitude === null || this.longitude === null) return;
     const zoomLevel = this.calculateZoomLevel(this.raio);
     this.map = L.map(this.mapElementRef.nativeElement).setView([this.latitude, this.longitude], zoomLevel);
@@ -118,7 +125,7 @@ export class MapaComponent implements AfterViewInit, OnChanges {
     // Adiciona o evento de clique no mapa para fechar o bottom sheet
     this.map.on('click', () => {
       if (this.isListOpen) {
-        // Executa dentro da zona do Angular para garantir a atualização da UI
+        // Executa dentro da zona do Angular para garantir a atualização da UI a partir de eventos de libs externas
         this._ngZone.run(() => {
           this.isListOpen = false;
         });
@@ -144,10 +151,24 @@ export class MapaComponent implements AfterViewInit, OnChanges {
       radius: this.raio
     }).addTo(this.map);
 
-    this.loadEstabelecimentos();
+    this.carregarEstabelecimentos();
   }
 
-  private loadEstabelecimentos(): void {
+  private atualizarLocalizacaoMapa(): void {
+    if (!this.map || this.latitude === null || this.longitude === null) return;
+    const newLatLng = new L.LatLng(this.latitude, this.longitude);
+    this.map.setView(newLatLng);
+
+    if (this.userMarker) {
+      this.userMarker.setLatLng(newLatLng);
+    }
+    if (this.circle) {
+      this.circle.setLatLng(newLatLng);
+    }
+    this.carregarEstabelecimentos();
+  }
+
+  private carregarEstabelecimentos(): void {
     if (!this.map || this.latitude === null || this.longitude === null) return;
 
     // Limpa os marcadores de estabelecimentos anteriores
@@ -171,17 +192,15 @@ export class MapaComponent implements AfterViewInit, OnChanges {
           })
         });
 
-        marker
-          .bindPopup(`
-            <b>${estabelecimento.nome}</b><br><br>
-            Próxima fornada quentinha às <b>${estabelecimento.proximaFornada}</b><br><br>
-            ${estabelecimento.info}<br><br>
-            ${estabelecimento.endereco.rua}, ${estabelecimento.endereco.numero} - ${estabelecimento.endereco.bairro}<br>
-            ${estabelecimento.endereco.cidade} - ${estabelecimento.endereco.estado}<br>
-            distância ${estabelecimento.distanciaKm.toFixed(2)} km
-          `, {maxWidth: window.innerWidth - 100});
+        marker.on('click', () => {
+          this._ngZone.run(() => {
+            this.selecionarEstabelecimento(estabelecimento);
+          });
+        });
 
-        marker.addTo(this.map!);
+        if (this.map) {
+          marker.addTo(this.map);
+        }
         this.establishmentMarkers.push(marker);
       }
     });
@@ -204,68 +223,136 @@ export class MapaComponent implements AfterViewInit, OnChanges {
     this.definirRaio(raioEncontrado);
   }
 
-  toggleList(): void {
+  alternarLista(): void {
     this.isListOpen = !this.isListOpen;
   }
 
-  centerOnEstablishment(est: Estabelecimento): void {
+  selecionarEstabelecimento(est: Estabelecimento): void {
+    this.selectedEstabelecimento = est;
+    this.isListOpen = false; // Fecha a lista para dar espaço ao card de detalhe
+    if (this.routingControl) {
+      this.routingControl.remove();
+      this.routingControl = null;
+    }
     if (this.map) {
       this.map.flyTo([est.latitude, est.longitude], 17); // 17 é um bom nível de zoom para ver de perto
-      this.isListOpen = false;
     }
   }
 
-  onTouchStart(event: TouchEvent): void {
-    // Ignora o gesto se o scroll interno da lista estiver ativo
-    const sheetContent = (event.currentTarget as HTMLElement).querySelector('.sheet-content');
-    if (sheetContent && sheetContent.scrollTop > 0) {
-      this.isDragging = false;
+  instalarPWA(): void {
+    if (!this.installPrompt) {
+      return;
+    }
+    // Mostra o prompt de instalação
+    this.installPrompt.prompt();
+    // O evento só pode ser usado uma vez.
+    this.installPrompt = null;
+  }
+
+  dismissInstallBanner(): void {
+    this.showInstallBanner = false;
+  }
+
+  fecharDetalhe(recentralizar = true): void {
+    this.selectedEstabelecimento = null;
+    if (this.routingControl) {
+      this.routingControl.remove();
+      this.routingControl = null;
+    }
+    if (recentralizar && this.map && this.latitude !== null && this.longitude !== null) {
+      const zoomLevel = this.calculateZoomLevel(this.raio);
+      this.map.flyTo([this.latitude, this.longitude], zoomLevel);
+    }
+
+    // Desabilita o zoom ao sair do modo de navegação
+    if (this.map) {
+      this.map.scrollWheelZoom.disable();
+      this.map.touchZoom.disable();
+      this.map.doubleClickZoom.disable();
+    }
+  }
+
+  iniciarNavegacao(est: Estabelecimento, event: MouseEvent): void {
+    event.stopPropagation(); // Impede que o clique se propague para outros elementos
+
+    // 1. Fecha o modal de detalhes sem recentralizar o mapa
+    this.fecharDetalhe(false);
+
+    if (!this.map || this.latitude === null || this.longitude === null) return;
+
+    // 2. Remove qualquer rota anterior
+    if (this.routingControl) {
+      this.routingControl.remove();
+    }
+
+    // 3. Cria e exibe a nova rota
+    this.routingControl = L.Routing.control({
+      routeWhileDragging: true,
+      show: false, // Oculta o painel de instruções
+      addWaypoints: false,
+      fitSelectedRoutes: false, // Desativamos o ajuste automático para controlar manualmente
+      lineOptions: {
+        styles: [{color: '#6200ee', opacity: 0.8, weight: 6}]
+      } as any,
+      plan: L.Routing.plan([
+        L.latLng(this.latitude, this.longitude),
+        L.latLng(est.latitude, est.longitude)
+      ], {
+        // Esta função impede a criação dos marcadores de início e fim
+        createMarker: function() { return false; }
+      })
+    }).addTo(this.map);
+
+    // 4. Ajusta o mapa manualmente para enquadrar a rota
+    const bounds = L.latLngBounds([
+      L.latLng(this.latitude, this.longitude),
+      L.latLng(est.latitude, est.longitude)
+    ]);
+
+    // Adiciona um "respiro" (padding) nas bordas do mapa
+    this.map.fitBounds(bounds, { padding: [50, 50] });
+
+    // 5. Habilita o zoom no modo de navegação
+    if (this.map) {
+      this.map.scrollWheelZoom.enable();
+      this.map.touchZoom.enable();
+      this.map.doubleClickZoom.enable();
+    }
+  }
+
+  async seguirEstabelecimento(est: Estabelecimento, event: MouseEvent): Promise<void> {
+    event.stopPropagation(); // Impede que o clique feche o card
+
+    if (!this.swPush.isEnabled) {
+      this._snackBar.open('As notificações push não são suportadas ou estão desabilitadas.', 'Fechar', {
+        duration: 5000,
+        panelClass: ['pao-quentinho-snackbar']
+      });
       return;
     }
 
-    this.isDragging = true;
-    // Guarda a posição inicial do toque no eixo Y
-    this.touchStartY = event.touches[0].clientY;
-    this.bottomSheetEl?.classList.add('dragging');
-  }
+    try {
+      // Busca a chave VAPID do backend
+      this.notificationService.getVapidPublicKey().subscribe(async (vapidPublicKey) => {
+        const sub = await this.swPush.requestSubscription({
+          serverPublicKey: vapidPublicKey,
+        });
+        this.notificationService.addPushSubscriber(sub).subscribe();
+      });
 
-  onTouchMove(event: TouchEvent): void {
-    if (!this.isDragging) return;
+      console.log('Inscrição para Push Notification obtida:', sub.toJSON());
+      this._snackBar.open(`Inscrição realizada com sucesso para a ${est.nome}!`, 'Ok', {
+        duration: 3000,
+        panelClass: ['pao-quentinho-snackbar']
+      });
 
-    const sheetEl = this.bottomSheetEl;
-    if (!sheetEl) return;
-
-    const touchMoveY = event.touches[0].clientY;
-    const deltaY = touchMoveY - this.touchStartY;
-
-    // Posição inicial (aberto ou fechado) + deslocamento do dedo
-    const startY = this.isListOpen ? 0 : sheetEl.clientHeight - BOTTOM_SHEET_PEEK_HEIGHT;
-    const newTranslateY = startY + deltaY;
-
-    // Limita o movimento para não "estourar" os limites da tela
-    const constrainedY = Math.max(0, newTranslateY);
-
-    sheetEl.style.transform = `translateY(${constrainedY}px)`;
-    sheetEl.style.transition = 'none'; // Remove a transição durante o arraste
-  }
-
-  onTouchEnd(event: TouchEvent): void {
-    if (!this.isDragging) return;
-    this.isDragging = false;
-
-    const sheetEl = this.bottomSheetEl;
-    if (!sheetEl) return;
-
-    sheetEl.classList.remove('dragging');
-    sheetEl.style.transform = ''; // Deixa o CSS controlar a posição final
-    sheetEl.style.transition = ''; // Restaura a transição
-
-    const touchEndY = event.changedTouches[0].clientY;
-    const deltaY = touchEndY - this.touchStartY;
-
-    // Decide se abre ou fecha com base na direção e intensidade do deslize
-    if (deltaY < -SWIPE_THRESHOLD) this.isListOpen = true; // Deslizou para cima
-    if (deltaY > SWIPE_THRESHOLD) this.isListOpen = false; // Deslizou para baixo
+    } catch (err) {
+      console.error('Não foi possível se inscrever para notificações push', err);
+      this._snackBar.open('Não foi possível se inscrever. Verifique se as notificações não estão bloqueadas.', 'Fechar', {
+        duration: 5000,
+        panelClass: ['pao-quentinho-snackbar']
+      });
+    }
   }
 
   definirRaio(novoRaio: number): void {
@@ -286,6 +373,60 @@ export class MapaComponent implements AfterViewInit, OnChanges {
     this.estabelecimentosVisiveis = this.todosEstabelecimentos
       .filter(est => est.distanciaKm <= raioEmKm)
       .sort((a, b) => a.distanciaKm - b.distanciaKm);
+  }
+
+  // --- Lógica de Arrastar o Bottom Sheet ---
+  private touchStartY = 0;
+
+  protected onTouchStart(event: TouchEvent): void {
+    // Ignora o gesto se o scroll interno da lista estiver ativo
+    const sheetContent = (event.currentTarget as HTMLElement).querySelector('.sheet-content');
+    if (sheetContent && sheetContent.scrollTop > 0) {
+      this.isDragging = false;
+      return;
+    }
+
+    this.isDragging = true;
+    // Guarda a posição inicial do toque no eixo Y
+    this.touchStartY = event.touches[0].clientY;
+    this.bottomSheetEl?.classList.add('dragging');
+  }
+
+  protected onTouchMove(event: TouchEvent): void {
+    if (!this.isDragging) return;
+
+    const sheetEl = this.bottomSheetEl;
+    if (!sheetEl) return;
+
+    const touchMoveY = event.touches[0].clientY;
+    const deltaY = touchMoveY - this.touchStartY;
+
+    // Posição inicial (aberto ou fechado) + deslocamento do dedo
+    const startY = this.isListOpen ? 0 : sheetEl.clientHeight - BOTTOM_SHEET_PEEK_HEIGHT;
+    const newTranslateY = startY + deltaY;
+
+    // Limita o movimento para não "estourar" os limites da tela
+    const constrainedY = Math.max(0, newTranslateY);
+
+    sheetEl.style.transform = `translateY(${constrainedY}px)`;
+  }
+
+  protected onTouchEnd(event: TouchEvent): void {
+    if (!this.isDragging) return;
+    this.isDragging = false;
+
+    const sheetEl = this.bottomSheetEl;
+    if (!sheetEl) return;
+
+    sheetEl.classList.remove('dragging');
+    sheetEl.style.transform = ''; // Deixa o CSS controlar a posição final
+
+    const touchEndY = event.changedTouches[0].clientY;
+    const deltaY = touchEndY - this.touchStartY;
+
+    // Decide se abre ou fecha com base na direção e intensidade do deslize
+    if (deltaY < -SWIPE_THRESHOLD) this.isListOpen = true; // Deslizou para cima
+    if (deltaY > SWIPE_THRESHOLD) this.isListOpen = false; // Deslizou para baixo
   }
 
   private calculateZoomLevel(radiusInMeters: number): number {
