@@ -4,8 +4,8 @@
   "theme_color": "#f7c7ce",
   "background_color": "#ffffff",
   "display": "standalone",
-  "scope": "/pao-quentinho/",
-  "start_url": "/pao-quentinho/",
+  "scope": "/",
+  "start_url": "/",
   "icons": [
     {
       "src": "assets/icons/icon-72x72.png",
