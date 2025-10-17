@@ -346,7 +346,7 @@ export class MapaComponent implements AfterViewInit, OnChanges {
       });
 
       // Envia a inscrição para o backend
-      await firstValueFrom(this.notificationService.addPushSubscriber(sub));
+      await firstValueFrom(this.notificationService.addPushSubscriber(sub, est.id));
 
       console.log('Inscrição para Push Notification obtida e salva:', sub.toJSON());
       this._snackBar.open(`Inscrição realizada com sucesso para a ${est.nome}!`, 'Ok', {

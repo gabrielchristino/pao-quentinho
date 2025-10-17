@@ -10,8 +10,8 @@ export class NotificationService {
 
   constructor(private http: HttpClient) { }
 
-  addPushSubscriber(sub: PushSubscription): Observable<any> {
-    return this.http.post(`${this.apiUrl}/subscribe`, sub);
+  addPushSubscriber(sub: PushSubscription, estabelecimentoId: number): Observable<any> {
+    return this.http.post(`${this.apiUrl}/subscribe`, { subscription: sub, estabelecimentoId });
   }
 
   getVapidPublicKey(): Observable<string> {

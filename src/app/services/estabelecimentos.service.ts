@@ -13,6 +13,7 @@ export interface Endereco {
 }
 
 export interface Estabelecimento {
+  id: number;
   latitude: number;
   longitude: number;
   nome: string;
