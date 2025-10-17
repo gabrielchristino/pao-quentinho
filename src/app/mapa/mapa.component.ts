@@ -1,4 +1,4 @@
-import { Component, AfterViewInit, ViewChild, ElementRef, Input, OnChanges, SimpleChanges, NgZone } from '@angular/core';
+import { Component, AfterViewInit, ViewChild, ElementRef, Input, OnChanges, SimpleChanges, NgZone, HostListener } from '@angular/core';
 import L from 'leaflet';
 import { Estabelecimento, EstabelecimentosService } from '../services/estabelecimentos.service';
 import { FormsModule } from '@angular/forms';
@@ -69,12 +69,23 @@ export class MapaComponent implements AfterViewInit, OnChanges {
   private touchStartY = 0;
   private currentTranslateY = 0;
   private bottomSheetEl: HTMLElement | null = null;
+  installPrompt: any = null;
+  showInstallBanner = true;
 
   constructor(
     private estabelecimentoService: EstabelecimentosService,
     private _ngZone: NgZone,
     private _elementRef: ElementRef<HTMLElement>
   ) {}
+
+  @HostListener('window:beforeinstallprompt', ['$event'])
+  onBeforeInstallPrompt(event: any) {
+    // Previne que o mini-infobar do Chrome apareça em mobile.
+    event.preventDefault();
+    // Guarda o evento para que ele possa ser acionado depois.
+    this.installPrompt = event;
+    this.showInstallBanner = true;
+  }
 
   ngAfterViewInit(): void {
     this.bottomSheetEl = this._elementRef.nativeElement.querySelector('#bottomSheet');
@@ -225,6 +236,20 @@ export class MapaComponent implements AfterViewInit, OnChanges {
     }
   }
 
+  instalarPWA(): void {
+    if (!this.installPrompt) {
+      return;
+    }
+    // Mostra o prompt de instalação
+    this.installPrompt.prompt();
+    // O evento só pode ser usado uma vez.
+    this.installPrompt = null;
+  }
+
+  dismissInstallBanner(): void {
+    this.showInstallBanner = false;
+  }
+
   fecharDetalhe(recentralizar = true): void {
     this.selectedEstabelecimento = null;
     if (this.routingControl) {
@@ -259,17 +284,20 @@ export class MapaComponent implements AfterViewInit, OnChanges {
 
     // 3. Cria e exibe a nova rota
     this.routingControl = L.Routing.control({
-      waypoints: [
-        L.latLng(this.latitude, this.longitude),
-        L.latLng(est.latitude, est.longitude)
-      ],
       routeWhileDragging: true,
       show: false, // Oculta o painel de instruções
       addWaypoints: false,
       fitSelectedRoutes: false, // Desativamos o ajuste automático para controlar manualmente
       lineOptions: {
         styles: [{color: '#6200ee', opacity: 0.8, weight: 6}]
-      } as any
+      } as any,
+      plan: L.Routing.plan([
+        L.latLng(this.latitude, this.longitude),
+        L.latLng(est.latitude, est.longitude)
+      ], {
+        // Esta função impede a criação dos marcadores de início e fim
+        createMarker: function() { return false; }
+      })
     }).addTo(this.map);
 
     // 4. Ajusta o mapa manualmente para enquadrar a rota
@@ -374,4 +402,3 @@ export class MapaComponent implements AfterViewInit, OnChanges {
     return zoomLevels[radiusInMeters as keyof typeof zoomLevels] || 12;
   }
 }
-

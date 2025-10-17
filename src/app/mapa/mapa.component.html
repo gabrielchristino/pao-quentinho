@@ -1,3 +1,16 @@
+<div class="install-banner" *ngIf="installPrompt && showInstallBanner">
+  <div class="install-banner-content">
+    <mat-icon>add_to_home_screen</mat-icon>
+    <div class="install-banner-text">
+      <strong>Instale o Pão Quentinho!</strong>
+      <span>Acesse mais rápido, direto da sua tela inicial.</span>
+    </div>
+    <button mat-flat-button color="primary" (click)="instalarPWA()">Instalar</button>
+    <button mat-icon-button (click)="dismissInstallBanner()" aria-label="Dispensar instalação">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+</div>
 <div class="map-container">
   <div #map id="map"></div>
 
