@@ -1,6 +1,6 @@
 {
   "configVersion": 1,
-  "timestamp": 1760712514562,
+  "timestamp": 1760717060914,
   "index": "/pao-quentinho/index.html",
   "assetGroups": [
     {
@@ -10,14 +10,7 @@
       "cacheQueryOptions": {
         "ignoreVary": true
       },
-      "urls": [
-        "/pao-quentinho/favicon.ico",
-        "/pao-quentinho/index.html",
-        "/pao-quentinho/main-SG5TQYMC.js",
-        "/pao-quentinho/manifest.webmanifest",
-        "/pao-quentinho/polyfills-FFHMD2TL.js",
-        "/pao-quentinho/styles-ITRWQVZA.css"
-      ],
+      "urls": [],
       "patterns": []
     },
     {
@@ -27,58 +20,12 @@
       "cacheQueryOptions": {
         "ignoreVary": true
       },
-      "urls": [
-        "/pao-quentinho/assets/icons/casaDeBolos.png",
-        "/pao-quentinho/assets/icons/current-location.png",
-        "/pao-quentinho/assets/icons/doceria.png",
-        "/pao-quentinho/assets/icons/icon-1024x1024.png",
-        "/pao-quentinho/assets/icons/icon-128x128.png",
-        "/pao-quentinho/assets/icons/icon-144x144.png",
-        "/pao-quentinho/assets/icons/icon-152x152.png",
-        "/pao-quentinho/assets/icons/icon-192x192.png",
-        "/pao-quentinho/assets/icons/icon-384x384.png",
-        "/pao-quentinho/assets/icons/icon-512x512.png",
-        "/pao-quentinho/assets/icons/icon-72x72.png",
-        "/pao-quentinho/assets/icons/icon-96x96.png",
-        "/pao-quentinho/assets/icons/outros.png",
-        "/pao-quentinho/assets/icons/padaria.png",
-        "/pao-quentinho/assets/layers-2x.png",
-        "/pao-quentinho/assets/layers.png",
-        "/pao-quentinho/assets/marker-icon-2x.png",
-        "/pao-quentinho/assets/marker-icon.png",
-        "/pao-quentinho/assets/marker-shadow.png"
-      ],
+      "urls": [],
       "patterns": []
     }
   ],
   "dataGroups": [],
-  "hashTable": {
-    "/pao-quentinho/assets/icons/casaDeBolos.png": "af10474c738741ca4cb699b116f3092548f88ccb",
-    "/pao-quentinho/assets/icons/current-location.png": "1b396468604d924debdf902e929e9a840383cbed",
-    "/pao-quentinho/assets/icons/doceria.png": "074b8a94472cddbea02c3100d173cd336b77a710",
-    "/pao-quentinho/assets/icons/icon-1024x1024.png": "b73f0cee205ed71f93d0fd4edef45b8fc72de3c3",
-    "/pao-quentinho/assets/icons/icon-128x128.png": "ecb619d3f356d276282c27e8052b277e3dcf5c7c",
-    "/pao-quentinho/assets/icons/icon-144x144.png": "e3717e589709fefff269da8209ae31252cb60455",
-    "/pao-quentinho/assets/icons/icon-152x152.png": "1e7d72471ee8c96c2f9e0b3809ec0c18ebe7a885",
-    "/pao-quentinho/assets/icons/icon-192x192.png": "ee81cee770530df3d665ac2ed839b884d3468435",
-    "/pao-quentinho/assets/icons/icon-384x384.png": "328671bbc8a625c676b1663b42d32397300513a9",
-    "/pao-quentinho/assets/icons/icon-512x512.png": "02b9d49a378275e5660af13b6569dc044a793405",
-    "/pao-quentinho/assets/icons/icon-72x72.png": "6753d2e945ff284dd5347dd087a0abeafc680011",
-    "/pao-quentinho/assets/icons/icon-96x96.png": "8561a69c98621660682596b653007746f814ca81",
-    "/pao-quentinho/assets/icons/outros.png": "a6bf6ba8441b917d3f344f35af95321da7155044",
-    "/pao-quentinho/assets/icons/padaria.png": "1e4d8669701c71a3eb51441dd0d3bfad51bf1c95",
-    "/pao-quentinho/assets/layers-2x.png": "152a162333e46d24f9d89f566312fc0c64011dee",
-    "/pao-quentinho/assets/layers.png": "c9e7528e491a39232ba24a2706c6c739d6fb0f06",
-    "/pao-quentinho/assets/marker-icon-2x.png": "cf3a536596b1f58e0ac805404183c8e6d6bdacb5",
-    "/pao-quentinho/assets/marker-icon.png": "60a90bcbb2b42b7ddb4556db94eb7c1084b0e5da",
-    "/pao-quentinho/assets/marker-shadow.png": "7b6a8df63930381e96604e705168d0527d6b82bc",
-    "/pao-quentinho/favicon.ico": "9c39f434fe1261f68c5e3eefdf734630d99c5670",
-    "/pao-quentinho/index.html": "8f5bbe05c91a2d91918b6f63aa1498fdcee15c06",
-    "/pao-quentinho/main-SG5TQYMC.js": "a390219f2fa3cb1f6cabd202b72b29553a7aedf8",
-    "/pao-quentinho/manifest.webmanifest": "261ae5f6f6dd833a8c5f9997916cda2d2547ac9d",
-    "/pao-quentinho/polyfills-FFHMD2TL.js": "f49b49a155bc7d192db62a4c15d0a612b460a667",
-    "/pao-quentinho/styles-ITRWQVZA.css": "7a8eeff412de52b3da9b2f89998785b0ad466e6e"
-  },
+  "hashTable": {},
   "navigationUrls": [
     {
       "positive": true,

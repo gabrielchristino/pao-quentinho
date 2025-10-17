@@ -4,7 +4,8 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
-    "build": "ng build --base-href /pao-quentinho/",
+    "build": "ng build",
+    "build:git": "ng build --base-href /pao-quentinho/",
     "build:dev": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
