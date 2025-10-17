@@ -23,7 +23,7 @@
 /* Botão para sair da rota */
 .exit-route-button {
   position: absolute;
-  bottom: 24px;
+  bottom: 150px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 1001;
@@ -98,30 +98,105 @@
   z-index: 1002; /* Acima do filtro e do bottom sheet */
   display: flex;
   justify-content: center;
-  align-items: flex-end; /* Adicione esta linha */
-  padding: 8px;
-  background: linear-gradient(to top, rgba(0,0,0,0.3), transparent); /* Fundo sutil para destacar o card */
+  align-items: flex-end;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.2); // Fundo sutil para destacar o card
+  backdrop-filter: blur(2px); // Efeito de desfoque no fundo
 
   .establishment-card {
     width: 100%;
-    max-width: 500px;
+    max-width: 400px; // Um pouco mais estreito para melhor leitura
     animation: slide-up 0.3s ease-out;
 
     mat-card-header {
-      padding-bottom: 8px;
+      padding: 16px 16px 8px;
     }
 
-    mat-card-content p {
+    mat-card-content {
+      padding: 8px 16px; // Ajuste de padding
+      display: flex;
+      flex-direction: column;
+      gap: 16px; // Espaçamento entre os elementos
+    }
+
+    .fornada-highlight {
       display: flex;
       align-items: center;
-      gap: 8px;
-      margin-bottom: 8px;
+      gap: 12px;
+      background-color: #fffbeb; // Amarelo bem claro
+      border: 1px solid #fde68a; // Borda amarela
+      border-radius: 12px;
+      padding: 12px;
+      font-size: 1rem;
+      color: #78350f; // Texto mais escuro para contraste
     }
 
-    .address {
-      color: rgba(0,0,0,0.6);
+    .info-text {
+      color: rgba(0,0,0,0.7);
+      margin: 0;
+      line-height: 1.5;
+    }
+
+    .address-container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      text-decoration: none;
+      color: inherit;
+      background-color: #f9fafb; // Cinza muito claro
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 12px;
       cursor: pointer;
-      text-decoration: underline;
+      transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+      position: relative; // Para o mat-ripple
+
+      &:hover {
+        background-color: #f3f4f6;
+        border-color: #d1d5db;
+      }
+
+      .address-content {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+      }
+
+      .location-icon {
+        color: rgba(0,0,0,0.5);
+        margin-top: 2px;
+      }
+
+      .address-text {
+        p {
+          font-weight: 500;
+          margin: 0;
+        }
+        small {
+          color: #4f46e5; // Cor primária (índigo)
+          font-weight: 500;
+        }
+      }
+
+      mat-icon:last-of-type { // O chevron
+        color: rgba(0,0,0,0.4);
+      }
+    }
+
+    .card-actions-wrapper {
+      padding: 8px 16px 16px;
+      display: flex;
+      flex-wrap: wrap; // Permite que os botões quebrem a linha se necessário
+      gap: 8px;
+
+      .follow-button {
+        flex-grow: 1; // Faz o botão principal ocupar mais espaço
+      }
+
+      button {
+        padding: 8px 16px;
+        border-radius: 12px;
+      }
     }
   }
 }

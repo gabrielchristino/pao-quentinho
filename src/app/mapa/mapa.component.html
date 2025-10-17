@@ -59,22 +59,35 @@
       <mat-card-subtitle>{{ selectedEstabelecimento.endereco.bairro }} - {{ selectedEstabelecimento.distanciaKm.toFixed(2) }} km</mat-card-subtitle>
     </mat-card-header>
     <mat-card-content>
-      <p>
+
+      <!-- Destaque da Próxima Fornada -->
+      <div class="fornada-highlight">
         <mat-icon>bakery_dining</mat-icon>
-        Próxima fornada quentinha às <b>{{ selectedEstabelecimento.proximaFornada }}</b>
-      </p>
-      <p>{{ selectedEstabelecimento.info }}</p>
-      <p class="address" (click)="iniciarNavegacao(selectedEstabelecimento, $event)">
-        <mat-icon>location_on</mat-icon>
-        {{ selectedEstabelecimento.endereco.rua }}, {{ selectedEstabelecimento.endereco.numero }}
-      </p>
+        <span>Próxima fornada quentinha às <b>{{ selectedEstabelecimento.proximaFornada }}</b></span>
+      </div>
+
+      <!-- Informações -->
+      <p class="info-text">{{ selectedEstabelecimento.info }}</p>
+
+      <!-- Endereço Clicável -->
+      <a class="address-container" (click)="iniciarNavegacao(selectedEstabelecimento, $event)" mat-ripple>
+        <div class="address-content">
+          <mat-icon class="location-icon">location_on</mat-icon>
+          <div class="address-text">
+            <p>{{ selectedEstabelecimento.endereco.rua }}, {{ selectedEstabelecimento.endereco.numero }}</p>
+            <small>Toque para ver a rota</small>
+          </div>
+        </div>
+        <mat-icon>chevron_right</mat-icon>
+      </a>
+
     </mat-card-content>
-    <mat-card-actions align="end">
-      <button mat-flat-button color="primary" (click)="seguirEstabelecimento(selectedEstabelecimento, $event)">
+    <mat-card-actions class="card-actions-wrapper">
+      <button mat-flat-button color="primary" class="follow-button" (click)="seguirEstabelecimento(selectedEstabelecimento, $event)">
         <mat-icon>notifications</mat-icon>
-        Seguir
+        Seguir e receber alertas
       </button>
-      <button mat-button (click)="fecharDetalhe()">FECHAR</button>
+      <button mat-button (click)="fecharDetalhe()">Fechar</button>
     </mat-card-actions>
   </mat-card>
 </div>
