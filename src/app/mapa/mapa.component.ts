@@ -1,6 +1,7 @@
 import { Component, AfterViewInit, ViewChild, ElementRef, Input, OnChanges, SimpleChanges, NgZone, HostListener } from '@angular/core';
 import L from 'leaflet';
 import { Estabelecimento, EstabelecimentosService } from '../services/estabelecimentos.service';
+import { firstValueFrom } from 'rxjs';
 import { NotificationService } from '../services/notification.service';
 import { FormsModule } from '@angular/forms';
 import 'leaflet-routing-machine';
@@ -332,23 +333,26 @@ export class MapaComponent implements AfterViewInit, OnChanges {
     }
 
     try {
-      // IMPORTANTE: Esta chave pública deve ser gerada no seu backend.
-      // Esta é uma chave de exemplo, você PRECISA gerar a sua.
-      const VAPID_PUBLIC_KEY = 'BFz_rrRRymdPKoVE8Cq-jVTkyi095ueG00U6S5HtiQIxcfNrz7LCAISyiJA6x2broJZbPiLHUlndKoUPHnznGh4';
+      // Busca a chave VAPID do backend
+      const vapidPublicKey = await firstValueFrom(this.notificationService.getVapidPublicKey());
 
+      if (!vapidPublicKey) {
+        throw new Error('Chave VAPID pública não recebida do servidor.');
+      }
+
+      // Solicita a inscrição ao navegador
       const sub = await this.swPush.requestSubscription({
-        serverPublicKey: VAPID_PUBLIC_KEY,
+        serverPublicKey: vapidPublicKey,
       });
 
-      console.log('Inscrição para Push Notification obtida:', sub.toJSON());
+      // Envia a inscrição para o backend
+      await firstValueFrom(this.notificationService.addPushSubscriber(sub));
+
+      console.log('Inscrição para Push Notification obtida e salva:', sub.toJSON());
       this._snackBar.open(`Inscrição realizada com sucesso para a ${est.nome}!`, 'Ok', {
         duration: 3000,
         panelClass: ['pao-quentinho-snackbar']
       });
-
-      // Envia a inscrição para o backend
-      this.notificationService.addPushSubscriber(sub).subscribe();
-
     } catch (err) {
       console.error('Não foi possível se inscrever para notificações push', err);
       this._snackBar.open('Não foi possível se inscrever. Verifique se as notificações não estão bloqueadas.', 'Fechar', {
