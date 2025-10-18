@@ -2,7 +2,7 @@ import { Component, AfterViewInit, ViewChild, ElementRef, Input, OnChanges, Simp
 import L from 'leaflet';
 import { EstabelecimentosService } from '../services/estabelecimentos.service';
 import { Estabelecimento } from '../estabelecimento.model';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, Subject, takeUntil, combineLatest, filter } from 'rxjs';
 import { NotificationService } from '../services/notification.service';
 import { FormsModule } from '@angular/forms';
 import 'leaflet-routing-machine';
@@ -76,6 +76,7 @@ export class MapaComponent implements AfterViewInit, OnChanges {
   private bottomSheetEl: HTMLElement | null = null;
   installPrompt: any = null;
   showInstallBanner = true;
+  private destroy$ = new Subject<void>();
 
   constructor(
     private estabelecimentoService: EstabelecimentosService,
@@ -86,8 +87,8 @@ export class MapaComponent implements AfterViewInit, OnChanges {
     private notificationService: NotificationService,
     private mapStateService: MapStateService
   ) {
-    this.listenForEstablishmentSelection();
     this.getUserLocation();
+    this.listenForEstablishmentSelection();
   }
 
   private getUserLocation(): void {
@@ -124,6 +125,11 @@ export class MapaComponent implements AfterViewInit, OnChanges {
 
   ngAfterViewInit(): void {
     this.bottomSheetEl = this._elementRef.nativeElement.querySelector('#bottomSheet');
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -248,18 +254,19 @@ export class MapaComponent implements AfterViewInit, OnChanges {
   }
 
     private listenForEstablishmentSelection(): void {
-    this.mapStateService.selectEstablishment$.subscribe(id => {
-      // Força a re-seleção mesmo que o ID seja o mesmo, limpando primeiro.
-      this.selectedEstabelecimento = null;
-      // Garante que a UI atualize antes de tentar reabrir.
-      this._ngZone.runOutsideAngular(() => {
-        setTimeout(() => {
-          const est = this.todosEstabelecimentos.find(e => e.id === id);
-          if (est) {
-            this._ngZone.run(() => this.selecionarEstabelecimento(est));
-          }
-        }, 50);
-      });
+    // Combina o stream de seleção com o stream de estabelecimentos carregados.
+    // A seleção só acontece quando AMBOS os streams têm um valor e os dados estão prontos.
+    combineLatest([
+      this.mapStateService.selectEstablishment$,
+      this.estabelecimentoService.getEstabelecimentosProximos(this.latitude ?? -23.55, this.longitude ?? -46.63)
+    ]).pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(([selectedId, response]) => {
+      const estabelecimentos = response.body ?? [];
+      const est = estabelecimentos.find(e => e.id === selectedId);
+      if (est) {
+        this.selecionarEstabelecimento(est);
+      }
     });
   }
 
@@ -274,6 +281,10 @@ export class MapaComponent implements AfterViewInit, OnChanges {
    * @param est O estabelecimento a ser selecionado.
    */
   selecionarEstabelecimento(est: Estabelecimento): void {
+    // Força a re-seleção mesmo que o ID seja o mesmo, limpando primeiro.
+    if (this.selectedEstabelecimento?.id === est.id) {
+      this.selectedEstabelecimento = null;
+    }
     this.selectedEstabelecimento = est;
     this.isListOpen = false; // Fecha a lista para dar espaço ao card de detalhe
     if (this.routingControl) {
