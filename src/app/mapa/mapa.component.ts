@@ -142,6 +142,7 @@ export class MapaComponent implements AfterViewInit, OnChanges {
       tap(estabelecimentos => {
         this.todosEstabelecimentos = estabelecimentos;
         this.ajustarRaioInicial();
+        this.carregarEstabelecimentos(); // <-- Adiciona os marcadores no mapa
       }),
       takeUntil(this.destroy$)
     );
