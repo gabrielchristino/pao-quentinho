@@ -66,7 +66,7 @@
         <div matListItemTitle class="list-item-title">{{ est.nome }}</div>
         <div matListItemLine class="list-item-line">{{ est.tipo }}</div>
         <span class="list-item-spacer"></span>
-        <div matListItemMeta class="distancia-meta">{{ est.distanciaKm.toFixed(2) }} km</div>
+        <div matListItemMeta class="distancia-meta">{{ (est.distanciaKm ?? 0).toFixed(2) }} km</div>
       </a>
     </mat-nav-list>
   </div>
@@ -77,7 +77,7 @@
   <mat-card class="establishment-card" (click)="$event.stopPropagation()">
     <mat-card-header>
       <mat-card-title>{{ selectedEstabelecimento.nome }}</mat-card-title>
-      <mat-card-subtitle>{{ selectedEstabelecimento.endereco.bairro }} - {{ selectedEstabelecimento.distanciaKm.toFixed(2) }} km</mat-card-subtitle>
+      <mat-card-subtitle>{{ selectedEstabelecimento.endereco.bairro }} - {{ (selectedEstabelecimento.distanciaKm ?? 0).toFixed(2) }} km</mat-card-subtitle>
     </mat-card-header>
     <mat-card-content>
 

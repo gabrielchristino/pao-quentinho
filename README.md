@@ -1,27 +1,75 @@
-# PaoQuentinho
+# Pão Quentinho - Frontend (PWA)
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 17.0.10.
+Este é o frontend da aplicação "Pão Quentinho", um **Progressive Web App (PWA)** construído com Angular. A aplicação permite que os usuários encontrem estabelecimentos (como padarias e mercados) próximos e se inscrevam para receber notificações push sobre novas fornadas de pão.
 
-## Development server
+## Funcionalidades
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The application will automatically reload if you change any of the source files.
+- **Progressive Web App (PWA)**: A aplicação pode ser "instalada" na tela inicial de dispositivos móveis e desktops, funcionando de forma semelhante a um aplicativo nativo e com capacidades offline.
+- **Geolocalização**: Utiliza a localização do usuário para listar e ordenar os estabelecimentos por proximidade.
+- **Notificações Push**: Permite que os usuários se inscrevam para receber alertas em tempo real dos seus estabelecimentos favoritos.
+- **Design Responsivo**: Interface adaptada para uma ótima experiência em celulares, tablets e computadores.
 
-## Code scaffolding
+## Tecnologias Utilizadas
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+- **Angular**: Framework principal para a construção da interface.
+- **Angular Service Worker**: Para funcionalidades de PWA, como cache offline e notificações push.
+- **TypeScript**: Linguagem de programação principal.
+- **SCSS**: Para estilização.
 
-## Build
+## Começando
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
+### Pré-requisitos
 
-## Running unit tests
+- Node.js (versão 22.0.0 ou superior)
+- Angular CLI (`npm install -g @angular/cli`)
+- Uma instância do Pão Quentinho - Backend deve estar em execução.
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
+### Instalação
 
-## Running end-to-end tests
+1.  Navegue até a pasta do frontend:
+    ```bash
+    cd pao-quentinho
+    ```
+2.  Instale as dependências do projeto:
+    ```bash
+    npm install
+    ```
 
-Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To use this command, you need to first add a package that implements end-to-end testing capabilities.
+### Configuração do Ambiente
 
-## Further help
+A aplicação se conecta ao backend para buscar dados e se registrar para notificações. A URL do backend é configurada nos arquivos de ambiente do Angular.
 
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.io/cli) page.
+Verifique o arquivo `src/environments/environment.ts` e, se necessário, o `src/environments/environment.prod.ts` para garantir que a variável `apiUrl` aponta para o endereço correto do seu backend.
+
+**Exemplo (`src/environments/environment.ts`):**
+```typescript
+export const environment = {
+  production: false,
+  apiUrl: 'http://localhost:3000/api' // URL para desenvolvimento local
+};
+```
+
+**Exemplo (`src/environments/environment.prod.ts`):**
+```typescript
+export const environment = {
+  production: true,
+  apiUrl: 'https://pao-quentinho-backend-production.up.railway.app/api' // URL de produção
+};
+```
+
+### Rodando a Aplicação
+
+-   **Para Desenvolvimento:**
+    Execute o comando abaixo para iniciar o servidor de desenvolvimento do Angular. A aplicação estará disponível em `http://localhost:4200/`.
+    ```bash
+    ng serve
+    ```
+
+-   **Para Produção:**
+    Para criar uma versão otimizada para produção, use o comando de build.
+    ```bash
+    ng build --configuration production
+    ```
+    Os arquivos gerados estarão na pasta `dist/pao-quentinho/browser/`. Você pode então servir esses arquivos estáticos usando um servidor web como Nginx ou Apache, ou hospedá-los em serviços como GitHub Pages, Vercel ou Netlify.
+
+---

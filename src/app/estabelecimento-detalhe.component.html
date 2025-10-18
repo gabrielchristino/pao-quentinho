@@ -1,0 +1,22 @@
+<div class="container" *ngIf="estabelecimento$ | async as est; else loading">
+  <a routerLink="/" class="back-button">&larr; Voltar para a lista</a>
+  <h1>{{ est.nome }}</h1>
+  <p class="tipo">{{ est.tipo }}</p>
+
+  <div class="info-section">
+    <h2>Informações</h2>
+    <p>{{ est.info }}</p>
+  </div>
+
+  <div class="info-section">
+    <h2>Endereço</h2>
+    <p>{{ est.endereco.rua }}, {{ est.endereco.numero }} - {{ est.endereco.bairro }}</p>
+    <p>{{ est.endereco.cidade }} - {{ est.endereco.estado }}</p>
+  </div>
+
+  <div class="info-section">
+    <h2>Próxima Fornada</h2>
+    <p class="fornada-time">{{ est.proximaFornada }}</p>
+  </div>
+</div>
+<ng-template #loading>Carregando detalhes...</ng-template>

@@ -1,6 +1,7 @@
 import { Component, AfterViewInit, ViewChild, ElementRef, Input, OnChanges, SimpleChanges, NgZone, HostListener } from '@angular/core';
 import L from 'leaflet';
-import { Estabelecimento, EstabelecimentosService } from '../services/estabelecimentos.service';
+import { EstabelecimentosService } from '../services/estabelecimentos.service';
+import { Estabelecimento } from '../estabelecimento.model';
 import { firstValueFrom } from 'rxjs';
 import { NotificationService } from '../services/notification.service';
 import { FormsModule } from '@angular/forms';
@@ -213,7 +214,7 @@ export class MapaComponent implements AfterViewInit, OnChanges {
 
     for (const raio of raiosBusca) {
       const raioEmKm = raio / 1000;
-      const estabelecimentosNoRaio = this.todosEstabelecimentos.filter(est => est.distanciaKm <= raioEmKm);
+      const estabelecimentosNoRaio = this.todosEstabelecimentos.filter(est => (est.distanciaKm ?? Infinity) <= raioEmKm);
       if (estabelecimentosNoRaio.length > 0) {
         raioEncontrado = raio;
         break;
@@ -378,8 +379,8 @@ export class MapaComponent implements AfterViewInit, OnChanges {
   private filtrarEstabelecimentos(): void {
     const raioEmKm = this.raio / 1000;
     this.estabelecimentosVisiveis = this.todosEstabelecimentos
-      .filter(est => est.distanciaKm <= raioEmKm)
-      .sort((a, b) => a.distanciaKm - b.distanciaKm);
+      .filter(est => (est.distanciaKm ?? Infinity) <= raioEmKm)
+      .sort((a, b) => (a.distanciaKm ?? Infinity) - (b.distanciaKm ?? Infinity));
   }
 
   // --- Lógica de Arrastar o Bottom Sheet ---
