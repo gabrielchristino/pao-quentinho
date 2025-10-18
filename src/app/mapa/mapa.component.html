@@ -84,7 +84,7 @@
       <!-- Destaque da Próxima Fornada -->
       <div class="fornada-highlight">
         <mat-icon>bakery_dining</mat-icon>
-        <span>Próxima fornada quentinha às <b>{{ selectedEstabelecimento.proximaFornada }}</b></span>
+        <span>Próxima fornada quentinha às <b>{{ getNextFornada(selectedEstabelecimento.proximaFornada) }}</b></span>
       </div>
 
       <!-- Informações -->

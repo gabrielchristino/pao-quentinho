@@ -6,7 +6,7 @@ export interface Estabelecimento {
   longitude: number;
   distanciaKm?: number;
   info: string;
-  proximaFornada: string;
+  proximaFornada: string[];
   endereco: {
     rua: string;
     numero: string;

@@ -460,4 +460,24 @@ export class MapaComponent implements AfterViewInit, OnChanges {
     const zoomLevels = { 500: 16, 1000: 15, 5000: 13 };
     return zoomLevels[radiusInMeters as keyof typeof zoomLevels] || 12;
   }
+
+  /**
+   * Encontra o próximo horário de fornada do dia.
+   * @param horarios Array de horários no formato "HH:mm".
+   * @returns O próximo horário ou o primeiro do dia seguinte se todos já passaram.
+   */
+  getNextFornada(horarios: string[]): string {
+    if (!horarios || horarios.length === 0) {
+      return 'N/A';
+    }
+
+    const now = new Date();
+    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+    const proximoHorario = horarios
+      .map(h => ({ str: h, mins: parseInt(h.split(':')[0]) * 60 + parseInt(h.split(':')[1]) }))
+      .find(h => h.mins > currentMinutes);
+
+    return proximoHorario ? proximoHorario.str : horarios[0]; // Se todos já passaram, mostra o primeiro do dia seguinte
+  }
 }
