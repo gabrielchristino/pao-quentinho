@@ -117,7 +117,11 @@ export class MapaComponent implements AfterViewInit, OnChanges {
   }
 
   ngAfterViewInit(): void {
+    // Inicializa o mapa imediatamente com uma visão padrão, sem esperar pela geolocalização.
+    // Isso evita a "tela branca" enquanto a localização é obtida.
+    this.inicializarMapa(-14.235, -51.925, 4); // Centro do Brasil, zoom afastado
     this.bottomSheetEl = this._elementRef.nativeElement.querySelector('#bottomSheet');
+    this.initializeDataFlow(); // Inicia o fluxo para obter a localização do usuário após o mapa base estar visível.
   }
 
   ngOnDestroy(): void {
@@ -131,14 +135,13 @@ export class MapaComponent implements AfterViewInit, OnChanges {
   }
 
   private initializeDataFlow(): void {
-    // 1. Obtém a localização do usuário
+    // 1. Obtém a localização do usuário (o mapa já está visível neste ponto)
     this.getUserLocation();
 
     // 2. Cria um fluxo de dados para os estabelecimentos
     const estabelecimentos$ = this.location$.pipe(
       filter((loc): loc is { lat: number; lng: number } => loc !== null),
-      switchMap(loc => this.estabelecimentoService.getEstabelecimentosProximos(loc.lat, loc.lng)),
-      map(response => response.body ?? [] as Estabelecimento[]),
+      switchMap(loc => this.estabelecimentoService.getEstabelecimentosProximos(loc.lat, loc.lng).pipe(map(response => response.body ?? [] as Estabelecimento[]))),
       tap(estabelecimentos => {
         this.todosEstabelecimentos = estabelecimentos;
         this.ajustarRaioInicial();
@@ -160,19 +163,19 @@ export class MapaComponent implements AfterViewInit, OnChanges {
       }
     });
 
-    // 4. Inicializa o mapa assim que a primeira localização estiver disponível
+    // 4. Centraliza no usuário e adiciona marcadores assim que a primeira localização estiver disponível
     this.location$.pipe(
       filter((loc): loc is { lat: number; lng: number } => loc !== null),
       take(1) // Apenas na primeira vez
     ).subscribe(loc => {
-      this.inicializarMapa(loc.lat, loc.lng);
+      this.centralizarNoUsuario(loc.lat, loc.lng);
     });
   }
 
-  private inicializarMapa(latitude: number, longitude: number): void {
+  private inicializarMapa(latitude: number, longitude: number, zoom: number): void {
     if (this.map) return;
-    const zoomLevel = this.calculateZoomLevel(this.raio);
-    this.map = L.map(this.mapElementRef.nativeElement).setView([latitude, longitude], zoomLevel);
+
+    this.map = L.map(this.mapElementRef.nativeElement).setView([latitude, longitude], zoom);
     this.map.zoomControl.remove();
     this.map.scrollWheelZoom.disable();
     this.map.touchZoom.disable();
@@ -193,7 +196,16 @@ export class MapaComponent implements AfterViewInit, OnChanges {
         });
       }
     });
+  }
 
+  /**
+   * Centraliza o mapa na localização do usuário, adiciona o marcador e o círculo de raio.
+   * Chamado após a geolocalização ser obtida.
+   */
+  private centralizarNoUsuario(latitude: number, longitude: number): void {
+    if (!this.map) return;
+
+    // Adiciona o marcador do usuário
     this.userMarker = L.marker([latitude, longitude],{
       alt: 'Localização atual',
       title: 'Localização atual',
@@ -206,12 +218,17 @@ export class MapaComponent implements AfterViewInit, OnChanges {
       })
     }).addTo(this.map);
 
+    // Adiciona o círculo de raio
     this.circle = L.circle([latitude, longitude], {
       color: '#c299fc',
       fillColor: '#f7c7ce',
       fillOpacity: 0.35,
       radius: this.raio
     }).addTo(this.map);
+
+    // Move o mapa suavemente para a nova localização com o zoom apropriado
+    const zoomLevel = this.calculateZoomLevel(this.raio);
+    this.map.flyTo([latitude, longitude], zoomLevel);
   }
 
   private atualizarLocalizacaoMapa(): void {
