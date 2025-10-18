@@ -26,9 +26,21 @@
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "scss",
             "assets": [
-              "src/favicon.ico",
-              "src/manifest.webmanifest",
-              "src/assets",
+              {
+                "glob": "favicon.ico",
+                "input": "src/",
+                "output": "/"
+              },
+              {
+                "glob": "manifest.webmanifest",
+                "input": "src/",
+                "output": "/"
+              },
+              {
+                "glob": "**/*",
+                "input": "src/assets",
+                "output": "assets"
+              },
               {
                 "glob": "**/*",
                 "input": "./node_modules/leaflet/dist/images/",
@@ -57,7 +69,10 @@
                 }
               ],
               "outputHashing": "all",
-              "serviceWorker": "src/ngsw-config.json"
+              "serviceWorker": {
+                "ngswConfigPath": "src/ngsw-config.json",
+                "importScripts": ["src/notification-handler.js"]
+              }
             },
             "development": {
               "optimization": false,
