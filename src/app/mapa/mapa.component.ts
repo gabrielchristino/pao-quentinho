@@ -2,7 +2,7 @@ import { Component, AfterViewInit, ViewChild, ElementRef, Input, OnChanges, Simp
 import L from 'leaflet';
 import { EstabelecimentosService } from '../services/estabelecimentos.service';
 import { Estabelecimento } from '../estabelecimento.model';
-import { firstValueFrom, Subject, takeUntil, combineLatest, filter } from 'rxjs';
+import { firstValueFrom, Subject, takeUntil, combineLatest, filter, BehaviorSubject, switchMap, tap } from 'rxjs';
 import { NotificationService } from '../services/notification.service';
 import { FormsModule } from '@angular/forms';
 import 'leaflet-routing-machine';
@@ -60,8 +60,8 @@ const SWIPE_THRESHOLD = 50; // Distância mínima em pixels para considerar um g
 })
 export class MapaComponent implements AfterViewInit, OnChanges {
   @ViewChild('map', { static: true }) mapElementRef!: ElementRef<HTMLDivElement>;
-  latitude: number | null = null;
-  longitude: number | null = null;
+  private location$ = new BehaviorSubject<{ lat: number; lng: number } | null>(null);
+
   raio: number = 500; // Raio inicial em metros
   private map?: L.Map;
   private circle?: L.Circle;
@@ -87,30 +87,23 @@ export class MapaComponent implements AfterViewInit, OnChanges {
     private notificationService: NotificationService,
     private mapStateService: MapStateService
   ) {
-    this.getUserLocation();
-    this.listenForEstablishmentSelection();
+    this.initializeDataFlow();
   }
 
   private getUserLocation(): void {
     if ('geolocation' in navigator) {
       navigator.geolocation.getCurrentPosition(
         ({ coords }) => {
-          this.latitude = coords.latitude;
-          this.longitude = coords.longitude;
-          this.inicializarMapa();
+          this.location$.next({ lat: coords.latitude, lng: coords.longitude });
         },
         (error) => {
           console.error('Erro ao obter localização, usando fallback:', error);
-          this.latitude = -23.55052; // Fallback para SP
-          this.longitude = -46.633308;
-          this.inicializarMapa();
+          this.location$.next({ lat: -23.55052, lng: -46.633308 }); // Fallback para SP
         }
       );
     } else {
       console.error('Geolocalização não suportada, usando fallback.');
-      this.latitude = -23.55052;
-      this.longitude = -46.633308;
-      this.inicializarMapa();
+      this.location$.next({ lat: -23.55052, lng: -46.633308 });
     }
   }
 
@@ -137,10 +130,48 @@ export class MapaComponent implements AfterViewInit, OnChanges {
     // Este método pode ser removido se não for mais usado para outras @Inputs.
   }
 
-  private inicializarMapa(): void {
-    if (this.map || this.latitude === null || this.longitude === null) return;
+  private initializeDataFlow(): void {
+    // 1. Obtém a localização do usuário
+    this.getUserLocation();
+
+    // 2. Cria um fluxo de dados para os estabelecimentos
+    const estabelecimentos$ = this.location$.pipe(
+      filter((loc): loc is { lat: number; lng: number } => loc !== null),
+      switchMap(loc => this.estabelecimentoService.getEstabelecimentosProximos(loc.lat, loc.lng)),
+      map(response => response.body ?? []),
+      tap(estabelecimentos => {
+        this.todosEstabelecimentos = estabelecimentos;
+        this.ajustarRaioInicial();
+      }),
+      takeUntil(this.destroy$)
+    );
+
+    // 3. Combina o fluxo de seleção com o fluxo de estabelecimentos
+    combineLatest([
+      this.mapStateService.selectEstablishment$,
+      estabelecimentos$
+    ]).pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(([selectedId, estabelecimentos]) => {
+      const est = estabelecimentos.find(e => e.id === selectedId);
+      if (est) {
+        this.selecionarEstabelecimento(est);
+      }
+    });
+
+    // 4. Inicializa o mapa assim que a primeira localização estiver disponível
+    this.location$.pipe(
+      filter((loc): loc is { lat: number; lng: number } => loc !== null),
+      take(1) // Apenas na primeira vez
+    ).subscribe(loc => {
+      this.inicializarMapa(loc.lat, loc.lng);
+    });
+  }
+
+  private inicializarMapa(latitude: number, longitude: number): void {
+    if (this.map) return;
     const zoomLevel = this.calculateZoomLevel(this.raio);
-    this.map = L.map(this.mapElementRef.nativeElement).setView([this.latitude, this.longitude], zoomLevel);
+    this.map = L.map(this.mapElementRef.nativeElement).setView([latitude, longitude], zoomLevel);
     this.map.zoomControl.remove();
     this.map.scrollWheelZoom.disable();
     this.map.touchZoom.disable();
@@ -162,7 +193,7 @@ export class MapaComponent implements AfterViewInit, OnChanges {
       }
     });
 
-    this.userMarker = L.marker([this.latitude, this.longitude],{
+    this.userMarker = L.marker([latitude, longitude],{
       alt: 'Localização atual',
       title: 'Localização atual',
       riseOnHover: true,
@@ -174,19 +205,18 @@ export class MapaComponent implements AfterViewInit, OnChanges {
       })
     }).addTo(this.map);
 
-    this.circle = L.circle([this.latitude, this.longitude], {
+    this.circle = L.circle([latitude, longitude], {
       color: '#c299fc',
       fillColor: '#f7c7ce',
       fillOpacity: 0.35,
       radius: this.raio
     }).addTo(this.map);
-
-    this.carregarEstabelecimentos();
   }
 
   private atualizarLocalizacaoMapa(): void {
-    if (!this.map || this.latitude === null || this.longitude === null) return;
-    const newLatLng = new L.LatLng(this.latitude, this.longitude);
+    const loc = this.location$.value;
+    if (!this.map || !loc) return;
+    const newLatLng = new L.LatLng(loc.lat, loc.lng);
     this.map.setView(newLatLng);
 
     if (this.userMarker) {
@@ -195,7 +225,6 @@ export class MapaComponent implements AfterViewInit, OnChanges {
     if (this.circle) {
       this.circle.setLatLng(newLatLng);
     }
-    this.carregarEstabelecimentos();
   }
 
   private carregarEstabelecimentos(): void {
@@ -205,35 +234,22 @@ export class MapaComponent implements AfterViewInit, OnChanges {
     this.establishmentMarkers.forEach(marker => marker.remove());
     this.establishmentMarkers = [];
 
-    this.estabelecimentoService.getEstabelecimentosProximos(this.latitude, this.longitude).subscribe(response => {
-      const estabelecimentos = response.body ?? [];
-      this.todosEstabelecimentos = estabelecimentos;
-      this.ajustarRaioInicial();
-      for (const estabelecimento of estabelecimentos) {
-        const marker = L.marker([estabelecimento.latitude, estabelecimento.longitude], {
-          alt: estabelecimento.nome,
-          title: estabelecimento.nome,
-          riseOnHover: true,
-          icon: L.icon({
-            iconUrl: `assets/icons/${estabelecimento.tipo}.png`,
-            iconSize: [30, 30],
-            iconAnchor: [15, 30],
-            popupAnchor: [0, -30]
-          })
-        });
+    for (const estabelecimento of this.todosEstabelecimentos) {
+      const marker = L.marker([estabelecimento.latitude, estabelecimento.longitude], {
+        alt: estabelecimento.nome,
+        title: estabelecimento.nome,
+        riseOnHover: true,
+        icon: L.icon({
+          iconUrl: `assets/icons/${estabelecimento.tipo}.png`,
+          iconSize: [30, 30],
+          iconAnchor: [15, 30],
+          popupAnchor: [0, -30]
+        })
+      }).on('click', () => this._ngZone.run(() => this.selecionarEstabelecimento(estabelecimento)));
 
-        marker.on('click', () => {
-          this._ngZone.run(() => {
-            this.selecionarEstabelecimento(estabelecimento);
-          });
-        });
-
-        if (this.map) {
-          marker.addTo(this.map);
-        }
-        this.establishmentMarkers.push(marker);
-      }
-    });
+      if (this.map) marker.addTo(this.map);
+      this.establishmentMarkers.push(marker);
+    }
   }
 
   private ajustarRaioInicial(): void {
@@ -253,23 +269,6 @@ export class MapaComponent implements AfterViewInit, OnChanges {
     this.definirRaio(raioEncontrado);
   }
 
-    private listenForEstablishmentSelection(): void {
-    // Combina o stream de seleção com o stream de estabelecimentos carregados.
-    // A seleção só acontece quando AMBOS os streams têm um valor e os dados estão prontos.
-    combineLatest([
-      this.mapStateService.selectEstablishment$,
-      this.estabelecimentoService.getEstabelecimentosProximos(this.latitude ?? -23.55, this.longitude ?? -46.63)
-    ]).pipe(
-      takeUntil(this.destroy$)
-    ).subscribe(([selectedId, response]) => {
-      const estabelecimentos = response.body ?? [];
-      const est = estabelecimentos.find(e => e.id === selectedId);
-      if (est) {
-        this.selecionarEstabelecimento(est);
-      }
-    });
-  }
-
   alternarLista(): void {
     this.isListOpen = !this.isListOpen;
   }
@@ -281,9 +280,12 @@ export class MapaComponent implements AfterViewInit, OnChanges {
    * @param est O estabelecimento a ser selecionado.
    */
   selecionarEstabelecimento(est: Estabelecimento): void {
-    // Força a re-seleção mesmo que o ID seja o mesmo, limpando primeiro.
-    if (this.selectedEstabelecimento?.id === est.id) {
+    // Força a re-seleção mesmo que o ID seja o mesmo, limpando e reabrindo.
+    if (this.selectedEstabelecimento?.id === est.id && this.selectedEstabelecimento !== null) {
       this.selectedEstabelecimento = null;
+      // Garante que a UI tenha tempo de processar a remoção antes de re-adicionar
+      setTimeout(() => this._ngZone.run(() => this.selectedEstabelecimento = est), 10);
+      return;
     }
     this.selectedEstabelecimento = est;
     this.isListOpen = false; // Fecha a lista para dar espaço ao card de detalhe
@@ -316,9 +318,10 @@ export class MapaComponent implements AfterViewInit, OnChanges {
       this.routingControl.remove();
       this.routingControl = null;
     }
-    if (recentralizar && this.map && this.latitude !== null && this.longitude !== null) {
+    const loc = this.location$.value;
+    if (recentralizar && this.map && loc) {
       const zoomLevel = this.calculateZoomLevel(this.raio);
-      this.map.flyTo([this.latitude, this.longitude], zoomLevel);
+      this.map.flyTo([loc.lat, loc.lng], zoomLevel);
     }
 
     // Desabilita o zoom ao sair do modo de navegação
@@ -335,7 +338,8 @@ export class MapaComponent implements AfterViewInit, OnChanges {
     // 1. Fecha o modal de detalhes sem recentralizar o mapa
     this.fecharDetalhe(false);
 
-    if (!this.map || this.latitude === null || this.longitude === null) return;
+    const loc = this.location$.value;
+    if (!this.map || !loc) return;
 
     // 2. Remove qualquer rota anterior
     if (this.routingControl) {
@@ -352,7 +356,7 @@ export class MapaComponent implements AfterViewInit, OnChanges {
         styles: [{color: '#6200ee', opacity: 0.8, weight: 6}]
       } as any,
       plan: L.Routing.plan([
-        L.latLng(this.latitude, this.longitude),
+        L.latLng(loc.lat, loc.lng),
         L.latLng(est.latitude, est.longitude)
       ], {
         // Esta função impede a criação dos marcadores de início e fim
@@ -362,7 +366,7 @@ export class MapaComponent implements AfterViewInit, OnChanges {
 
     // 4. Ajusta o mapa manualmente para enquadrar a rota
     const bounds = L.latLngBounds([
-      L.latLng(this.latitude, this.longitude),
+      L.latLng(loc.lat, loc.lng),
       L.latLng(est.latitude, est.longitude)
     ]);
 
@@ -420,9 +424,10 @@ export class MapaComponent implements AfterViewInit, OnChanges {
 
   definirRaio(novoRaio: number): void {
     this.raio = novoRaio;
-    if (this.map && this.circle && this.latitude !== null && this.longitude !== null) {
+    const loc = this.location$.value;
+    if (this.map && this.circle && loc) {
       this.circle.setRadius(this.raio);
-      const userLocation = new L.LatLng(this.latitude, this.longitude);
+      const userLocation = new L.LatLng(loc.lat, loc.lng);
       // Ajusta o zoom para o novo raio
       const zoomLevel = this.calculateZoomLevel(this.raio);
       this.filtrarEstabelecimentos();
