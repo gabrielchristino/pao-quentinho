@@ -1,31 +1,46 @@
 import { Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { MatToolbarModule } from '@angular/material/toolbar';
+import { MatIconModule } from '@angular/material/icon';
 
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, MatToolbarModule, MatIconModule],
   template: `
-    <header class="header">
+    <mat-toolbar class="header">
       <a routerLink="/">
-        <h1>Pão Quentinho</h1>
+        <img src="assets/icons/icon-72x72.png" alt="Logo Pão Quentinho" class="header-logo">
+        <span>Pão Quentinho</span>
       </a>
-    </header>
+    </mat-toolbar>
   `,
   styles: [`
-    .header {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 60px;
-      background-color: #ffc107; /* Amarelo, como na logo */
-      color: #333;
+    /*
+      :host é um seletor que mira o elemento hospedeiro do componente (<app-header>).
+      Usá-lo garante que as regras de estilo sejam aplicadas de forma mais específica.
+    */
+    :host a {
       display: flex;
       align-items: center;
-      padding: 0 20px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-      z-index: 1000;
+      text-decoration: none;
+      color: inherit; /* Garante que a cor do texto seja a da toolbar, não a de um link */
+    }
+
+    .header {
+      position: fixed; /* Mantém o cabeçalho fixo no topo */
+      z-index: 1001; /* Garante que ele fique acima de outros elementos */
+    }
+
+    .header-logo {
+      height: 40px;
+      width: 40px;
+      margin-right: 16px;
+    }
+
+    span {
+      font-size: 1.25rem;
+      font-weight: 500;
     }
   `]
 })
