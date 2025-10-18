@@ -94,18 +94,25 @@ export class MapaComponent implements AfterViewInit, OnChanges {
   }
 
   private getUserLocation(): void {
+    console.log(`[LOG ${new Date().toLocaleTimeString()}] 2. Solicitando localização do navegador...`);
     if ('geolocation' in navigator) {
       navigator.geolocation.getCurrentPosition(
         ({ coords }) => {
+          console.log(`[LOG ${new Date().toLocaleTimeString()}] 3. ✅ Localização recebida do navegador:`, { lat: coords.latitude, lng: coords.longitude });
           this.location$.next({ lat: coords.latitude, lng: coords.longitude });
         },
         (error) => {
-          console.error('Erro ao obter localização, usando fallback:', error);
+          console.error(`[LOG ${new Date().toLocaleTimeString()}] 3. ❌ Erro ao obter localização, usando fallback:`, error);
           this.location$.next({ lat: -23.55052, lng: -46.633308 }); // Fallback para SP
+        },
+        {
+          enableHighAccuracy: true, // Tenta obter a localização mais precisa possível
+          timeout: 10000, // Tempo máximo de 10 segundos para obter a localização
+          maximumAge: 60000 // Não usar uma localização em cache
         }
       );
     } else {
-      console.error('Geolocalização não suportada, usando fallback.');
+      console.error(`[LOG ${new Date().toLocaleTimeString()}] 3. ❌ Geolocalização não suportada, usando fallback.`);
       this.location$.next({ lat: -23.55052, lng: -46.633308 });
     }
   }
@@ -138,13 +145,17 @@ export class MapaComponent implements AfterViewInit, OnChanges {
   }
 
   private initializeDataFlow(): void {
+    console.log(`[LOG ${new Date().toLocaleTimeString()}] 1. Iniciando fluxo de dados.`);
     // 1. Obtém a localização do usuário (o mapa já está visível neste ponto)
     this.getUserLocation();
 
     // 2. Cria um fluxo de dados para os estabelecimentos
     const estabelecimentos$ = this.location$.pipe(
       filter((loc): loc is { lat: number; lng: number } => loc !== null),
-      switchMap(loc => this.estabelecimentoService.getEstabelecimentosProximos(loc.lat, loc.lng).pipe(map(response => response.body ?? [] as Estabelecimento[]))),
+      tap(loc => console.log(`[LOG ${new Date().toLocaleTimeString()}] 4. Localização válida recebida. Disparando chamada para API de estabelecimentos...`)),
+      switchMap(loc =>
+        this.estabelecimentoService.getEstabelecimentosProximos(loc.lat, loc.lng).pipe(map(response => response.body ?? [] as Estabelecimento[]))
+      ),
       tap(estabelecimentos => {
         this.todosEstabelecimentos = estabelecimentos;
         this.ajustarRaioInicial();
