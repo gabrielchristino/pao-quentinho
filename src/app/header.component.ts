@@ -30,6 +30,8 @@ import { MatIconModule } from '@angular/material/icon';
     .header {
       position: fixed; /* Mantém o cabeçalho fixo no topo */
       z-index: 1001; /* Garante que ele fique acima de outros elementos */
+      background-color: #f7c7ce; /* Cor rosa claro, similar ao círculo do mapa */
+      color: #444; /* Cor de texto escura para bom contraste */
     }
 
     .header-logo {
