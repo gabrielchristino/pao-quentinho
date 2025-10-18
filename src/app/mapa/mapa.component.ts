@@ -248,16 +248,15 @@ export class MapaComponent implements AfterViewInit, OnChanges {
   }
 
     private listenForEstablishmentSelection(): void {
-    this.mapStateService.selectEstablishment$.subscribe(id => {
-      // Espera um pouco para garantir que os estabelecimentos já foram carregados
-      setTimeout(() => {
-        const est = this.todosEstabelecimentos.find(e => e.id === id);
-        if (est) {
-          this.selecionarEstabelecimento(est);
-        } else {
-          console.warn(`[Mapa] Tentativa de selecionar estabelecimento com ID ${id}, mas não foi encontrado.`);
-        }
-      }, 500); // Um pequeno delay para garantir a renderização
+    this.mapStateService.selectEstablishment$.subscribe(id => {      
+      // Se o ID for nulo, não faz nada.
+      if (id === null) return;
+
+      const est = this.todosEstabelecimentos.find(e => e.id === id);
+      if (est) {
+        // Se o estabelecimento já foi carregado, seleciona imediatamente.
+        this.selecionarEstabelecimento(est);
+      }
     });
   }
 
@@ -265,6 +264,12 @@ export class MapaComponent implements AfterViewInit, OnChanges {
     this.isListOpen = !this.isListOpen;
   }
 
+  /**
+   * Seleciona um estabelecimento, fecha a lista e centraliza o mapa nele.
+   * Esta função é chamada tanto pelo clique no mapa/lista quanto pelo serviço de estado.
+   * Para resolver o problema de clique repetido, limpamos a seleção antes de definir a nova.
+   * @param est O estabelecimento a ser selecionado.
+   */
   selecionarEstabelecimento(est: Estabelecimento): void {
     this.selectedEstabelecimento = est;
     this.isListOpen = false; // Fecha a lista para dar espaço ao card de detalhe
