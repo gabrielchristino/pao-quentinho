@@ -5,7 +5,4 @@ import { EstabelecimentoListaComponent } from './pages/estabelecimento-lista/est
 export const routes: Routes = [
   // Rota principal, exibe a lista de estabelecimentos
   { path: '', component: EstabelecimentoListaComponent, pathMatch: 'full' },
-
-  // Rota para exibir os detalhes de um estabelecimento específico
-  { path: 'estabelecimento/:id', component: EstabelecimentoDetalheComponent },
 ];

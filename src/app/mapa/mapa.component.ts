@@ -18,6 +18,7 @@ import { MatRippleModule } from '@angular/material/core';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { SwPush } from '@angular/service-worker';
 
+import { MapStateService } from '../services/map-state.service';
 const iconRetinaUrl = 'assets/marker-icon-2x.png';
 const iconUrl = 'assets/marker-icon.png';
 const shadowUrl = 'assets/marker-shadow.png';
@@ -82,8 +83,11 @@ export class MapaComponent implements AfterViewInit, OnChanges {
     private _elementRef: ElementRef<HTMLElement>,
     private swPush: SwPush,
     private _snackBar: MatSnackBar,
-    private notificationService: NotificationService
-  ) {}
+    private notificationService: NotificationService,
+    private mapStateService: MapStateService
+  ) {
+    this.listenForEstablishmentSelection();
+  }
 
   @HostListener('window:beforeinstallprompt', ['$event'])
   onBeforeInstallPrompt(event: any) {
@@ -223,6 +227,20 @@ export class MapaComponent implements AfterViewInit, OnChanges {
 
     // Define o raio e atualiza o mapa (círculo e zoom)
     this.definirRaio(raioEncontrado);
+  }
+
+    private listenForEstablishmentSelection(): void {
+    this.mapStateService.selectEstablishment$.subscribe(id => {
+      // Espera um pouco para garantir que os estabelecimentos já foram carregados
+      setTimeout(() => {
+        const est = this.todosEstabelecimentos.find(e => e.id === id);
+        if (est) {
+          this.selecionarEstabelecimento(est);
+        } else {
+          console.warn(`[Mapa] Tentativa de selecionar estabelecimento com ID ${id}, mas não foi encontrado.`);
+        }
+      }, 500); // Um pequeno delay para garantir a renderização
+    });
   }
 
   alternarLista(): void {
