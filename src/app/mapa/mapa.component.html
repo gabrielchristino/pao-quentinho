@@ -12,6 +12,13 @@
   </div>
 </div>
 <div class="map-container">
+  <!-- Overlay de Carregamento -->
+  <div class="loading-overlay" *ngIf="isLoading">
+    <mat-progress-spinner mode="indeterminate" diameter="50"></mat-progress-spinner>
+    <p class="loading-text">Localizando você e buscando os melhores pães...</p>
+  </div>
+
+
   <div #map id="map"></div>
 
   <mat-button-toggle-group class="radius-filter" [value]="raio" (change)="definirRaio($event.value)" *ngIf="!routingControl">

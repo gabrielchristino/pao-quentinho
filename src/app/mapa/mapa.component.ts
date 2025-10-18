@@ -15,6 +15,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatRippleModule } from '@angular/material/core';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { SwPush } from '@angular/service-worker';
 
@@ -53,7 +54,8 @@ const SWIPE_THRESHOLD = 50; // Distância mínima em pixels para considerar um g
     MatCardModule,
     MatTooltipModule,
     MatRippleModule,
-    MatSnackBarModule
+    MatSnackBarModule,
+    MatProgressSpinnerModule
   ],
   templateUrl: './mapa.component.html',
   styleUrl: './mapa.component.scss',
@@ -77,6 +79,7 @@ export class MapaComponent implements AfterViewInit, OnChanges {
   installPrompt: any = null;
   showInstallBanner = true;
   private destroy$ = new Subject<void>();
+  isLoading = true; // <-- Adicionado para controlar o spinner
 
   constructor(
     private estabelecimentoService: EstabelecimentosService,
@@ -166,6 +169,7 @@ export class MapaComponent implements AfterViewInit, OnChanges {
     // 4. Centraliza no usuário e adiciona marcadores assim que a primeira localização estiver disponível
     this.location$.pipe(
       filter((loc): loc is { lat: number; lng: number } => loc !== null),
+      tap(() => this.isLoading = false), // <-- Esconde o spinner
       take(1) // Apenas na primeira vez
     ).subscribe(loc => {
       this.centralizarNoUsuario(loc.lat, loc.lng);
