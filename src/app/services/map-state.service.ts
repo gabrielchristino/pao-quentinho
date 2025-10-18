@@ -1,11 +1,12 @@
 import { Injectable } from '@angular/core';
-import { Subject } from 'rxjs';
+import { ReplaySubject } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
 })
 export class MapStateService {
-  private selectEstablishmentSource = new Subject<number>();
+  // Usamos ReplaySubject(1) para guardar e re-emitir o último ID para novos inscritos.
+  private selectEstablishmentSource = new ReplaySubject<number>(1);
 
   selectEstablishment$ = this.selectEstablishmentSource.asObservable();
 
