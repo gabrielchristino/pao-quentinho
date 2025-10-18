@@ -60,8 +60,8 @@ const SWIPE_THRESHOLD = 50; // Distância mínima em pixels para considerar um g
 })
 export class MapaComponent implements AfterViewInit, OnChanges {
   @ViewChild('map', { static: true }) mapElementRef!: ElementRef<HTMLDivElement>;
-  @Input() latitude: number | null = null;
-  @Input() longitude: number | null = null;
+  latitude: number | null = null;
+  longitude: number | null = null;
   raio: number = 500; // Raio inicial em metros
   private map?: L.Map;
   private circle?: L.Circle;
@@ -87,6 +87,30 @@ export class MapaComponent implements AfterViewInit, OnChanges {
     private mapStateService: MapStateService
   ) {
     this.listenForEstablishmentSelection();
+    this.getUserLocation();
+  }
+
+  private getUserLocation(): void {
+    if ('geolocation' in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        ({ coords }) => {
+          this.latitude = coords.latitude;
+          this.longitude = coords.longitude;
+          this.inicializarMapa();
+        },
+        (error) => {
+          console.error('Erro ao obter localização, usando fallback:', error);
+          this.latitude = -23.55052; // Fallback para SP
+          this.longitude = -46.633308;
+          this.inicializarMapa();
+        }
+      );
+    } else {
+      console.error('Geolocalização não suportada, usando fallback.');
+      this.latitude = -23.55052;
+      this.longitude = -46.633308;
+      this.inicializarMapa();
+    }
   }
 
   @HostListener('window:beforeinstallprompt', ['$event'])
@@ -103,14 +127,8 @@ export class MapaComponent implements AfterViewInit, OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    // Se as coordenadas foram recebidas pela primeira vez e o mapa ainda não foi criado.
-    if (this.latitude !== null && this.longitude !== null && !this.map) {
-      this.inicializarMapa();
-    } 
-    // Se as coordenadas mudaram DEPOIS que o mapa já foi inicializado.
-    else if (this.map && (changes['latitude'] || changes['longitude'])) {
-      this.atualizarLocalizacaoMapa();
-    }
+    // A lógica de inicialização agora é controlada internamente pelo componente.
+    // Este método pode ser removido se não for mais usado para outras @Inputs.
   }
 
   private inicializarMapa(): void {
