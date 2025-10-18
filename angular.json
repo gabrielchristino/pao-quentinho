@@ -69,10 +69,7 @@
                 }
               ],
               "outputHashing": "all",
-              "serviceWorker": {
-                "ngswConfigPath": "src/ngsw-config.json",
-                "importScripts": ["src/notification-handler.js"]
-              }
+              "serviceWorker": "src/ngsw-config.json"
             },
             "development": {
               "optimization": false,

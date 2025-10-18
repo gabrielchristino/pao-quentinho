@@ -11,7 +11,8 @@
           "index.html",
           "manifest.webmanifest",
           "*.css",
-          "*.js"
+          "*.js",
+          "/notification-handler.js"
         ]
       }
     },
@@ -26,5 +27,8 @@
         ]
       }
     }
+  ],
+  "navigationUrls": [
+    "/estabelecimento/**"
   ]
 }
