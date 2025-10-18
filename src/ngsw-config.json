@@ -1,7 +1,7 @@
 {
   "$schema": "../../node_modules/@angular/service-worker/config/schema.json",
   "index": "/index.html",
-  "importScripts": ["/notification-handler.js"],
+  "importScripts": [ "/notification-handler.js" ],
   "assetGroups": [
     {
       "name": "app",
@@ -12,8 +12,7 @@
           "index.html",
           "manifest.webmanifest",
           "*.css",
-          "*.js",
-          "/notification-handler.js"
+          "*.js"
         ]
       }
     },

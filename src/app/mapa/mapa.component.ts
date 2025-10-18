@@ -248,15 +248,18 @@ export class MapaComponent implements AfterViewInit, OnChanges {
   }
 
     private listenForEstablishmentSelection(): void {
-    this.mapStateService.selectEstablishment$.subscribe(id => {      
-      // Se o ID for nulo, não faz nada.
-      if (id === null) return;
-
-      const est = this.todosEstabelecimentos.find(e => e.id === id);
-      if (est) {
-        // Se o estabelecimento já foi carregado, seleciona imediatamente.
-        this.selecionarEstabelecimento(est);
-      }
+    this.mapStateService.selectEstablishment$.subscribe(id => {
+      // Força a re-seleção mesmo que o ID seja o mesmo, limpando primeiro.
+      this.selectedEstabelecimento = null;
+      // Garante que a UI atualize antes de tentar reabrir.
+      this._ngZone.runOutsideAngular(() => {
+        setTimeout(() => {
+          const est = this.todosEstabelecimentos.find(e => e.id === id);
+          if (est) {
+            this._ngZone.run(() => this.selecionarEstabelecimento(est));
+          }
+        }, 50);
+      });
     });
   }
 
@@ -414,6 +417,9 @@ export class MapaComponent implements AfterViewInit, OnChanges {
       this.filtrarEstabelecimentos();
       // Centraliza o mapa na localização do usuário com uma animação suave
       this.map.flyTo(userLocation, zoomLevel);
+    } else {
+      // Se o mapa não estiver pronto, apenas filtra os dados.
+      this.filtrarEstabelecimentos();
     }
   }
 
