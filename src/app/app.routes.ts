@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
 import { MapaComponent } from './mapa/mapa.component';
-import { notificationRedirectGuard } from './guards/notification-redirect.guard';
+import { notificationRedirectGuard } from './notification-redirect.guard';
 
 export const routes: Routes = [
   // Rota principal, exibe a lista de estabelecimentos

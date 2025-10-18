@@ -2,7 +2,7 @@ import { Component, AfterViewInit, ViewChild, ElementRef, Input, OnChanges, Simp
 import L from 'leaflet';
 import { EstabelecimentosService } from '../services/estabelecimentos.service';
 import { Estabelecimento } from '../estabelecimento.model';
-import { firstValueFrom, Subject, takeUntil, combineLatest, filter, BehaviorSubject, switchMap, tap } from 'rxjs';
+import { firstValueFrom, Subject, takeUntil, combineLatest, filter, BehaviorSubject, switchMap, tap, map, take } from 'rxjs';
 import { NotificationService } from '../services/notification.service';
 import { FormsModule } from '@angular/forms';
 import 'leaflet-routing-machine';
@@ -138,7 +138,7 @@ export class MapaComponent implements AfterViewInit, OnChanges {
     const estabelecimentos$ = this.location$.pipe(
       filter((loc): loc is { lat: number; lng: number } => loc !== null),
       switchMap(loc => this.estabelecimentoService.getEstabelecimentosProximos(loc.lat, loc.lng)),
-      map(response => response.body ?? []),
+      map(response => response.body ?? [] as Estabelecimento[]),
       tap(estabelecimentos => {
         this.todosEstabelecimentos = estabelecimentos;
         this.ajustarRaioInicial();
@@ -228,7 +228,7 @@ export class MapaComponent implements AfterViewInit, OnChanges {
   }
 
   private carregarEstabelecimentos(): void {
-    if (!this.map || this.latitude === null || this.longitude === null) return;
+    if (!this.map || !this.location$.value) return;
 
     // Limpa os marcadores de estabelecimentos anteriores
     this.establishmentMarkers.forEach(marker => marker.remove());
