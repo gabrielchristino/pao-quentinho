@@ -117,14 +117,14 @@ export class MapaComponent implements AfterViewInit, OnChanges {
     }
   }
 
-  @HostListener('window:beforeinstallprompt', ['$event'])
-  onBeforeInstallPrompt(event: any) {
-    // Previne que o mini-infobar do Chrome apareça em mobile.
-    event.preventDefault();
-    // Guarda o evento para que ele possa ser acionado depois.
-    this.installPrompt = event;
-    this.showInstallBanner = true;
-  }
+  // @HostListener('window:beforeinstallprompt', ['$event'])
+  // onBeforeInstallPrompt(event: any) {
+  //   // // Previne que o mini-infobar do Chrome apareça em mobile.
+  //   // event.preventDefault();
+  //   // // Guarda o evento para que ele possa ser acionado depois.
+  //   // this.installPrompt = event;
+  //   // this.showInstallBanner = true;
+  // }
 
   ngAfterViewInit(): void {
     // Inicializa o mapa imediatamente com uma visão padrão, sem esperar pela geolocalização.
