@@ -22,6 +22,8 @@ import { SwPush } from '@angular/service-worker';
 
 import { MapStateService } from '../services/map-state.service';
 import { PermissionDialogComponent, PermissionDialogData } from './permission-diolog.component';
+import { AuthService } from '../services/auth.service';
+import { AuthDialogComponent } from '../auth-dialog/auth-dialog.component';
 const iconRetinaUrl = 'assets/marker-icon-2x.png';
 const iconUrl = 'assets/marker-icon.png';
 const shadowUrl = 'assets/marker-shadow.png';
@@ -69,7 +71,7 @@ const SWIPE_THRESHOLD = 50;
 })
 export class MapaComponent implements AfterViewInit {
   @ViewChild('map', { static: true }) mapElementRef!: ElementRef<HTMLDivElement>;
-  private location$ = new BehaviorSubject<{ lat: number; lng: number } | null>(null);
+  location$ = new BehaviorSubject<{ lat: number; lng: number } | null>(null);
 
   raio: number = 500; // Raio inicial em metros
   private map?: L.Map;
@@ -85,6 +87,7 @@ export class MapaComponent implements AfterViewInit {
   private bottomSheetEl: HTMLElement | null = null;
   installPrompt: any = null;
   showInstallBanner = true;
+  private locationWatchId: number | null = null;
   private destroy$ = new Subject<void>();
   isLoading = true;
 
@@ -96,7 +99,8 @@ export class MapaComponent implements AfterViewInit {
     private _snackBar: MatSnackBar,
     private notificationService: NotificationService,
     private mapStateService: MapStateService,
-    public dialog: MatDialog
+    public dialog: MatDialog,
+    public authService: AuthService
   ) { 
     // Adiciona a classe ao body para desabilitar o scroll global
     // quando este componente está ativo.
@@ -150,7 +154,12 @@ export class MapaComponent implements AfterViewInit {
     console.log(`[LOG ${new Date().toLocaleTimeString()}] 2. Solicitando localização do navegador...`);
 
     if ('geolocation' in navigator) {
-      navigator.geolocation.getCurrentPosition(
+      // Para de monitorar a localização anterior, se houver.
+      if (this.locationWatchId) {
+        navigator.geolocation.clearWatch(this.locationWatchId);
+      }
+
+      this.locationWatchId = navigator.geolocation.watchPosition(
         ({ coords }) => {
           console.log(`[LOG ${new Date().toLocaleTimeString()}] 3. ✅ Localização recebida do navegador:`, { lat: coords.latitude, lng: coords.longitude });
           this.location$.next({ lat: coords.latitude, lng: coords.longitude });
@@ -205,6 +214,16 @@ export class MapaComponent implements AfterViewInit {
     this.solicitarPermissaoDeLocalizacao().then(() => this.initializeDataFlow());
   }
 
+  abrirModalAuth(): void {
+    if (this.authService.isLoggedIn()) {
+      // Se já está logado, poderia abrir um menu de "Minha Conta"
+      // Por enquanto, vamos apenas dar a opção de logout.
+      this.authService.logout();
+      this._snackBar.open('Você saiu da sua conta.', 'Ok', { duration: 3000 });
+    } else {
+      this.dialog.open(AuthDialogComponent);
+    }
+  }
   private solicitarPermissaoDeNotificacao(onGranted: () => void): void {
     if (!('Notification' in window)) return;
 
@@ -259,6 +278,9 @@ export class MapaComponent implements AfterViewInit {
     this.destroy$.next();
     this.destroy$.complete();
     // Remove a classe do body para reabilitar o scroll em outras páginas.
+    if (this.locationWatchId) {
+      navigator.geolocation.clearWatch(this.locationWatchId);
+    }
     this._elementRef.nativeElement.ownerDocument.body.classList.remove('no-scroll');
 
   }
@@ -294,10 +316,14 @@ export class MapaComponent implements AfterViewInit {
 
     this.location$.pipe(
       filter((loc): loc is { lat: number; lng: number } => loc !== null),
-      tap(() => this.isLoading = false),
-      take(1) // Apenas na primeira vez
+      tap((loc) => {
+        if (this.isLoading && !this.userMarker) {
+          this.inicializarMarcadorUsuario(loc.lat, loc.lng);
+          this.isLoading = false;
+        }
+        this.atualizarLocalizacaoMapa();
+      }),
     ).subscribe(loc => {
-      this.centralizarNoUsuario(loc.lat, loc.lng);
     });
   }
 
@@ -325,7 +351,15 @@ export class MapaComponent implements AfterViewInit {
     });
   }
 
-  private centralizarNoUsuario(latitude: number, longitude: number): void {
+  centralizarNoUsuario(): void {
+    const loc = this.location$.value;
+    if (!this.map || !loc) return;
+
+    const zoomLevel = this.calculateZoomLevel(this.raio);
+    this.map.flyTo([loc.lat, loc.lng], zoomLevel);
+  }
+
+  private inicializarMarcadorUsuario(latitude: number, longitude: number): void {
     if (!this.map) return;
 
     this.userMarker = L.marker([latitude, longitude], {
@@ -348,21 +382,17 @@ export class MapaComponent implements AfterViewInit {
     }).addTo(this.map);
 
     const zoomLevel = this.calculateZoomLevel(this.raio);
-    this.map.flyTo([latitude, longitude], zoomLevel);
+    this.map.setView([latitude, longitude], zoomLevel);
   }
 
   private atualizarLocalizacaoMapa(): void {
     const loc = this.location$.value;
-    if (!this.map || !loc) return;
+    if (!this.map || !loc || !this.userMarker || !this.circle) return;
     const newLatLng = new L.LatLng(loc.lat, loc.lng);
-    this.map.setView(newLatLng);
 
-    if (this.userMarker) {
-      this.userMarker.setLatLng(newLatLng);
-    }
-    if (this.circle) {
-      this.circle.setLatLng(newLatLng);
-    }
+    // Atualiza a posição do marcador e do círculo sem mover o mapa
+    this.userMarker.setLatLng(newLatLng);
+    this.circle.setLatLng(newLatLng);
   }
 
   private carregarEstabelecimentos(): void {

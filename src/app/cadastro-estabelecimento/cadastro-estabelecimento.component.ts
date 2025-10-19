@@ -11,6 +11,9 @@ import { MatChipsModule } from '@angular/material/chips';
 import { finalize, switchMap } from 'rxjs';
 import { Router } from '@angular/router';
 import { EstabelecimentosService } from '../services/estabelecimentos.service';
+import { MatDialog } from '@angular/material/dialog';
+import { AuthService } from '../services/auth.service';
+import { AuthDialogComponent } from '../auth-dialog/auth-dialog.component';
 
 @Component({
   selector: 'app-cadastro-estabelecimento',
@@ -34,6 +37,8 @@ export class CadastroEstabelecimentoComponent {
   private estabelecimentosService = inject(EstabelecimentosService);
   private snackBar = inject(MatSnackBar);
   private router = inject(Router);
+  private authService = inject(AuthService);
+  private dialog = inject(MatDialog);
 
   isLoading = false;
   form: FormGroup;
@@ -133,15 +138,67 @@ export class CadastroEstabelecimentoComponent {
   }
 
   usarLocalizacaoAtual(): void {
-    // A implementação aqui dependerá de uma API de Reverse Geocoding.
-    // Exemplo de fluxo:
-    // 1. navigator.geolocation.getCurrentPosition(...) para obter lat/lng
-    // 2. Chamar um serviço: this.estabelecimentosService.getEnderecoPorLatLng(lat, lng)
-    // 3. Preencher o formulário com os dados retornados.
-    this.snackBar.open('Funcionalidade de localização atual ainda não implementada.', 'Ok', { duration: 3000 });
+    if (!navigator.geolocation) {
+      this.snackBar.open('Geolocalização não é suportada pelo seu navegador.', 'Fechar', { duration: 3000 });
+      return;
+    }
+
+    this.isLoading = true;
+    this.snackBar.open('Obtendo sua localização...', 'Ok', { duration: 4000 });
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        this.latitude = latitude;
+        this.longitude = longitude;
+
+        this.estabelecimentosService.getEnderecoPorLatLng(latitude, longitude).pipe(
+          finalize(() => this.isLoading = false)
+        ).subscribe({
+          next: (dadosEndereco) => {
+            const address = dadosEndereco.address;
+            if (!address) {
+              this.snackBar.open('Não foi possível encontrar um endereço para sua localização.', 'Fechar', { duration: 3000 });
+              return;
+            }
+            this.form.get('endereco')?.patchValue({
+              cep: address.postcode || '',
+              rua: address.road || '',
+              numero: address.house_number || '',
+              bairro: address.suburb || '',
+              cidade: address.city || address.town || '',
+              estado: address.state || ''
+            });
+            this.snackBar.open('Endereço preenchido com sua localização atual!', 'Ok', { duration: 3000 });
+          },
+          error: () => this.snackBar.open('Erro ao buscar endereço pela localização.', 'Fechar', { duration: 3000 })
+        });
+      },
+      () => {
+        this.isLoading = false;
+        this.snackBar.open('Não foi possível obter sua localização. Verifique as permissões do navegador.', 'Fechar', { duration: 5000 });
+      }
+    );
   }
 
   onSubmit(): void {
+    if (!this.authService.isLoggedIn()) {
+      this.snackBar.open('Faça login ou cadastre-se para salvar um estabelecimento.', 'Ok', { duration: 5000 });
+      const dialogRef = this.dialog.open(AuthDialogComponent);
+
+      dialogRef.afterClosed().subscribe(result => {
+        if (result === true) { // Se o login/cadastro foi bem sucedido
+          this.snackBar.open('Agora você pode salvar seu estabelecimento!', 'Ok', { duration: 3000 });
+          this.prosseguirComSubmit(); // Tenta o submit novamente
+        }
+      });
+      return;
+    }
+
+    this.prosseguirComSubmit();
+  }
+
+  private prosseguirComSubmit(): void {
     if (this.form.invalid) {
       this.snackBar.open('Por favor, preencha todos os campos do formulário.', 'Fechar', { duration: 3000 });
       return;
@@ -173,14 +230,33 @@ export class CadastroEstabelecimentoComponent {
     this.estabelecimentosService.salvarEstabelecimento(payload).pipe(
       finalize(() => this.isLoading = false)
     ).subscribe({
-      next: () => {
-        this.snackBar.open('Estabelecimento cadastrado com sucesso!', 'Ok', { duration: 3000 });
-        this.router.navigate(['/']); // Redireciona para o mapa
+      next: (novoEstabelecimento) => {
+        this.salvarIdLocalmente(novoEstabelecimento.id);
+
+        // Exibe uma mensagem de sucesso com uma ação para ver a página criada
+        const snackBarRef = this.snackBar.open(
+          'Estabelecimento cadastrado com sucesso!',
+          'Ver página',
+          { duration: 10000 } // Aumenta a duração para dar tempo de clicar
+        );
+
+        // Se o usuário clicar em "Ver página", navega para a URL do estabelecimento
+        snackBarRef.onAction().subscribe(() => {
+          this.router.navigate(['/estabelecimento', novoEstabelecimento.id]);
+        });
       },
       error: (err) => {
         console.error('Erro ao cadastrar:', err);
         this.snackBar.open('Ocorreu um erro ao cadastrar. Tente novamente.', 'Fechar', { duration: 3000 });
       }
     });
+  }
+
+  private salvarIdLocalmente(id: number): void {
+    const meusIds = JSON.parse(localStorage.getItem('meus-estabelecimentos') || '[]');
+    if (!meusIds.includes(id)) {
+      meusIds.push(id);
+      localStorage.setItem('meus-estabelecimentos', JSON.stringify(meusIds));
+    }
   }
 }

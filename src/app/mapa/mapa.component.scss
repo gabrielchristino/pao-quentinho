@@ -91,6 +91,23 @@
   z-index: 1001;
 }
 
+/* Botão para recentralizar */
+.recenter-button {
+  position: absolute;
+  bottom: 150px;
+  right: 16px;
+  z-index: 1001;
+}
+
+/* Botão de conta/login */
+.account-button {
+  position: absolute;
+  top: 80px;
+  right: 16px;
+  z-index: 1001;
+}
+
+
 /* Estilos para o conteúdo dentro do Bottom Sheet */
 .list-item-spacer {
   flex: 1 1 auto;

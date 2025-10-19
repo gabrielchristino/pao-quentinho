@@ -41,4 +41,10 @@ export class EstabelecimentosService {
     const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(endereco)}`;
     return this.http.get<any[]>(url);
   }
+
+  // Busca endereço a partir de coordenadas (lat/lng) usando a API Nominatim (Reverse Geocoding)
+  getEnderecoPorLatLng(lat: number, lng: number): Observable<any> {
+    const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`;
+    return this.http.get<any>(url);
+  }
 }
