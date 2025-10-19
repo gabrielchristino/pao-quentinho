@@ -83,8 +83,13 @@
 <div class="establishment-details-container" *ngIf="selectedEstabelecimento" (click)="fecharDetalhe()">
   <mat-card class="establishment-card" (click)="$event.stopPropagation()">
     <mat-card-header>
-      <mat-card-title>{{ selectedEstabelecimento.nome }}</mat-card-title>
-      <mat-card-subtitle>{{ selectedEstabelecimento.endereco.bairro }} - {{ (selectedEstabelecimento.distanciaKm ?? 0).toFixed(2) }} km</mat-card-subtitle>
+      <div class="header-text-content">
+        <mat-card-title>{{ selectedEstabelecimento.nome }}</mat-card-title>
+        <mat-card-subtitle>{{ selectedEstabelecimento.endereco.bairro }} - {{ (selectedEstabelecimento.distanciaKm ?? 0).toFixed(2) }} km</mat-card-subtitle>
+      </div>
+      <button mat-icon-button class="header-share-button" (click)="compartilharEstabelecimento(selectedEstabelecimento, $event)" matTooltip="Compartilhar este local">
+        <mat-icon>share</mat-icon>
+      </button>
     </mat-card-header>
     <mat-card-content>
 
@@ -115,7 +120,7 @@
         <mat-icon>notifications</mat-icon>
         Seguir e receber alertas
       </button>
-      <button mat-button (click)="fecharDetalhe()">Fechar</button>
+      <button mat-button class="close-button" (click)="fecharDetalhe()">Fechar</button>
     </mat-card-actions>
   </mat-card>
 </div>

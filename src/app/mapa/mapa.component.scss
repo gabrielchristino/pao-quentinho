@@ -217,7 +217,18 @@
     animation: slide-up 0.3s ease-out;
 
     mat-card-header {
-      padding: 16px 16px 8px;
+      padding: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+
+      .header-text-content {
+        flex-grow: 1;
+      }
+
+      .header-share-button {
+        flex-shrink: 0;
+      }
     }
 
     mat-card-content {
@@ -299,6 +310,10 @@
 
       .follow-button {
         flex-grow: 1; // Faz o botão principal ocupar mais espaço
+      }
+
+      .close-button {
+        margin-left: auto; // Empurra o botão "Fechar" para a direita
       }
 
       button {

@@ -27,8 +27,8 @@ export class AppComponent {
       console.log('Notificação clicada com o app aberto:', event);
       const url = event.notification.data?.url;
       if (url) {
-        // Extrai o caminho da URL (ex: /estabelecimento/5)
-        const path = new URL(url).pathname.replace('/pao-quentinho', '');
+        // Extrai o caminho da URL (ex: /estabelecimento/5) e navega
+        const path = new URL(url).pathname;
         this.router.navigateByUrl(path);
       }
     });

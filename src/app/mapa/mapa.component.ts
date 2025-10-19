@@ -108,7 +108,7 @@ export class MapaComponent implements AfterViewInit, OnChanges {
         {
           enableHighAccuracy: true, // Tenta obter a localização mais precisa possível
           timeout: 10000, // Tempo máximo de 10 segundos para obter a localização
-          maximumAge: 60000 // Não usar uma localização em cache
+          maximumAge: 60000 // Permite o uso de uma localização em cache de até 1 minuto. Melhora muito a velocidade.
         }
       );
     } else {
@@ -452,6 +452,44 @@ export class MapaComponent implements AfterViewInit, OnChanges {
         duration: 5000,
         panelClass: ['pao-quentinho-snackbar']
       });
+    }
+  }
+
+  async compartilharEstabelecimento(est: Estabelecimento | null, event: MouseEvent): Promise<void> {
+    event.stopPropagation(); // Impede que o clique feche o card
+
+    if (!est) return;
+
+    const shareData = {
+      title: `Pão Quentinho: ${est.nome}`,
+      text: `Confira este lugar que encontrei no Pão Quentinho! Ótimo para pães e quitutes.`,
+      url: `https://pao-quentinho-production.up.railway.app/estabelecimento/${est.id}`
+    };
+
+    // Verifica se a Web Share API está disponível no navegador
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+        console.log('Conteúdo compartilhado com sucesso!');
+      } catch (err) {
+        // O erro 'AbortError' é comum se o usuário cancelar o compartilhamento, então não o tratamos como um erro real.
+        if ((err as DOMException).name !== 'AbortError') {
+          console.error('Erro ao compartilhar:', err);
+        }
+      }
+    } else {
+      // Fallback para desktops: Copiar para a área de transferência
+      try {
+        await navigator.clipboard.writeText(shareData.url);
+        this._snackBar.open('Link do estabelecimento copiado para a área de transferência!', 'Ok', {
+          duration: 3000
+        });
+      } catch (err) {
+        console.error('Erro ao copiar para a área de transferência:', err);
+        this._snackBar.open('Não foi possível copiar o link.', 'Fechar', {
+          duration: 3000
+        });
+      }
     }
   }
 
