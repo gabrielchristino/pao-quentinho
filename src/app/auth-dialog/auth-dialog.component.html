@@ -1,4 +1,9 @@
-<h2 mat-dialog-title>Acesse sua Conta</h2>
+<div class="dialog-header">
+  <h2 mat-dialog-title>Acesse sua Conta</h2>
+  <button mat-icon-button [mat-dialog-close]="false" matTooltip="Fechar">
+    <mat-icon>close</mat-icon>
+  </button>
+</div>
 <mat-dialog-content>
   <mat-tab-group>
     <mat-tab label="Login">
@@ -38,6 +43,3 @@
     </mat-tab>
   </mat-tab-group>
 </mat-dialog-content>
-<mat-dialog-actions align="end">
-  <button mat-button [mat-dialog-close]="false">Cancelar</button>
-</mat-dialog-actions>

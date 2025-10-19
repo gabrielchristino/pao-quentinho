@@ -221,7 +221,9 @@ export class MapaComponent implements AfterViewInit {
       this.authService.logout();
       this._snackBar.open('Você saiu da sua conta.', 'Ok', { duration: 3000 });
     } else {
-      this.dialog.open(AuthDialogComponent);
+      this.dialog.open(AuthDialogComponent, {
+        width: '450px'
+      });
     }
   }
   private solicitarPermissaoDeNotificacao(onGranted: () => void): void {

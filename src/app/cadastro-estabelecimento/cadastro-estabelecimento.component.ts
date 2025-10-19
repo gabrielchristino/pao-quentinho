@@ -184,7 +184,9 @@ export class CadastroEstabelecimentoComponent {
   onSubmit(): void {
     if (!this.authService.isLoggedIn()) {
       this.snackBar.open('Faça login ou cadastre-se para salvar um estabelecimento.', 'Ok', { duration: 5000 });
-      const dialogRef = this.dialog.open(AuthDialogComponent);
+      const dialogRef = this.dialog.open(AuthDialogComponent, {
+        width: '450px'
+      });
 
       dialogRef.afterClosed().subscribe(result => {
         if (result === true) { // Se o login/cadastro foi bem sucedido

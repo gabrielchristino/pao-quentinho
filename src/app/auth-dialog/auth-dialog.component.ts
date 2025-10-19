@@ -7,6 +7,8 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatIconModule } from '@angular/material/icon';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { finalize } from 'rxjs';
 import { AuthService } from '../services/auth.service';
 
@@ -20,7 +22,9 @@ import { AuthService } from '../services/auth.service';
     MatFormFieldModule,
     MatInputModule,
     MatButtonModule,
-    MatDialogModule
+    MatDialogModule,
+    MatIconModule,
+    MatTooltipModule
   ],
   templateUrl: './auth-dialog.component.html',
   styleUrl: './auth-dialog.component.scss'

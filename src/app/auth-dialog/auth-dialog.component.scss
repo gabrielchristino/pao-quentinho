@@ -1,6 +1,20 @@
+.dialog-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  // Remove o padding padrão do título para alinhar o botão 'X'
+  margin: -12px -12px 0;
+  padding-left: 24px;
+}
+
+mat-dialog-content {
+  // Remove o padding superior padrão que causa o scroll
+  padding-top: 0 !important;
+}
+
 .auth-form {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  padding-top: 24px;
+  padding: 24px 4px 16px; // Adiciona padding vertical e um pouco horizontal
 }
