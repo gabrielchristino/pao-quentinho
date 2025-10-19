@@ -36,9 +36,8 @@ const iconDefault = L.icon({
 L.Marker.prototype.options.icon = iconDefault;
 
 // --- Constantes ---
-const BOTTOM_SHEET_PEEK_HEIGHT = 80; // Altura visível quando o painel está fechado
-const SWIPE_THRESHOLD = 50; // Distância mínima em pixels para considerar um gesto de swipe
-
+const BOTTOM_SHEET_PEEK_HEIGHT = 80;
+const SWIPE_THRESHOLD = 50;
 
 @Component({
   selector: 'app-mapa',
@@ -60,7 +59,7 @@ const SWIPE_THRESHOLD = 50; // Distância mínima em pixels para considerar um g
   templateUrl: './mapa.component.html',
   styleUrl: './mapa.component.scss',
 })
-export class MapaComponent implements AfterViewInit, OnChanges {
+export class MapaComponent implements AfterViewInit {
   @ViewChild('map', { static: true }) mapElementRef!: ElementRef<HTMLDivElement>;
   private location$ = new BehaviorSubject<{ lat: number; lng: number } | null>(null);
 
@@ -79,7 +78,7 @@ export class MapaComponent implements AfterViewInit, OnChanges {
   installPrompt: any = null;
   showInstallBanner = true;
   private destroy$ = new Subject<void>();
-  isLoading = true; // <-- Adicionado para controlar o spinner
+  isLoading = true;
 
   constructor(
     private estabelecimentoService: EstabelecimentosService,
@@ -90,11 +89,47 @@ export class MapaComponent implements AfterViewInit, OnChanges {
     private notificationService: NotificationService,
     private mapStateService: MapStateService
   ) {
-    this.initializeDataFlow();
+  }
+
+  private async solicitarPermissaoDeLocalizacao(): Promise<void> {
+    console.log(`[LOG ${new Date().toLocaleTimeString()}] 1. Verificando permissão de localização...`);
+
+    // Fallback para navegadores que não suportam a API de Permissões
+    if (!navigator.permissions?.query) {
+      this.getUserLocation();
+      return;
+    }
+
+    const result = await navigator.permissions.query({ name: 'geolocation' });
+
+    if (result.state === 'granted') {
+      console.log(`[LOG ${new Date().toLocaleTimeString()}] 1.1. ✅ Permissão já concedida.`);
+      this.getUserLocation();
+    } else if (result.state === 'prompt') {
+      console.log(`[LOG ${new Date().toLocaleTimeString()}] 1.1. ❔ Permissão necessária. Exibindo pré-alerta.`);
+      const snackBarRef = this._snackBar.open('Para encontrar pão quentinho perto de você, precisamos da sua localização.', 'Permitir', {
+        duration: 10000,
+        panelClass: ['pao-quentinho-snackbar'],
+      });
+
+      snackBarRef.onAction().subscribe(() => {
+        this.getUserLocation();
+      });
+
+      snackBarRef.afterDismissed().subscribe(info => {
+        if (!info.dismissedByAction) {
+          this.location$.next({ lat: -23.55052, lng: -46.633308 }); // Fallback para SP
+        }
+      });
+    } else if (result.state === 'denied') {
+      console.log(`[LOG ${new Date().toLocaleTimeString()}] 1.1. ❌ Permissão negada.`);
+      this.getUserLocation();
+    }
   }
 
   private getUserLocation(): void {
     console.log(`[LOG ${new Date().toLocaleTimeString()}] 2. Solicitando localização do navegador...`);
+
     if ('geolocation' in navigator) {
       navigator.geolocation.getCurrentPosition(
         ({ coords }) => {
@@ -102,7 +137,22 @@ export class MapaComponent implements AfterViewInit, OnChanges {
           this.location$.next({ lat: coords.latitude, lng: coords.longitude });
         },
         (error) => {
-          console.error(`[LOG ${new Date().toLocaleTimeString()}] 3. ❌ Erro ao obter localização, usando fallback:`, error);
+          console.error(`[LOG ${new Date().toLocaleTimeString()}] 3. ❌ Erro ao obter localização:`, error.message);
+
+          if (error.code === error.PERMISSION_DENIED) {
+            const snackBarRef = this._snackBar.open('Sua localização está bloqueada. Que tal habilitá-la para encontrarmos pão quentinho por perto?', 'Como?', {
+              duration: 10000,
+              panelClass: ['pao-quentinho-snackbar']
+            });
+            snackBarRef.onAction().subscribe(() => {
+              const isPWA = window.matchMedia('(display-mode: standalone)').matches;
+              const instruction = isPWA
+                ? 'Vá nas informações do app, entre em "Permissões" e habilite a Localização.'
+                : 'Clique no cadeado ao lado do endereço do site e altere a permissão de Localização para "Permitir".';
+              this._snackBar.open(instruction, 'Entendi', { duration: 15000, panelClass: ['pao-quentinho-snackbar'] });
+            });
+          }
+
           this.location$.next({ lat: -23.55052, lng: -46.633308 }); // Fallback para SP
         },
         {
@@ -120,18 +170,61 @@ export class MapaComponent implements AfterViewInit, OnChanges {
   @HostListener('window:beforeinstallprompt', ['$event'])
   onBeforeInstallPrompt(event: any) {
     // Previne que o mini-infobar do Chrome apareça em mobile.
-    event.preventDefault();
-    // Guarda o evento para que ele possa ser acionado depois.
+    event.preventDefault(); 
     this.installPrompt = event;
     this.showInstallBanner = true;
   }
 
   ngAfterViewInit(): void {
-    // Inicializa o mapa imediatamente com uma visão padrão, sem esperar pela geolocalização.
-    // Isso evita a "tela branca" enquanto a localização é obtida.
+    // Inicializa o mapa com uma visão padrão para evitar "tela branca"
     this.inicializarMapa(-14.235, -51.925, 4); // Centro do Brasil, zoom afastado
+    this.solicitarPermissoesIniciais();
     this.bottomSheetEl = this._elementRef.nativeElement.querySelector('#bottomSheet');
-    this.initializeDataFlow(); // Inicia o fluxo para obter a localização do usuário após o mapa base estar visível.
+  }
+
+  private solicitarPermissoesIniciais(): void {
+    this.solicitarPermissaoDeLocalizacao().then(() => this.initializeDataFlow());
+  }
+
+  private solicitarPermissaoDeNotificacao(onGranted: () => void): void {
+    if (!('Notification' in window)) return;
+
+    const permission = Notification.permission;
+
+    if (permission === 'default') {
+      const snackBarRef = this._snackBar.open('Quer ser avisado quando uma fornada sair? Ative as notificações!', 'Ativar', {
+        duration: 10000,
+        panelClass: ['pao-quentinho-snackbar'],
+      });
+
+      snackBarRef.onAction().subscribe(() => {
+        Notification.requestPermission().then(p => {
+          console.log(`Permissão de notificação: ${p}`);
+          if (p === 'granted') {
+            onGranted();
+          }
+        });
+      });
+    } else if (permission === 'denied') {
+      // Se a permissão foi negada, mostramos como reativar.
+      const snackBarRef = this._snackBar.open('As notificações estão bloqueadas. Habilite para receber alertas de fornadas!', 'Como?', {
+        duration: 10000,
+        panelClass: ['pao-quentinho-snackbar'],
+      });
+
+      snackBarRef.onAction().subscribe(() => {
+        const isPWA = window.matchMedia('(display-mode: standalone)').matches;
+        const instruction = isPWA
+          ? 'Vá nas informações do app, entre em "Permissões" e habilite as Notificações.'
+          : 'Clique no cadeado ao lado do endereço do site e altere a permissão de Notificações para "Permitir".';
+
+        this._snackBar.open(instruction, 'Entendi', {
+          duration: 15000, panelClass: ['pao-quentinho-snackbar']
+        });
+      });
+    } else if (permission === 'granted') {
+      onGranted();
+    }
   }
 
   ngOnDestroy(): void {
@@ -139,17 +232,8 @@ export class MapaComponent implements AfterViewInit, OnChanges {
     this.destroy$.complete();
   }
 
-  ngOnChanges(changes: SimpleChanges): void {
-    // A lógica de inicialização agora é controlada internamente pelo componente.
-    // Este método pode ser removido se não for mais usado para outras @Inputs.
-  }
-
   private initializeDataFlow(): void {
-    console.log(`[LOG ${new Date().toLocaleTimeString()}] 1. Iniciando fluxo de dados.`);
-    // 1. Obtém a localização do usuário (o mapa já está visível neste ponto)
-    this.getUserLocation();
-
-    // 2. Cria um fluxo de dados para os estabelecimentos
+    console.log(`[LOG ${new Date().toLocaleTimeString()}] 4. Iniciando fluxo de dados com a localização...`);
     const estabelecimentos$ = this.location$.pipe(
       filter((loc): loc is { lat: number; lng: number } => loc !== null),
       tap(loc => console.log(`[LOG ${new Date().toLocaleTimeString()}] 4. Localização válida recebida. Disparando chamada para API de estabelecimentos...`)),
@@ -157,9 +241,9 @@ export class MapaComponent implements AfterViewInit, OnChanges {
         this.estabelecimentoService.getEstabelecimentosProximos(loc.lat, loc.lng).pipe(map(response => response.body ?? [] as Estabelecimento[]))
       ),
       tap(estabelecimentos => {
-        this.todosEstabelecimentos = estabelecimentos;
+        this.todosEstabelecimentos = estabelecimentos; 
         this.ajustarRaioInicial();
-        this.carregarEstabelecimentos(); // <-- Adiciona os marcadores no mapa
+        this.carregarEstabelecimentos();
       }),
       takeUntil(this.destroy$)
     );
@@ -177,10 +261,9 @@ export class MapaComponent implements AfterViewInit, OnChanges {
       }
     });
 
-    // 4. Centraliza no usuário e adiciona marcadores assim que a primeira localização estiver disponível
     this.location$.pipe(
       filter((loc): loc is { lat: number; lng: number } => loc !== null),
-      tap(() => this.isLoading = false), // <-- Esconde o spinner
+      tap(() => this.isLoading = false),
       take(1) // Apenas na primeira vez
     ).subscribe(loc => {
       this.centralizarNoUsuario(loc.lat, loc.lng);
@@ -202,10 +285,8 @@ export class MapaComponent implements AfterViewInit, OnChanges {
       attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
     }).addTo(this.map);
 
-    // Adiciona o evento de clique no mapa para fechar o bottom sheet
     this.map.on('click', () => {
       if (this.isListOpen) {
-        // Executa dentro da zona do Angular para garantir a atualização da UI a partir de eventos de libs externas
         this._ngZone.run(() => {
           this.isListOpen = false;
         });
@@ -213,15 +294,10 @@ export class MapaComponent implements AfterViewInit, OnChanges {
     });
   }
 
-  /**
-   * Centraliza o mapa na localização do usuário, adiciona o marcador e o círculo de raio.
-   * Chamado após a geolocalização ser obtida.
-   */
   private centralizarNoUsuario(latitude: number, longitude: number): void {
     if (!this.map) return;
 
-    // Adiciona o marcador do usuário
-    this.userMarker = L.marker([latitude, longitude],{
+    this.userMarker = L.marker([latitude, longitude], { 
       alt: 'Localização atual',
       title: 'Localização atual',
       riseOnHover: true,
@@ -233,7 +309,6 @@ export class MapaComponent implements AfterViewInit, OnChanges {
       })
     }).addTo(this.map);
 
-    // Adiciona o círculo de raio
     this.circle = L.circle([latitude, longitude], {
       color: '#c299fc',
       fillColor: '#f7c7ce',
@@ -241,7 +316,6 @@ export class MapaComponent implements AfterViewInit, OnChanges {
       radius: this.raio
     }).addTo(this.map);
 
-    // Move o mapa suavemente para a nova localização com o zoom apropriado
     const zoomLevel = this.calculateZoomLevel(this.raio);
     this.map.flyTo([latitude, longitude], zoomLevel);
   }
@@ -263,7 +337,6 @@ export class MapaComponent implements AfterViewInit, OnChanges {
   private carregarEstabelecimentos(): void {
     if (!this.map || !this.location$.value) return;
 
-    // Limpa os marcadores de estabelecimentos anteriores
     this.establishmentMarkers.forEach(marker => marker.remove());
     this.establishmentMarkers = [];
 
@@ -298,7 +371,6 @@ export class MapaComponent implements AfterViewInit, OnChanges {
       }
     }
 
-    // Define o raio e atualiza o mapa (círculo e zoom)
     this.definirRaio(raioEncontrado);
   }
 
@@ -306,22 +378,16 @@ export class MapaComponent implements AfterViewInit, OnChanges {
     this.isListOpen = !this.isListOpen;
   }
 
-  /**
-   * Seleciona um estabelecimento, fecha a lista e centraliza o mapa nele.
-   * Esta função é chamada tanto pelo clique no mapa/lista quanto pelo serviço de estado.
-   * Para resolver o problema de clique repetido, limpamos a seleção antes de definir a nova.
-   * @param est O estabelecimento a ser selecionado.
-   */
   selecionarEstabelecimento(est: Estabelecimento): void {
-    // Força a re-seleção mesmo que o ID seja o mesmo, limpando e reabrindo.
     if (this.selectedEstabelecimento?.id === est.id && this.selectedEstabelecimento !== null) {
       this.selectedEstabelecimento = null;
-      // Garante que a UI tenha tempo de processar a remoção antes de re-adicionar
+      // Garante que a UI processe a remoção antes de re-adicionar
       setTimeout(() => this._ngZone.run(() => this.selectedEstabelecimento = est), 10);
       return;
     }
     this.selectedEstabelecimento = est;
-    this.isListOpen = false; // Fecha a lista para dar espaço ao card de detalhe
+    this.isListOpen = false;
+
     if (this.routingControl) {
       this.routingControl.remove();
       this.routingControl = null;
@@ -335,9 +401,7 @@ export class MapaComponent implements AfterViewInit, OnChanges {
     if (!this.installPrompt) {
       return;
     }
-    // Mostra o prompt de instalação
     this.installPrompt.prompt();
-    // O evento só pode ser usado uma vez.
     this.installPrompt = null;
   }
 
@@ -357,7 +421,6 @@ export class MapaComponent implements AfterViewInit, OnChanges {
       this.map.flyTo([loc.lat, loc.lng], zoomLevel);
     }
 
-    // Desabilita o zoom ao sair do modo de navegação
     if (this.map) {
       this.map.scrollWheelZoom.disable();
       this.map.touchZoom.disable();
@@ -368,45 +431,39 @@ export class MapaComponent implements AfterViewInit, OnChanges {
   iniciarNavegacao(est: Estabelecimento, event: MouseEvent): void {
     event.stopPropagation(); // Impede que o clique se propague para outros elementos
 
-    // 1. Fecha o modal de detalhes sem recentralizar o mapa
     this.fecharDetalhe(false);
 
     const loc = this.location$.value;
     if (!this.map || !loc) return;
 
-    // 2. Remove qualquer rota anterior
     if (this.routingControl) {
       this.routingControl.remove();
     }
 
-    // 3. Cria e exibe a nova rota
     this.routingControl = L.Routing.control({
       routeWhileDragging: true,
-      show: false, // Oculta o painel de instruções
+      show: false,
       addWaypoints: false,
-      fitSelectedRoutes: false, // Desativamos o ajuste automático para controlar manualmente
+      fitSelectedRoutes: false,
       lineOptions: {
-        styles: [{color: '#6200ee', opacity: 0.8, weight: 6}]
+        styles: [{ color: '#6200ee', opacity: 0.8, weight: 6 }]
       } as any,
       plan: L.Routing.plan([
         L.latLng(loc.lat, loc.lng),
         L.latLng(est.latitude, est.longitude)
       ], {
-        // Esta função impede a criação dos marcadores de início e fim
-        createMarker: function() { return false; }
+        createMarker: function () { return false; }
       })
     }).addTo(this.map);
 
-    // 4. Ajusta o mapa manualmente para enquadrar a rota
     const bounds = L.latLngBounds([
       L.latLng(loc.lat, loc.lng),
       L.latLng(est.latitude, est.longitude)
     ]);
 
-    // Adiciona um "respiro" (padding) nas bordas do mapa
     this.map.fitBounds(bounds, { padding: [50, 50] });
 
-    // 5. Habilita o zoom no modo de navegação
+    // Habilita o zoom durante a navegação
     if (this.map) {
       this.map.scrollWheelZoom.enable();
       this.map.touchZoom.enable();
@@ -417,42 +474,39 @@ export class MapaComponent implements AfterViewInit, OnChanges {
   async seguirEstabelecimento(est: Estabelecimento, event: MouseEvent): Promise<void> {
     event.stopPropagation(); // Impede que o clique feche o card
 
-    if (!this.swPush.isEnabled) {
-      this._snackBar.open('As notificações push não são suportadas ou estão desabilitadas.', 'Fechar', {
-        duration: 5000,
-        panelClass: ['pao-quentinho-snackbar']
-      });
-      return;
-    }
-
-    try {
-      // Busca a chave VAPID do backend
-      const vapidPublicKey = await firstValueFrom(this.notificationService.getVapidPublicKey());
-
-      if (!vapidPublicKey) {
-        throw new Error('Chave VAPID pública não recebida do servidor.');
+    const subscribeLogic = async () => {
+      if (!this.swPush.isEnabled) {
+        this._snackBar.open('As notificações push não são suportadas ou estão desabilitadas.', 'Fechar', {
+          duration: 5000,
+          panelClass: ['pao-quentinho-snackbar']
+        });
+        return;
       }
 
-      // Solicita a inscrição ao navegador
-      const sub = await this.swPush.requestSubscription({
-        serverPublicKey: vapidPublicKey,
-      });
+      try {
+        const vapidPublicKey = await firstValueFrom(this.notificationService.getVapidPublicKey());
 
-      // Envia a inscrição para o backend
-      await firstValueFrom(this.notificationService.addPushSubscriber(sub, est.id));
+        if (!vapidPublicKey) {
+          throw new Error('Chave VAPID pública não recebida do servidor.');
+        }
 
-      console.log('Inscrição para Push Notification obtida e salva:', sub.toJSON());
-      this._snackBar.open(`Inscrição realizada com sucesso para a ${est.nome}!`, 'Ok', {
-        duration: 3000,
-        panelClass: ['pao-quentinho-snackbar']
-      });
-    } catch (err) {
-      console.error('Não foi possível se inscrever para notificações push', err);
-      this._snackBar.open('Não foi possível se inscrever. Verifique se as notificações não estão bloqueadas.', 'Fechar', {
-        duration: 5000,
-        panelClass: ['pao-quentinho-snackbar']
-      });
-    }
+        const sub = await this.swPush.requestSubscription({
+          serverPublicKey: vapidPublicKey,
+        });
+
+        await firstValueFrom(this.notificationService.addPushSubscriber(sub, est.id));
+
+        console.log('Inscrição para Push Notification obtida e salva:', sub.toJSON());
+        this._snackBar.open(`Inscrição realizada com sucesso para a ${est.nome}!`, 'Ok', {
+          duration: 3000,
+          panelClass: ['pao-quentinho-snackbar']
+        });
+      } catch (err) {
+        console.error('Não foi possível se inscrever para notificações push', err);
+      }
+    };
+
+    this.solicitarPermissaoDeNotificacao(subscribeLogic);
   }
 
   async compartilharEstabelecimento(est: Estabelecimento | null, event: MouseEvent): Promise<void> {
@@ -466,7 +520,6 @@ export class MapaComponent implements AfterViewInit, OnChanges {
       url: `https://pao-quentinho-production.up.railway.app/estabelecimento/${est.id}`
     };
 
-    // Verifica se a Web Share API está disponível no navegador
     if (navigator.share) {
       try {
         await navigator.share(shareData);
@@ -478,7 +531,7 @@ export class MapaComponent implements AfterViewInit, OnChanges {
         }
       }
     } else {
-      // Fallback para desktops: Copiar para a área de transferência
+      // Fallback: Copiar para a área de transferência
       try {
         await navigator.clipboard.writeText(shareData.url);
         this._snackBar.open('Link do estabelecimento copiado para a área de transferência!', 'Ok', {
@@ -498,14 +551,10 @@ export class MapaComponent implements AfterViewInit, OnChanges {
     const loc = this.location$.value;
     if (this.map && this.circle && loc) {
       this.circle.setRadius(this.raio);
-      const userLocation = new L.LatLng(loc.lat, loc.lng);
-      // Ajusta o zoom para o novo raio
       const zoomLevel = this.calculateZoomLevel(this.raio);
       this.filtrarEstabelecimentos();
-      // Centraliza o mapa na localização do usuário com uma animação suave
-      this.map.flyTo(userLocation, zoomLevel);
+      this.map.flyTo(new L.LatLng(loc.lat, loc.lng), zoomLevel);
     } else {
-      // Se o mapa não estiver pronto, apenas filtra os dados.
       this.filtrarEstabelecimentos();
     }
   }
@@ -521,7 +570,6 @@ export class MapaComponent implements AfterViewInit, OnChanges {
   private touchStartY = 0;
 
   protected onTouchStart(event: TouchEvent): void {
-    // Ignora o gesto se o scroll interno da lista estiver ativo
     const sheetContent = (event.currentTarget as HTMLElement).querySelector('.sheet-content');
     if (sheetContent && sheetContent.scrollTop > 0) {
       this.isDragging = false;
@@ -529,7 +577,6 @@ export class MapaComponent implements AfterViewInit, OnChanges {
     }
 
     this.isDragging = true;
-    // Guarda a posição inicial do toque no eixo Y
     this.touchStartY = event.touches[0].clientY;
     this.bottomSheetEl?.classList.add('dragging');
   }
@@ -543,11 +590,8 @@ export class MapaComponent implements AfterViewInit, OnChanges {
     const touchMoveY = event.touches[0].clientY;
     const deltaY = touchMoveY - this.touchStartY;
 
-    // Posição inicial (aberto ou fechado) + deslocamento do dedo
     const startY = this.isListOpen ? 0 : sheetEl.clientHeight - BOTTOM_SHEET_PEEK_HEIGHT;
     const newTranslateY = startY + deltaY;
-
-    // Limita o movimento para não "estourar" os limites da tela
     const constrainedY = Math.max(0, newTranslateY);
 
     sheetEl.style.transform = `translateY(${constrainedY}px)`;
@@ -561,27 +605,20 @@ export class MapaComponent implements AfterViewInit, OnChanges {
     if (!sheetEl) return;
 
     sheetEl.classList.remove('dragging');
-    sheetEl.style.transform = ''; // Deixa o CSS controlar a posição final
+    sheetEl.style.transform = '';
 
     const touchEndY = event.changedTouches[0].clientY;
     const deltaY = touchEndY - this.touchStartY;
 
-    // Decide se abre ou fecha com base na direção e intensidade do deslize
     if (deltaY < -SWIPE_THRESHOLD) this.isListOpen = true; // Deslizou para cima
     if (deltaY > SWIPE_THRESHOLD) this.isListOpen = false; // Deslizou para baixo
   }
 
   private calculateZoomLevel(radiusInMeters: number): number {
-    // Fórmula aproximada para obter um nível de zoom razoável para um raio
     const zoomLevels = { 500: 16, 1000: 15, 5000: 13 };
     return zoomLevels[radiusInMeters as keyof typeof zoomLevels] || 12;
   }
 
-  /**
-   * Encontra o próximo horário de fornada do dia.
-   * @param horarios Array de horários no formato "HH:mm".
-   * @returns O próximo horário ou o primeiro do dia seguinte se todos já passaram.
-   */
   getNextFornada(horarios: string[]): string {
     if (!horarios || horarios.length === 0) {
       return 'N/A';
