@@ -17,9 +17,11 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatRippleModule } from '@angular/material/core';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { SwPush } from '@angular/service-worker';
 
 import { MapStateService } from '../services/map-state.service';
+import { PermissionDialogComponent, PermissionDialogData } from './permission-diolog.component';
 const iconRetinaUrl = 'assets/marker-icon-2x.png';
 const iconUrl = 'assets/marker-icon.png';
 const shadowUrl = 'assets/marker-shadow.png';
@@ -54,7 +56,8 @@ const SWIPE_THRESHOLD = 50;
     MatTooltipModule,
     MatRippleModule,
     MatSnackBarModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    MatDialogModule
   ],
   templateUrl: './mapa.component.html',
   styleUrl: './mapa.component.scss',
@@ -87,7 +90,8 @@ export class MapaComponent implements AfterViewInit {
     private swPush: SwPush,
     private _snackBar: MatSnackBar,
     private notificationService: NotificationService,
-    private mapStateService: MapStateService
+    private mapStateService: MapStateService,
+    public dialog: MatDialog
   ) {
   }
 
@@ -107,17 +111,24 @@ export class MapaComponent implements AfterViewInit {
       this.getUserLocation();
     } else if (result.state === 'prompt') {
       console.log(`[LOG ${new Date().toLocaleTimeString()}] 1.1. ❔ Permissão necessária. Exibindo pré-alerta.`);
-      const snackBarRef = this._snackBar.open('Para encontrar pão quentinho perto de você, precisamos da sua localização.', 'Permitir', {
-        duration: 10000,
-        panelClass: ['pao-quentinho-snackbar'],
+
+      const dialogRef = this.dialog.open<PermissionDialogComponent, PermissionDialogData, boolean>(PermissionDialogComponent, {
+        data: {
+          icon: 'location_on',
+          title: 'Permitir sua localização?',
+          content: 'Para encontrar pão quentinho perto de você, precisamos da sua localização.',
+          confirmButton: 'Permitir',
+          cancelButton: 'Agora não'
+        },
+        disableClose: true // Impede que o usuário feche clicando fora
       });
 
-      snackBarRef.onAction().subscribe(() => {
-        this.getUserLocation();
-      });
-
-      snackBarRef.afterDismissed().subscribe(info => {
-        if (!info.dismissedByAction) {
+      dialogRef.afterClosed().subscribe(result => {
+        if (result) {
+          // Usuário clicou em "Permitir"
+          this.getUserLocation();
+        } else {
+          // Usuário clicou em "Agora não" ou fechou o diálogo
           this.location$.next({ lat: -23.55052, lng: -46.633308 }); // Fallback para SP
         }
       });
@@ -170,7 +181,7 @@ export class MapaComponent implements AfterViewInit {
   @HostListener('window:beforeinstallprompt', ['$event'])
   onBeforeInstallPrompt(event: any) {
     // Previne que o mini-infobar do Chrome apareça em mobile.
-    event.preventDefault(); 
+    event.preventDefault();
     this.installPrompt = event;
     this.showInstallBanner = true;
   }
@@ -192,18 +203,27 @@ export class MapaComponent implements AfterViewInit {
     const permission = Notification.permission;
 
     if (permission === 'default') {
-      const snackBarRef = this._snackBar.open('Quer ser avisado quando uma fornada sair? Ative as notificações!', 'Ativar', {
-        duration: 10000,
-        panelClass: ['pao-quentinho-snackbar'],
+
+      const dialogRef = this.dialog.open<PermissionDialogComponent, PermissionDialogData, boolean>(PermissionDialogComponent, {
+        data: {
+          icon: 'location_on',
+          title: 'Permitir notificações?',
+          content: 'Quer ser avisado quando uma fornada sair? Ative as notificações.',
+          confirmButton: 'Permitir',
+          cancelButton: 'Agora não'
+        },
+        disableClose: true // Impede que o usuário feche clicando fora
       });
 
-      snackBarRef.onAction().subscribe(() => {
-        Notification.requestPermission().then(p => {
-          console.log(`Permissão de notificação: ${p}`);
-          if (p === 'granted') {
-            onGranted();
-          }
-        });
+      dialogRef.afterClosed().subscribe(result => {
+        if (result) {
+          Notification.requestPermission().then(p => {
+            console.log(`Permissão de notificação: ${p}`);
+            if (p === 'granted') {
+              onGranted();
+            }
+          });
+        }
       });
     } else if (permission === 'denied') {
       // Se a permissão foi negada, mostramos como reativar.
@@ -241,7 +261,7 @@ export class MapaComponent implements AfterViewInit {
         this.estabelecimentoService.getEstabelecimentosProximos(loc.lat, loc.lng).pipe(map(response => response.body ?? [] as Estabelecimento[]))
       ),
       tap(estabelecimentos => {
-        this.todosEstabelecimentos = estabelecimentos; 
+        this.todosEstabelecimentos = estabelecimentos;
         this.ajustarRaioInicial();
         this.carregarEstabelecimentos();
       }),
@@ -297,7 +317,7 @@ export class MapaComponent implements AfterViewInit {
   private centralizarNoUsuario(latitude: number, longitude: number): void {
     if (!this.map) return;
 
-    this.userMarker = L.marker([latitude, longitude], { 
+    this.userMarker = L.marker([latitude, longitude], {
       alt: 'Localização atual',
       title: 'Localização atual',
       riseOnHover: true,
