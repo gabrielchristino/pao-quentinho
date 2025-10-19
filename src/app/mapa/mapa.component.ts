@@ -60,7 +60,12 @@ const SWIPE_THRESHOLD = 50;
     MatDialogModule
   ],
   templateUrl: './mapa.component.html',
-  styleUrl: './mapa.component.scss',
+  styleUrl: './mapa.component.scss', 
+  host: {
+    '[style.display]': "'block'",
+    '[style.height]': "'100%'",
+    '[style.overflow]': "'hidden'"
+  }
 })
 export class MapaComponent implements AfterViewInit {
   @ViewChild('map', { static: true }) mapElementRef!: ElementRef<HTMLDivElement>;
@@ -92,7 +97,10 @@ export class MapaComponent implements AfterViewInit {
     private notificationService: NotificationService,
     private mapStateService: MapStateService,
     public dialog: MatDialog
-  ) {
+  ) { 
+    // Adiciona a classe ao body para desabilitar o scroll global
+    // quando este componente está ativo.
+    this._elementRef.nativeElement.ownerDocument.body.classList.add('no-scroll');
   }
 
   private async solicitarPermissaoDeLocalizacao(): Promise<void> {
@@ -250,6 +258,9 @@ export class MapaComponent implements AfterViewInit {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+    // Remove a classe do body para reabilitar o scroll em outras páginas.
+    this._elementRef.nativeElement.ownerDocument.body.classList.remove('no-scroll');
+
   }
 
   private initializeDataFlow(): void {
@@ -445,6 +456,7 @@ export class MapaComponent implements AfterViewInit {
       this.map.scrollWheelZoom.disable();
       this.map.touchZoom.disable();
       this.map.doubleClickZoom.disable();
+      this.map.scrollWheelZoom.disable();
     }
   }
 

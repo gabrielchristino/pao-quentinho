@@ -1,0 +1,186 @@
+import { Component, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, FormArray, FormControl } from '@angular/forms';
+import { MatInputModule } from '@angular/material/input';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatButtonModule } from '@angular/material/button';
+import { MatSelectModule } from '@angular/material/select';
+import { MatIconModule } from '@angular/material/icon';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatChipsModule } from '@angular/material/chips';
+import { finalize, switchMap } from 'rxjs';
+import { Router } from '@angular/router';
+import { EstabelecimentosService } from '../services/estabelecimentos.service';
+
+@Component({
+  selector: 'app-cadastro-estabelecimento',
+  standalone: true,
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatButtonModule,
+    MatSelectModule,
+    MatIconModule,
+    MatSnackBarModule,
+    MatChipsModule,
+  ],
+  templateUrl: './cadastro-estabelecimento.component.html',
+  styleUrl: './cadastro-estabelecimento.component.scss'
+})
+export class CadastroEstabelecimentoComponent {
+  private fb = inject(FormBuilder);
+  private estabelecimentosService = inject(EstabelecimentosService);
+  private snackBar = inject(MatSnackBar);
+  private router = inject(Router);
+
+  isLoading = false;
+  form: FormGroup;
+  fornadaControl = new FormControl('', [Validators.required]);
+  // Propriedades para armazenar as coordenadas internamente
+  private latitude: number | null = null;
+  private longitude: number | null = null;
+  
+  constructor() {
+    this.form = this.fb.group({
+      nome: ['', Validators.required],
+      info: ['', Validators.required],
+      tipo: ['padaria', Validators.required],
+      horarioAbertura: ['', Validators.required],
+      horarioFechamento: ['', Validators.required],
+      horariosFornada: this.fb.array([]),
+      endereco: this.fb.group({
+        cep: ['', [Validators.required, Validators.pattern(/^\d{5}-\d{3}$/)]],
+        rua: ['', Validators.required],
+        numero: ['', Validators.required],
+        bairro: ['', Validators.required],
+        cidade: ['', Validators.required],
+        estado: ['', Validators.required],
+        complemento: ['']
+      }),
+    });
+  }
+
+  get horariosFornada(): FormArray {
+    return this.form.get('horariosFornada') as FormArray;
+  }
+
+  adicionarHorarioFornada(): void {
+    if (this.fornadaControl.invalid) {
+      this.snackBar.open('Por favor, selecione um horário.', 'Fechar', { duration: 3000 });
+      return;
+    }
+
+    const novoHorario = this.fornadaControl.value;
+
+    if (this.horariosFornada.value.includes(novoHorario)) {
+      this.snackBar.open('Este horário já foi adicionado.', 'Fechar', { duration: 3000 });
+      return;
+    }
+
+    this.horariosFornada.push(this.fb.control(novoHorario));
+    this.fornadaControl.reset();
+  }
+
+  removeHorario(index: number): void {
+    this.horariosFornada.removeAt(index);
+  }
+
+  buscarPorCep(): void {
+    const cep = this.form.get('endereco.cep')?.value;
+    if (!cep || this.form.get('endereco.cep')?.invalid) {
+      this.snackBar.open('Por favor, insira um CEP válido.', 'Fechar', { duration: 3000 });
+      return;
+    }
+
+    this.isLoading = true;
+    this.estabelecimentosService.getEnderecoPorCep(cep).pipe(
+      // Encadeia a busca de endereço com a busca de coordenadas
+      switchMap(dadosEndereco => {
+        if (dadosEndereco.erro) {
+          throw new Error('CEP não encontrado.');
+        }
+        this.form.get('endereco')?.patchValue({
+          rua: dadosEndereco.logradouro,
+          bairro: dadosEndereco.bairro,
+          cidade: dadosEndereco.localidade,
+          estado: dadosEndereco.uf
+        });
+        this.snackBar.open('Endereço encontrado! Buscando coordenadas...', 'Ok', { duration: 2000 });
+        
+        const enderecoCompleto = `${dadosEndereco.logradouro}, ${dadosEndereco.localidade}, ${dadosEndereco.uf}`;
+        return this.estabelecimentosService.getCoordenadasPorEndereco(enderecoCompleto);
+      }),
+      finalize(() => this.isLoading = false) // Finaliza o loading ao final de tudo
+    ).subscribe({
+      next: (dadosCoordenadas) => {
+        if (dadosCoordenadas && dadosCoordenadas.length > 0) {
+          this.latitude = parseFloat(dadosCoordenadas[0].lat);
+          this.longitude = parseFloat(dadosCoordenadas[0].lon);
+          this.snackBar.open('Endereço e coordenadas preenchidos com sucesso!', 'Ok', { duration: 3000 });
+        } else {
+          this.snackBar.open('Não foi possível encontrar as coordenadas para este CEP. Por favor, preencha manualmente.', 'Fechar', { duration: 5000 });
+          return;
+        }
+      },
+      error: (err) => {
+        this.snackBar.open(err.message || 'Erro ao buscar CEP. Tente novamente.', 'Fechar', { duration: 3000 });
+        this.latitude = null;
+        this.longitude = null;
+      }
+    });
+  }
+
+  usarLocalizacaoAtual(): void {
+    // A implementação aqui dependerá de uma API de Reverse Geocoding.
+    // Exemplo de fluxo:
+    // 1. navigator.geolocation.getCurrentPosition(...) para obter lat/lng
+    // 2. Chamar um serviço: this.estabelecimentosService.getEnderecoPorLatLng(lat, lng)
+    // 3. Preencher o formulário com os dados retornados.
+    this.snackBar.open('Funcionalidade de localização atual ainda não implementada.', 'Ok', { duration: 3000 });
+  }
+
+  onSubmit(): void {
+    if (this.form.invalid) {
+      this.snackBar.open('Por favor, preencha todos os campos do formulário.', 'Fechar', { duration: 3000 });
+      return;
+    }
+
+    if (!this.latitude || !this.longitude) {
+      this.snackBar.open('Coordenadas não encontradas. Use a busca por CEP para obtê-las.', 'Fechar', { duration: 4000 });
+      return;
+    }
+
+    this.isLoading = true;
+    const formValue = this.form.getRawValue();
+
+    // Adapta o payload para o formato esperado pelo backend
+    const payload = {
+      nome: formValue.nome,
+      tipo: formValue.tipo,
+      latitude: this.latitude,
+      longitude: this.longitude,
+      details: {
+        info: formValue.info,
+        horarioAbertura: formValue.horarioAbertura,
+        horarioFechamento: formValue.horarioFechamento,
+        proximaFornada: formValue.horariosFornada, // O backend deve tratar isso como a lista de horários
+        endereco: formValue.endereco
+      }
+    };
+
+    this.estabelecimentosService.salvarEstabelecimento(payload).pipe(
+      finalize(() => this.isLoading = false)
+    ).subscribe({
+      next: () => {
+        this.snackBar.open('Estabelecimento cadastrado com sucesso!', 'Ok', { duration: 3000 });
+        this.router.navigate(['/']); // Redireciona para o mapa
+      },
+      error: (err) => {
+        console.error('Erro ao cadastrar:', err);
+        this.snackBar.open('Ocorreu um erro ao cadastrar. Tente novamente.', 'Fechar', { duration: 3000 });
+      }
+    });
+  }
+}

@@ -12,8 +12,12 @@ html, body {
     height: 100%;
     margin: 0;
     padding: 0;
-    overflow: hidden; /* Impede o scroll da página inteira */
     font-family: Roboto, "Helvetica Neue", sans-serif;
+}
+
+/* Classe para desabilitar o scroll global, usada na tela do mapa */
+body.no-scroll {
+    overflow: hidden;
 }
 
 /* Garante que todos os componentes de overlay do Material (SnackBar, Dialog, etc.)

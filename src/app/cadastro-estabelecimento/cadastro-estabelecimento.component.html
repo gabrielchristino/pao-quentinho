@@ -1,0 +1,99 @@
+<div class="container">
+  <h1>Cadastre seu Estabelecimento</h1>
+  <p>Preencha os dados abaixo para que os clientes possam encontrar seu pão quentinho!</p>
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="form-container">
+      <!-- Informações Básicas -->
+      <mat-form-field appearance="outline">
+        <mat-label>Nome do Estabelecimento</mat-label>
+        <input matInput formControlName="nome" required>
+        <mat-error *ngIf="form.get('nome')?.hasError('required')">O nome é obrigatório.</mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Descrição Chamativa</mat-label>
+        <textarea matInput formControlName="info"
+          placeholder="Ex: A padaria mais charmosa do bairro, com pão francês saindo a toda hora!"></textarea>
+        <mat-error *ngIf="form.get('info')?.hasError('required')">A descrição é obrigatória.</mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Tipo de Estabelecimento</mat-label>
+        <mat-select formControlName="tipo">
+          <mat-option value="padaria">Padaria</mat-option>
+          <mat-option value="mercado">Mercado</mat-option>
+          <mat-option value="casaDeBolos">Casa de Bolos</mat-option>
+          <mat-option value="outros">Outros</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <!-- Horários -->
+      <div class="form-row">
+        <mat-form-field appearance="outline">
+          <mat-label>Abre às</mat-label>
+          <input matInput type="time" formControlName="horarioAbertura" required>
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Fecha às</mat-label>
+          <input matInput type="time" formControlName="horarioFechamento" required>
+        </mat-form-field>
+      </div>
+
+      <!-- Horários das Fornadas -->
+      <h2>Horários das Fornadas</h2>
+      <div class="form-row">
+        <mat-form-field appearance="outline">
+          <mat-label>Horário da Fornada</mat-label>
+          <input matInput type="time" [formControl]="fornadaControl" required>
+        </mat-form-field>
+        <button mat-stroked-button type="button" (click)="adicionarHorarioFornada()"
+          [disabled]="fornadaControl.invalid">Adicionar</button>
+      </div>
+
+      <mat-chip-set *ngIf="horariosFornada.controls.length > 0" aria-label="Horários das fornadas">
+        <mat-chip-row *ngFor="let horario of horariosFornada.controls; let i = index" (removed)="removeHorario(i)">
+          {{horario.value}}
+          <button matChipRemove>
+            <mat-icon>cancel</mat-icon>
+          </button>
+        </mat-chip-row>
+      </mat-chip-set>
+
+      <!-- Endereço -->
+      <div formGroupName="endereco">
+        <h2>Endereço</h2>
+        <div class="form-row">
+          <button mat-stroked-button type="button" (click)="usarLocalizacaoAtual()" [disabled]="isLoading">
+            <mat-icon>my_location</mat-icon> Usar Localização
+          </button>
+          <mat-form-field appearance="outline" class="cep-field">
+            <mat-label>CEP</mat-label>
+            <input matInput formControlName="cep" required placeholder="00000-000">
+            <mat-error *ngIf="form.get('endereco.cep')?.hasError('pattern')">Formato de CEP inválido.</mat-error>
+          </mat-form-field>
+          <button mat-stroked-button type="button" (click)="buscarPorCep()" [disabled]="isLoading">Buscar CEP</button>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Rua / Avenida</mat-label>
+            <input matInput formControlName="rua" required>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Número</mat-label>
+            <input matInput formControlName="numero" required>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Bairro</mat-label>
+            <input matInput formControlName="bairro" required>
+          </mat-form-field>
+        </div>
+      </div>
+
+      <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid || isLoading">
+        {{ isLoading ? 'Salvando...' : 'Cadastrar Estabelecimento' }}
+      </button>
+
+      
+    </form>
+</div>

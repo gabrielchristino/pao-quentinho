@@ -1,0 +1,52 @@
+:host {
+  display: block;
+  box-sizing: border-box;
+  padding: 24px; // Movemos o padding para o host
+}
+
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+h1 {
+  margin-bottom: 8px;
+}
+
+p {
+  margin-bottom: 24px;
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.form-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-row {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+
+  .cep-field {
+    flex-grow: 1;
+  }
+
+  mat-form-field {
+    flex: 1;
+  }
+}
+
+// Ajustes para telas menores
+@media (max-width: 600px) {
+  .container {
+    // O padding do container não é mais necessário
+  }
+
+  .form-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
