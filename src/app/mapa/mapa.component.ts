@@ -462,7 +462,7 @@ export class MapaComponent implements AfterViewInit, OnChanges {
 
     const shareData = {
       title: `Pão Quentinho: ${est.nome}`,
-      text: `Confira este lugar que encontrei no Pão Quentinho! Ótimo para pães e quitutes.`,
+      text: `Confira este lugar que encontrei no Pão Quentinho! ${est.nome}`,
       url: `https://pao-quentinho-production.up.railway.app/estabelecimento/${est.id}`
     };
 
