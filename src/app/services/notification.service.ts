@@ -6,6 +6,7 @@ import { firstValueFrom } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar, MatSnackBarRef, SimpleSnackBar } from '@angular/material/snack-bar';
 import { PermissionDialogComponent, PermissionDialogData } from '../mapa/permission-diolog.component';
+import { AuthService } from './auth.service';
 @Injectable({
   providedIn: 'root'
 })
@@ -17,9 +18,21 @@ export class NotificationService {
   private appRef = inject(ApplicationRef);
   private dialog = inject(MatDialog);
   private snackBar = inject(MatSnackBar);
+  private authService = inject(AuthService);
 
   addPushSubscriber(sub: PushSubscription, estabelecimentoId: number): Observable<any> {
-    return this.http.post(`${this.apiUrl}/subscribe`, { subscription: sub, estabelecimentoId });
+    // Se o usuário não estiver logado, salvamos a inscrição localmente para sincronizar depois.
+    if (!this.authService.isLoggedIn()) {
+      const subAsJson = sub.toJSON();
+      const anonymousSubs = JSON.parse(localStorage.getItem('anonymous-subscriptions') || '[]');
+      // Evita adicionar endpoints duplicados
+      if (!anonymousSubs.some((s: any) => s.endpoint === subAsJson.endpoint)) {
+        anonymousSubs.push(subAsJson);
+        localStorage.setItem('anonymous-subscriptions', JSON.stringify(anonymousSubs));
+        console.log('[SUB-ANON] Inscrição anônima salva localmente.');
+      }
+    }
+    return this.http.post(`${this.apiUrl}/subscribe`, { subscription: sub.toJSON(), estabelecimentoId });
   }
 
   getVapidPublicKey(): Observable<string> {
