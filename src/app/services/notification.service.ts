@@ -1,4 +1,4 @@
-import { ApplicationRef, Injectable, inject } from '@angular/core';
+import { ApplicationRef, Injectable, Injector, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of, tap } from 'rxjs';
 import { SwPush } from '@angular/service-worker';
@@ -18,7 +18,17 @@ export class NotificationService {
   private appRef = inject(ApplicationRef);
   private dialog = inject(MatDialog);
   private snackBar = inject(MatSnackBar);
-  private authService = inject(AuthService);
+  // Usamos o Injector para quebrar a dependência circular com o AuthService.
+  private injector = inject(Injector);
+  private _authService: AuthService | null = null;
+
+  private get authService(): AuthService {
+    // O serviço é obtido do injetor na primeira vez que é usado.
+    if (!this._authService) {
+      this._authService = this.injector.get(AuthService);
+    }
+    return this._authService;
+  }
 
   addPushSubscriber(sub: PushSubscription, estabelecimentoId: number): Observable<any> {
     // Se o usuário não estiver logado, salvamos a inscrição localmente para sincronizar depois.
