@@ -1,49 +1,62 @@
-import { Component } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Component, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { RouterModule, RouterLink, Router } from '@angular/router';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
+import { MatMenuModule } from '@angular/material/menu';
+import { MatDialog } from '@angular/material/dialog';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { AuthService } from './services/auth.service';
+import { AuthDialogComponent } from './auth-dialog/auth-dialog.component';
 
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [RouterLink, MatToolbarModule, MatIconModule],
-  template: `
-    <mat-toolbar class="header">
-      <a routerLink="/">
-        <img src="assets/icons/icon-72x72.png" alt="Logo Pão Quentinho" class="header-logo">
-        <span>Pão Quentinho</span>
-      </a>
-    </mat-toolbar>
-  `,
-  styles: [`
-    /*
-      :host é um seletor que mira o elemento hospedeiro do componente (<app-header>).
-      Usá-lo garante que as regras de estilo sejam aplicadas de forma mais específica.
-    */
-    :host a {
-      display: flex;
-      align-items: center;
-      text-decoration: none;
-      color: inherit; /* Garante que a cor do texto seja a da toolbar, não a de um link */
-    }
-
-    .header {
-      position: fixed; /* Mantém o cabeçalho fixo no topo */
-      z-index: 1001; /* Garante que ele fique acima de outros elementos */
-      background-color: #f7c7ce; /* Cor rosa claro, similar ao círculo do mapa */
-      color: #444; /* Cor de texto escura para bom contraste */
-    }
-
-    .header-logo {
-      height: 40px;
-      width: 40px;
-      margin-right: 16px;
-    }
-
-    span {
-      font-size: 1.25rem;
-      font-weight: 500;
-    }
-  `]
+  imports: [
+    CommonModule,
+    RouterLink,
+    RouterModule,
+    MatToolbarModule,
+    MatIconModule,
+    MatButtonModule,
+    MatMenuModule
+  ],
+  templateUrl: './header.component.html',
+  styleUrl: './header.component.scss'
 })
-export class HeaderComponent {}
+export class HeaderComponent {
+  public authService = inject(AuthService);
+  private dialog = inject(MatDialog);
+  private snackBar = inject(MatSnackBar);
+  private router = inject(Router);
+
+  abrirLogin(): void {
+    this.dialog.open(AuthDialogComponent, {
+      width: '450px'
+    });
+  }
+
+  logout(): void {
+    this.authService.logout();
+    this.snackBar.open('Você saiu da sua conta.', 'Ok', { duration: 3000 });
+
+    // Check if the user is on a protected route
+    const isProtected = this.router.url.includes('/meus-estabelecimentos') || this.router.url.includes('/cadastrar-estabelecimento');
+
+    if (isProtected) {
+      // If on a protected route, open the login modal immediately.
+      const dialogRef = this.dialog.open(AuthDialogComponent, {
+        width: '450px',
+        disableClose: true
+      });
+
+      dialogRef.afterClosed().subscribe(result => {
+        // After the modal closes, decide where to go.
+        this.router.navigate([result ? '/meus-estabelecimentos' : '/']);
+      });
+    } else {
+      // If on a public page like the map, just stay there.
+    }
+  }
+}

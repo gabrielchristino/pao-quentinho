@@ -1,0 +1,38 @@
+:host {
+  // Faz com que o <app-header> se comporte como um bloco
+  // e o posiciona fixo no topo da tela.
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1001; // Garante que ele fique acima de outros elementos do mapa.
+}
+
+.app-toolbar {
+  background-color: #f7c7ce; // Cor rosa claro, similar ao círculo do mapa
+  color: #444; // Cor de texto escura para bom contraste
+}
+
+.header-logo {
+  height: 40px;
+  width: 40px;
+  margin-right: 16px;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.spacer {
+  flex: 1 1 auto;
+}
+
+.login-button {
+  // Estilo para o botão de "Entrar" quando o usuário não está logado
+  border-color: 444 !important;
+  color: #444; // Cor de texto escura para bom contraste
+}

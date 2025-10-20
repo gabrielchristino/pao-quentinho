@@ -49,16 +49,6 @@
     matTooltip="Centralizar na minha localização">
     <mat-icon>my_location</mat-icon>
   </button>
-
-  <!-- Botão de Login/Conta -->
-  <button
-    mat-fab
-    color="accent"
-    class="account-button"
-    (click)="abrirModalAuth()"
-    matTooltip="Minha Conta">
-    <mat-icon>{{ (authService.authState$ | async) ? 'person' : 'login' }}</mat-icon>
-  </button>
 </div>
 
 <!-- Bottom Sheet customizado -->

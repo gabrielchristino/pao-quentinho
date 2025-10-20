@@ -182,21 +182,6 @@ export class CadastroEstabelecimentoComponent {
   }
 
   onSubmit(): void {
-    if (!this.authService.isLoggedIn()) {
-      this.snackBar.open('Faça login ou cadastre-se para salvar um estabelecimento.', 'Ok', { duration: 5000 });
-      const dialogRef = this.dialog.open(AuthDialogComponent, {
-        width: '450px'
-      });
-
-      dialogRef.afterClosed().subscribe(result => {
-        if (result === true) { // Se o login/cadastro foi bem sucedido
-          this.snackBar.open('Agora você pode salvar seu estabelecimento!', 'Ok', { duration: 3000 });
-          this.prosseguirComSubmit(); // Tenta o submit novamente
-        }
-      });
-      return;
-    }
-
     this.prosseguirComSubmit();
   }
 
@@ -234,18 +219,9 @@ export class CadastroEstabelecimentoComponent {
     ).subscribe({
       next: (novoEstabelecimento) => {
         this.salvarIdLocalmente(novoEstabelecimento.id);
-
-        // Exibe uma mensagem de sucesso com uma ação para ver a página criada
-        const snackBarRef = this.snackBar.open(
-          'Estabelecimento cadastrado com sucesso!',
-          'Ver página',
-          { duration: 10000 } // Aumenta a duração para dar tempo de clicar
-        );
-
-        // Se o usuário clicar em "Ver página", navega para a URL do estabelecimento
-        snackBarRef.onAction().subscribe(() => {
-          this.router.navigate(['/estabelecimento', novoEstabelecimento.id]);
-        });
+        this.snackBar.open('Estabelecimento cadastrado com sucesso!', 'Ok', { duration: 3000 });
+        // Redireciona o usuário para a página de gerenciamento
+        this.router.navigate(['/meus-estabelecimentos']);
       },
       error: (err) => {
         console.error('Erro ao cadastrar:', err);

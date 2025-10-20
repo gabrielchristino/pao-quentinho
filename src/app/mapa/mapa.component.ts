@@ -14,6 +14,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatMenuModule } from '@angular/material/menu';
 import { MatRippleModule } from '@angular/material/core';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
@@ -56,6 +57,7 @@ const SWIPE_THRESHOLD = 50;
     MatIconModule,
     MatCardModule,
     MatTooltipModule,
+    MatMenuModule,
     MatRippleModule,
     MatSnackBarModule,
     MatProgressSpinnerModule,
@@ -210,22 +212,6 @@ export class MapaComponent implements AfterViewInit {
     this.bottomSheetEl = this._elementRef.nativeElement.querySelector('#bottomSheet');
   }
 
-  private solicitarPermissoesIniciais(): void {
-    this.solicitarPermissaoDeLocalizacao().then(() => this.initializeDataFlow());
-  }
-
-  abrirModalAuth(): void {
-    if (this.authService.isLoggedIn()) {
-      // Se já está logado, poderia abrir um menu de "Minha Conta"
-      // Por enquanto, vamos apenas dar a opção de logout.
-      this.authService.logout();
-      this._snackBar.open('Você saiu da sua conta.', 'Ok', { duration: 3000 });
-    } else {
-      this.dialog.open(AuthDialogComponent, {
-        width: '450px'
-      });
-    }
-  }
   private solicitarPermissaoDeNotificacao(onGranted: () => void): void {
     if (!('Notification' in window)) return;
 
@@ -285,6 +271,10 @@ export class MapaComponent implements AfterViewInit {
     }
     this._elementRef.nativeElement.ownerDocument.body.classList.remove('no-scroll');
 
+  }
+
+  private solicitarPermissoesIniciais(): void {
+    this.solicitarPermissaoDeLocalizacao().then(() => this.initializeDataFlow());
   }
 
   private initializeDataFlow(): void {

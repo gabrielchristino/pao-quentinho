@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { MapaComponent } from './mapa/mapa.component';
 import { notificationRedirectGuard } from './notification-redirect.guard';
+import { authGuard } from './mapa/auth.guard';
 
 export const routes: Routes = [
   // Rota principal, exibe a lista de estabelecimentos
@@ -12,6 +13,14 @@ export const routes: Routes = [
   // Rota para cadastrar estabelecimentos
   {
     path: 'cadastrar-estabelecimento',
-    loadComponent: () => import('./cadastro-estabelecimento/cadastro-estabelecimento.component').then(m => m.CadastroEstabelecimentoComponent)
+    loadComponent: () => import('./cadastro-estabelecimento/cadastro-estabelecimento.component').then(m => m.CadastroEstabelecimentoComponent),
+    canActivate: [authGuard] // Protege esta rota
+  },
+
+  // Rota para gerenciar os estabelecimentos do usuário logado
+  {
+    path: 'meus-estabelecimentos',
+    loadComponent: () => import('./gerenciar-estabelecimentos/gerenciar-estabelecimentos.component').then(m => m.GerenciarEstabelecimentosComponent),
+    canActivate: [authGuard] // Protege esta rota
   },
 ];

@@ -1,0 +1,28 @@
+<mat-toolbar class="app-toolbar">
+  <a routerLink="/" class="logo">
+    <img src="assets/icons/icon-72x72.png" alt="Logo Pão Quentinho" class="header-logo">
+    <span>Pão Quentinho</span>
+  </a>
+
+  <span class="spacer"></span>
+
+  <!-- Botão de Login/Conta com Menu -->
+  <ng-container *ngIf="authService.authState$ | async; else loginButton">
+    <button mat-icon-button matTooltip="Minha Conta" [matMenuTriggerFor]="userMenu">
+      <mat-icon>person</mat-icon>
+    </button>
+    <mat-menu #userMenu="matMenu">
+      <a mat-menu-item routerLink="/meus-estabelecimentos">
+        <mat-icon>storefront</mat-icon>
+        <span>Meus Estabelecimentos</span>
+      </a>
+      <button mat-menu-item (click)="logout()">
+        <mat-icon>logout</mat-icon>
+        <span>Sair</span>
+      </button>
+    </mat-menu>
+  </ng-container>
+  <ng-template #loginButton>
+    <button mat-stroked-button class="login-button" (click)="abrirLogin()">Entrar</button>
+  </ng-template>
+</mat-toolbar>

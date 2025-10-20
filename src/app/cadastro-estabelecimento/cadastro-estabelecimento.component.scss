@@ -1,13 +1,13 @@
 :host {
   display: block;
   box-sizing: border-box;
-  padding: 24px; // Movemos o padding para o host
 }
 
 .container {
   max-width: 800px;
   margin: 0 auto;
   box-sizing: border-box;
+  padding: 24px;
 }
 
 h1 {

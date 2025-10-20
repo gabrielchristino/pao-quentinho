@@ -1,0 +1,33 @@
+<div class="container">
+  <div class="header">
+    <h1>Meus Estabelecimentos</h1>
+    <a mat-stroked-button routerLink="/cadastrar-estabelecimento">
+      <mat-icon>add</mat-icon>
+      Cadastrar Novo
+    </a>
+  </div>
+
+  <div *ngIf="isLoading">Carregando seus estabelecimentos...</div>
+
+  <div *ngIf="!isLoading && meusEstabelecimentos.length === 0" class="empty-state">
+    <mat-icon class="empty-icon">storefront</mat-icon>
+    <h2>Você ainda não cadastrou nenhum estabelecimento.</h2>
+    <p>Clique no botão acima para começar!</p>
+  </div>
+
+  <mat-list *ngIf="!isLoading && meusEstabelecimentos.length > 0">
+    <mat-list-item *ngFor="let est of meusEstabelecimentos">
+      <mat-icon matListItemIcon>store</mat-icon>
+      <div matListItemTitle>{{ est.nome }}</div>
+      <div matListItemLine>{{ est.endereco.rua }}, {{ est.endereco.numero }}</div>
+      <div matListItemMeta class="actions">
+        <button mat-icon-button (click)="editar(est.id)" matTooltip="Editar">
+          <mat-icon>edit</mat-icon>
+        </button>
+        <button mat-icon-button color="warn" (click)="apagar(est.id, est.nome)" matTooltip="Apagar">
+          <mat-icon>delete</mat-icon>
+        </button>
+      </div>
+    </mat-list-item>
+  </mat-list>
+</div>

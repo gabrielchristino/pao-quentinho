@@ -27,6 +27,10 @@ export class EstabelecimentosService {
     return this.http.get<Estabelecimento>(`${this.apiUrl}/estabelecimentos/${id}`);
   }
 
+  getMeusEstabelecimentos(): Observable<Estabelecimento[]> {
+    return this.http.get<Estabelecimento[]>(`${this.apiUrl}/users/me/estabelecimentos`);
+  }
+
   salvarEstabelecimento(estabelecimento: Partial<Estabelecimento>): Observable<Estabelecimento> {
     return this.http.post<Estabelecimento>(`${this.apiUrl}/estabelecimentos`, estabelecimento);
   }

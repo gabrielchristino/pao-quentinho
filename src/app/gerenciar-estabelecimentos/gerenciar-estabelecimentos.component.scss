@@ -1,0 +1,47 @@
+:host {
+  display: block;
+}
+
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+
+  h1 {
+    // Remove a margem padrão do h1 para permitir o alinhamento vertical perfeito.
+    margin: 0;
+  }
+
+  @media (max-width: 600px) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+}
+
+.empty-state {
+  text-align: center;
+  padding: 48px;
+  color: #777;
+
+  .empty-icon {
+    font-size: 64px;
+    width: 64px;
+    height: 64px;
+    margin-bottom: 16px;
+  }
+}
+
+mat-list-item {
+  .actions {
+    display: flex;
+    gap: 8px;
+  }
+}
