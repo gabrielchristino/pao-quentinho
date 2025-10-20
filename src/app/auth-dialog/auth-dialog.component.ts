@@ -78,8 +78,9 @@ export class AuthDialogComponent {
       finalize(() => this.isLoading = false)
     ).subscribe({
       next: () => {
-        this.snackBar.open('Cadastro realizado com sucesso! Agora faça o login.', 'Ok', { duration: 5000 });
-        // Poderíamos fazer o login automático aqui, mas para simplificar, vamos pedir que o usuário logue.
+        // O novo fluxo no AuthService já faz o login e a sincronização.
+        this.snackBar.open('Cadastro e login realizados com sucesso!', 'Ok', { duration: 3000 });
+        this.dialogRef.close(true); // Fecha o modal com sucesso
       },
       error: (err) => {
         const message = err.status === 409 ? 'Este email já está em uso.' : 'Erro ao se cadastrar.';
