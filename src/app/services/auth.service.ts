@@ -35,14 +35,14 @@ export class AuthService {
     return this.notificationService.syncSubscriptions(anonymousEndpoints);
   }
 
-  login(credentials: { email: string, password: string }): Observable<{ token: string }> {
+  login(credentials: { email: string, password: string }): Observable<any> {
     return this.http.post<{ token: string }>(`${this.apiUrl}/login`, credentials).pipe(
       tap(response => {
         this.setToken(response.token);
         this.authState.next(true);
       }),
       // Após o login, executa a sincronização
-      switchMap(() => this.sync())
+      switchMap(() => this.sync()) // O resultado de sync() será passado para o próximo operador
     );
   }
 

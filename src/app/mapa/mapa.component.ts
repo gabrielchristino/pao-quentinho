@@ -525,42 +525,47 @@ export class MapaComponent implements AfterViewInit {
     }
   }
 
+  /**
+   * Lógica central para se inscrever em um estabelecimento.
+   * Pede a chave VAPID, solicita a inscrição no navegador e envia para o backend.
+   * @param estabelecimentoId O ID do estabelecimento para seguir.
+   */
+  public async subscribeToNotifications(estabelecimentoId: number): Promise<void> {
+    if (!this.swPush.isEnabled) {
+      this._snackBar.open('As notificações push não são suportadas ou estão desabilitadas.', 'Fechar', {
+        duration: 5000,
+        panelClass: ['pao-quentinho-snackbar']
+      });
+      return;
+    }
+
+    try {
+      const vapidPublicKey = await firstValueFrom(this.notificationService.getVapidPublicKey());
+
+      if (!vapidPublicKey) {
+        throw new Error('Chave VAPID pública não recebida do servidor.');
+      }
+
+      const sub = await this.swPush.requestSubscription({
+        serverPublicKey: vapidPublicKey,
+      });
+
+      await firstValueFrom(this.notificationService.addPushSubscriber(sub, estabelecimentoId));
+
+      console.log(`Inscrição para Push Notification (ID: ${estabelecimentoId}) obtida e salva:`, sub.toJSON());
+    } catch (err) {
+      console.error(`Não foi possível se inscrever para notificações (ID: ${estabelecimentoId})`, err);
+      // Lançamos o erro para que o chamador saiba que falhou.
+      throw err;
+    }
+  }
+
   async seguirEstabelecimento(est: Estabelecimento, event: MouseEvent): Promise<void> {
     event.stopPropagation(); // Impede que o clique feche o card
 
-    const subscribeLogic = async () => {
-      if (!this.swPush.isEnabled) {
-        this._snackBar.open('As notificações push não são suportadas ou estão desabilitadas.', 'Fechar', {
-          duration: 5000,
-          panelClass: ['pao-quentinho-snackbar']
-        });
-        return;
-      }
-
-      try {
-        const vapidPublicKey = await firstValueFrom(this.notificationService.getVapidPublicKey());
-
-        if (!vapidPublicKey) {
-          throw new Error('Chave VAPID pública não recebida do servidor.');
-        }
-
-        const sub = await this.swPush.requestSubscription({
-          serverPublicKey: vapidPublicKey,
-        });
-
-        await firstValueFrom(this.notificationService.addPushSubscriber(sub, est.id));
-
-        console.log('Inscrição para Push Notification obtida e salva:', sub.toJSON());
-        this._snackBar.open(`Inscrição realizada com sucesso para a ${est.nome}!`, 'Ok', {
-          duration: 3000,
-          panelClass: ['pao-quentinho-snackbar']
-        });
-      } catch (err) {
-        console.error('Não foi possível se inscrever para notificações push', err);
-      }
-    };
-
-    this.solicitarPermissaoDeNotificacao(subscribeLogic);
+    this.solicitarPermissaoDeNotificacao(() => this.subscribeToNotifications(est.id).then(() => {
+      this._snackBar.open(`Inscrição realizada com sucesso para a ${est.nome}!`, 'Ok', { duration: 3000, panelClass: ['pao-quentinho-snackbar'] });
+    }));
   }
 
   async compartilharEstabelecimento(est: Estabelecimento | null, event: MouseEvent): Promise<void> {

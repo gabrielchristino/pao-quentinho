@@ -11,6 +11,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { finalize } from 'rxjs';
 import { AuthService } from '../services/auth.service';
+import { NotificationService } from '../services/notification.service';
 
 @Component({
   selector: 'app-auth-dialog',
@@ -32,6 +33,7 @@ import { AuthService } from '../services/auth.service';
 export class AuthDialogComponent {
   private fb = inject(FormBuilder);
   private authService = inject(AuthService);
+  private notificationService = inject(NotificationService);
   private snackBar = inject(MatSnackBar);
   public dialogRef = inject(MatDialogRef<AuthDialogComponent>);
 
@@ -59,9 +61,17 @@ export class AuthDialogComponent {
     this.authService.login(this.loginForm.value).pipe(
       finalize(() => this.isLoading = false)
     ).subscribe({
-      next: () => {
+      next: (syncResponse) => {
         this.snackBar.open('Login realizado com sucesso!', 'Ok', { duration: 3000 });
         this.dialogRef.close(true); // Fecha o modal com sucesso
+
+        // Após o login, tenta sincronizar as inscrições no dispositivo atual
+        if (syncResponse?.syncedEstablishmentIds) {
+          this.notificationService.subscribeToMissingEstablishments(syncResponse.syncedEstablishmentIds)
+            .then(count => {
+              if (count > 0) this.snackBar.open(`${count} inscrições foram sincronizadas para este dispositivo!`, 'Ok', { duration: 4000 });
+            });
+        }
       },
       error: (err) => {
         const message = err.status === 401 ? 'Credenciais inválidas.' : 'Erro ao fazer login.';
@@ -77,10 +87,18 @@ export class AuthDialogComponent {
     this.authService.register(this.registerForm.value).pipe(
       finalize(() => this.isLoading = false)
     ).subscribe({
-      next: () => {
+      next: (syncResponse) => {
         // O novo fluxo no AuthService já faz o login e a sincronização.
         this.snackBar.open('Cadastro e login realizados com sucesso!', 'Ok', { duration: 3000 });
         this.dialogRef.close(true); // Fecha o modal com sucesso
+
+        // Após o registro, também tenta sincronizar
+        if (syncResponse?.syncedEstablishmentIds) {
+          this.notificationService.subscribeToMissingEstablishments(syncResponse.syncedEstablishmentIds)
+            .then(count => {
+              if (count > 0) this.snackBar.open(`${count} inscrições foram sincronizadas para este dispositivo!`, 'Ok', { duration: 4000 });
+            });
+        }
       },
       error: (err) => {
         const message = err.status === 409 ? 'Este email já está em uso.' : 'Erro ao se cadastrar.';
