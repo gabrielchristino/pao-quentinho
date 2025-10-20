@@ -1,10 +1,11 @@
 import { ApplicationRef, Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, from, of, tap } from 'rxjs';
+import { Observable, of, tap } from 'rxjs';
 import { SwPush } from '@angular/service-worker';
 import { firstValueFrom } from 'rxjs';
-import { MapaComponent } from '../mapa/mapa.component';
-
+import { MatDialog } from '@angular/material/dialog';
+import { MatSnackBar, MatSnackBarRef, SimpleSnackBar } from '@angular/material/snack-bar';
+import { PermissionDialogComponent, PermissionDialogData } from '../mapa/permission-diolog.component';
 @Injectable({
   providedIn: 'root'
 })
@@ -14,6 +15,8 @@ export class NotificationService {
   private http = inject(HttpClient);
   private swPush = inject(SwPush);
   private appRef = inject(ApplicationRef);
+  private dialog = inject(MatDialog);
+  private snackBar = inject(MatSnackBar);
 
   addPushSubscriber(sub: PushSubscription, estabelecimentoId: number): Observable<any> {
     return this.http.post(`${this.apiUrl}/subscribe`, { subscription: sub, estabelecimentoId });
@@ -37,24 +40,97 @@ export class NotificationService {
   }
 
   /**
+   * Orquestra a sincronização de inscrições após o login.
+   * Verifica a permissão de notificação e a solicita se necessário antes de sincronizar.
+   * @param syncedEstablishmentIds IDs dos estabelecimentos que o usuário segue.
+   */
+  triggerSubscriptionSync(syncedEstablishmentIds: number[]): void {
+    if (!this.swPush.isEnabled || syncedEstablishmentIds.length === 0) {
+      return;
+    }
+
+    // A função que será executada APENAS se a permissão for concedida.
+    const onGranted = async () => {
+      let snackBarRef: MatSnackBarRef<SimpleSnackBar> | null = null;
+      try {
+        // 1. Verifica se já existe uma inscrição push neste dispositivo.
+        let currentSub = await this.swPush.subscription.toPromise();
+
+        // 2. Se não existir, precisamos criar uma.
+        if (!currentSub) {
+          console.log('[SYNC-SUB] Nenhuma inscrição push encontrada. Criando uma nova...');
+          snackBarRef = this.snackBar.open('Ativando notificações para este dispositivo...', undefined, { duration: 0 });
+
+          // Para criar uma inscrição, precisamos da chave VAPID.
+          const vapidPublicKey = await firstValueFrom(this.getVapidPublicKey());
+          currentSub = await this.swPush.requestSubscription({ serverPublicKey: vapidPublicKey });
+          console.log('[SYNC-SUB] Nova inscrição push criada:', currentSub);
+        }
+
+        // 3. Agora com uma inscrição (existente ou nova), sincronizamos o que falta.
+        const count = await this.subscribeToMissingEstablishments(currentSub, syncedEstablishmentIds);
+        snackBarRef?.dismiss();
+
+        if (count > 0) {
+          this.snackBar.open(`${count} inscrições foram sincronizadas para este dispositivo!`, 'Ok', { duration: 4000 });
+        }
+      } catch (error) {
+        snackBarRef?.dismiss();
+        console.error('[SYNC-SUB] Falha ao executar a sincronização pós-permissão.', error);
+        this.snackBar.open('Ocorreu um erro ao sincronizar suas inscrições.', 'Fechar', { duration: 4000 });
+      }
+    };
+
+    // Inicia o fluxo de permissão.
+    this.solicitarPermissaoDeNotificacao(onGranted);
+  }
+
+  /**
+   * Lida com a lógica de pedir permissão de notificação ao usuário,
+   * mostrando um pré-alerta amigável.
+   * @param onGranted Callback a ser executado se a permissão for concedida.
+   */
+  solicitarPermissaoDeNotificacao(onGranted: () => void): void {
+    if (!('Notification' in window) || !this.swPush.isEnabled) return;
+
+    const permission = Notification.permission;
+
+    if (permission === 'granted') {
+      onGranted();
+    } else if (permission === 'default') {
+      const dialogRef = this.dialog.open<PermissionDialogComponent, PermissionDialogData, boolean>(PermissionDialogComponent, {
+        data: {
+          icon: 'notifications_active',
+          title: 'Permitir notificações?',
+          content: 'Quer ser avisado quando uma fornada sair? Ative as notificações para sincronizar suas inscrições neste dispositivo.',
+          confirmButton: 'Permitir',
+          cancelButton: 'Agora não'
+        },
+        disableClose: true
+      });
+
+      dialogRef.afterClosed().subscribe(result => {
+        if (result) {
+          Notification.requestPermission().then(p => { if (p === 'granted') onGranted(); });
+        }
+      });
+    } else if (permission === 'denied') {
+      this.snackBar.open('As notificações estão bloqueadas. Habilite nas configurações do navegador para sincronizar.', 'Ok', { duration: 7000 });
+    }
+  }
+
+  /**
    * Verifica as inscrições do usuário e se inscreve automaticamente nos estabelecimentos
    * que estão faltando neste dispositivo.
    * @param syncedEstablishmentIds IDs dos estabelecimentos que o usuário segue.
    */
-  async subscribeToMissingEstablishments(syncedEstablishmentIds: number[]): Promise<number> {
+  private async subscribeToMissingEstablishments(currentSub: PushSubscription, syncedEstablishmentIds: number[]): Promise<number> {
     if (!this.swPush.isEnabled || Notification.permission !== 'granted' || syncedEstablishmentIds.length === 0) {
       return 0;
     }
 
     try {
-      // 1. Pega a inscrição ATUAL do dispositivo.
-      const currentSub = await this.swPush.subscription.pipe(tap(sub => console.log("Current sub:", sub))).toPromise();
-
-      // Se não há inscrição neste dispositivo, não há como saber o que está faltando.
-      if (!currentSub) {
-        console.log('[SYNC-SUB] Nenhuma inscrição ativa neste dispositivo. Nada a fazer.');
-        return 0;
-      }
+      console.log('[SYNC-SUB] Verificando inscrições faltantes com a inscrição push atual.');
 
       // 2. Pega os IDs dos estabelecimentos que JÁ ESTÃO inscritos neste dispositivo.
       const existingSubs = JSON.parse(localStorage.getItem('user-subscriptions') || '[]');

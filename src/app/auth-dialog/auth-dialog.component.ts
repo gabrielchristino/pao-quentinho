@@ -65,12 +65,9 @@ export class AuthDialogComponent {
         this.snackBar.open('Login realizado com sucesso!', 'Ok', { duration: 3000 });
         this.dialogRef.close(true); // Fecha o modal com sucesso
 
-        // Após o login, tenta sincronizar as inscrições no dispositivo atual
+        // Após o login, dispara o fluxo de sincronização, que agora lida com a permissão.
         if (syncResponse?.syncedEstablishmentIds) {
-          this.notificationService.subscribeToMissingEstablishments(syncResponse.syncedEstablishmentIds)
-            .then(count => {
-              if (count > 0) this.snackBar.open(`${count} inscrições foram sincronizadas para este dispositivo!`, 'Ok', { duration: 4000 });
-            });
+          this.notificationService.triggerSubscriptionSync(syncResponse.syncedEstablishmentIds);
         }
       },
       error: (err) => {
@@ -92,12 +89,9 @@ export class AuthDialogComponent {
         this.snackBar.open('Cadastro e login realizados com sucesso!', 'Ok', { duration: 3000 });
         this.dialogRef.close(true); // Fecha o modal com sucesso
 
-        // Após o registro, também tenta sincronizar
+        // Após o registro, também dispara o fluxo de sincronização.
         if (syncResponse?.syncedEstablishmentIds) {
-          this.notificationService.subscribeToMissingEstablishments(syncResponse.syncedEstablishmentIds)
-            .then(count => {
-              if (count > 0) this.snackBar.open(`${count} inscrições foram sincronizadas para este dispositivo!`, 'Ok', { duration: 4000 });
-            });
+          this.notificationService.triggerSubscriptionSync(syncResponse.syncedEstablishmentIds);
         }
       },
       error: (err) => {

@@ -212,56 +212,6 @@ export class MapaComponent implements AfterViewInit {
     this.bottomSheetEl = this._elementRef.nativeElement.querySelector('#bottomSheet');
   }
 
-  private solicitarPermissaoDeNotificacao(onGranted: () => void): void {
-    if (!('Notification' in window)) return;
-
-    const permission = Notification.permission;
-
-    if (permission === 'default') {
-
-      const dialogRef = this.dialog.open<PermissionDialogComponent, PermissionDialogData, boolean>(PermissionDialogComponent, {
-        data: {
-          icon: 'location_on',
-          title: 'Permitir notificações?',
-          content: 'Quer ser avisado quando uma fornada sair? Ative as notificações.',
-          confirmButton: 'Permitir',
-          cancelButton: 'Agora não'
-        },
-        disableClose: true // Impede que o usuário feche clicando fora
-      });
-
-      dialogRef.afterClosed().subscribe(result => {
-        if (result) {
-          Notification.requestPermission().then(p => {
-            console.log(`Permissão de notificação: ${p}`);
-            if (p === 'granted') {
-              onGranted();
-            }
-          });
-        }
-      });
-    } else if (permission === 'denied') {
-      // Se a permissão foi negada, mostramos como reativar.
-      const snackBarRef = this._snackBar.open('As notificações estão bloqueadas. Habilite para receber alertas de fornadas!', 'Como?', {
-        duration: 10000,
-        panelClass: ['pao-quentinho-snackbar'],
-      });
-
-      snackBarRef.onAction().subscribe(() => {
-        const isPWA = window.matchMedia('(display-mode: standalone)').matches;
-        const instruction = isPWA
-          ? 'Vá nas informações do app, entre em "Permissões" e habilite as Notificações.'
-          : 'Clique no cadeado ao lado do endereço do site e altere a permissão de Notificações para "Permitir".';
-
-        this._snackBar.open(instruction, 'Entendi', {
-          duration: 15000, panelClass: ['pao-quentinho-snackbar']
-        });
-      });
-    } else if (permission === 'granted') {
-      onGranted();
-    }
-  }
-
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
@@ -530,13 +480,13 @@ export class MapaComponent implements AfterViewInit {
    * Pede a chave VAPID, solicita a inscrição no navegador e envia para o backend.
    * @param estabelecimentoId O ID do estabelecimento para seguir.
    */
-  public async subscribeToNotifications(estabelecimentoId: number): Promise<void> {
+  public async subscribeToNotifications(estabelecimentoId: number): Promise<PushSubscription> {
     if (!this.swPush.isEnabled) {
       this._snackBar.open('As notificações push não são suportadas ou estão desabilitadas.', 'Fechar', {
         duration: 5000,
         panelClass: ['pao-quentinho-snackbar']
       });
-      return;
+      throw new Error('Push notifications are not enabled.');
     }
 
     try {
@@ -552,7 +502,7 @@ export class MapaComponent implements AfterViewInit {
 
       await firstValueFrom(this.notificationService.addPushSubscriber(sub, estabelecimentoId));
 
-      console.log(`Inscrição para Push Notification (ID: ${estabelecimentoId}) obtida e salva:`, sub.toJSON());
+      return sub;
     } catch (err) {
       console.error(`Não foi possível se inscrever para notificações (ID: ${estabelecimentoId})`, err);
       // Lançamos o erro para que o chamador saiba que falhou.
@@ -563,7 +513,7 @@ export class MapaComponent implements AfterViewInit {
   async seguirEstabelecimento(est: Estabelecimento, event: MouseEvent): Promise<void> {
     event.stopPropagation(); // Impede que o clique feche o card
 
-    this.solicitarPermissaoDeNotificacao(() => this.subscribeToNotifications(est.id).then(() => {
+    this.notificationService.solicitarPermissaoDeNotificacao(() => this.subscribeToNotifications(est.id).then(() => {
       this._snackBar.open(`Inscrição realizada com sucesso para a ${est.nome}!`, 'Ok', { duration: 3000, panelClass: ['pao-quentinho-snackbar'] });
     }));
   }
