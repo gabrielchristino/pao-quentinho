@@ -27,11 +27,6 @@ export class AuthService {
     const anonymousSubs = JSON.parse(localStorage.getItem('anonymous-subscriptions') || '[]');
     const anonymousEndpoints = anonymousSubs.map((sub: any) => sub.endpoint);
 
-    // Se não houver nada para sincronizar, retorna um observable vazio.
-    if (anonymousEndpoints.length === 0) {
-      return of(null);
-    }
-
     return this.notificationService.syncSubscriptions(anonymousEndpoints);
   }
 
