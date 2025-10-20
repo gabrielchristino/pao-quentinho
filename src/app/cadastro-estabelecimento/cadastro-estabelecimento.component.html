@@ -1,5 +1,5 @@
 <div class="container">
-  <h1>Cadastre seu Estabelecimento</h1>
+  <h1>{{ isEditMode ? 'Editar' : 'Cadastre seu' }} Estabelecimento</h1>
   <p>Preencha os dados abaixo para que os clientes possam encontrar seu pão quentinho!</p>
 
     <form [formGroup]="form" (ngSubmit)="onSubmit()" class="form-container">
@@ -90,8 +90,8 @@
         </div>
       </div>
 
-      <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid || isLoading">
-        {{ isLoading ? 'Salvando...' : 'Cadastrar Estabelecimento' }}
+      <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid || isLoading" class="submit-button">
+        {{ isLoading ? 'Salvando...' : (isEditMode ? 'Salvar Alterações' : 'Cadastrar Estabelecimento') }}
       </button>
 
       

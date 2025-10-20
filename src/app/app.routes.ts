@@ -17,6 +17,13 @@ export const routes: Routes = [
     canActivate: [authGuard] // Protege esta rota
   },
 
+  // Rota para editar um estabelecimento existente
+  {
+    path: 'editar-estabelecimento/:id',
+    loadComponent: () => import('./cadastro-estabelecimento/cadastro-estabelecimento.component').then(m => m.CadastroEstabelecimentoComponent),
+    canActivate: [authGuard] // Protege esta rota
+  },
+
   // Rota para gerenciar os estabelecimentos do usuário logado
   {
     path: 'meus-estabelecimentos',

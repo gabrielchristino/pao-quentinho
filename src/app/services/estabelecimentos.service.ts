@@ -35,6 +35,14 @@ export class EstabelecimentosService {
     return this.http.post<Estabelecimento>(`${this.apiUrl}/estabelecimentos`, estabelecimento);
   }
 
+  updateEstabelecimento(id: number, estabelecimento: any): Observable<Estabelecimento> {
+    return this.http.put<Estabelecimento>(`${this.apiUrl}/estabelecimentos/${id}`, estabelecimento);
+  }
+
+  deleteEstabelecimento(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/estabelecimentos/${id}`);
+  }
+
   // Este método não usa a apiUrl, pois se conecta diretamente ao ViaCEP
   getEnderecoPorCep(cep: string): Observable<GeocodingResult> {
     return this.http.get<GeocodingResult>(`https://viacep.com.br/ws/${cep}/json/`);

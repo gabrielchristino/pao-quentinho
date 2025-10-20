@@ -1,6 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, FormArray, FormControl } from '@angular/forms';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, FormArray, FormControl, } from '@angular/forms';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatButtonModule } from '@angular/material/button';
@@ -9,10 +9,11 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatChipsModule } from '@angular/material/chips';
 import { finalize, switchMap } from 'rxjs';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { EstabelecimentosService } from '../services/estabelecimentos.service';
 import { MatDialog } from '@angular/material/dialog';
 import { AuthService } from '../services/auth.service';
+import { Estabelecimento } from '../estabelecimento.model';
 import { AuthDialogComponent } from '../auth-dialog/auth-dialog.component';
 
 @Component({
@@ -37,6 +38,7 @@ export class CadastroEstabelecimentoComponent {
   private estabelecimentosService = inject(EstabelecimentosService);
   private snackBar = inject(MatSnackBar);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
   private authService = inject(AuthService);
   private dialog = inject(MatDialog);
 
@@ -46,6 +48,9 @@ export class CadastroEstabelecimentoComponent {
   // Propriedades para armazenar as coordenadas internamente
   private latitude: number | null = null;
   private longitude: number | null = null;
+
+  isEditMode = false;
+  private estabelecimentoId: number | null = null;
   
   constructor() {
     this.form = this.fb.group({
@@ -64,6 +69,51 @@ export class CadastroEstabelecimentoComponent {
         estado: ['', Validators.required],
         complemento: ['']
       }),
+    });
+
+    this.route.paramMap.subscribe(params => {
+      const id = params.get('id');
+      if (id) {
+        this.isEditMode = true;
+        this.estabelecimentoId = +id;
+        this.carregarDadosParaEdicao(+id);
+      }
+    });
+  }
+
+  private carregarDadosParaEdicao(id: number): void {
+    this.isLoading = true;
+    this.estabelecimentosService.getEstabelecimentoById(id.toString()).pipe( // Corrigido: chamada de método
+      finalize(() => this.isLoading = false)
+    ).subscribe({
+      next: (est: Estabelecimento) => { // Corrigido: tipagem do parâmetro
+        // Popula o formulário com os dados recebidos
+        this.form.patchValue({
+          nome: est.nome,
+          info: est.info,
+          tipo: est.tipo,
+          horarioAbertura: est.horarioAbertura,
+          horarioFechamento: est.horarioFechamento,
+          endereco: est.endereco
+        });
+
+        // Popula o array de fornadas
+        if (est.proximaFornada && est.proximaFornada.length > 0) {
+          est.proximaFornada.forEach((horario: string) => {
+            this.horariosFornada.push(this.fb.control(horario));
+          });
+        }
+
+        // Armazena as coordenadas
+        this.latitude = est.latitude;
+        this.longitude = est.longitude;
+
+        this.snackBar.open('Dados carregados para edição.', 'Ok', { duration: 2000 });
+      },
+      error: () => {
+        this.snackBar.open('Erro ao carregar dados do estabelecimento.', 'Fechar', { duration: 3000 });
+        this.router.navigate(['/meus-estabelecimentos']);
+      }
     });
   }
 
@@ -182,7 +232,7 @@ export class CadastroEstabelecimentoComponent {
   }
 
   onSubmit(): void {
-    this.prosseguirComSubmit();
+    this.prosseguirComSubmit(); // A lógica de login já foi removida, podemos chamar diretamente
   }
 
   private prosseguirComSubmit(): void {
@@ -205,27 +255,39 @@ export class CadastroEstabelecimentoComponent {
       tipo: formValue.tipo,
       latitude: this.latitude,
       longitude: this.longitude,
+      // O backend espera os campos adicionais dentro de um objeto 'details'
       details: {
         info: formValue.info,
         horarioAbertura: formValue.horarioAbertura,
         horarioFechamento: formValue.horarioFechamento,
-        proximaFornada: formValue.horariosFornada, // O backend deve tratar isso como a lista de horários
+        proximaFornada: formValue.horariosFornada,
         endereco: formValue.endereco
       }
     };
 
-    this.estabelecimentosService.salvarEstabelecimento(payload).pipe(
+    const saveObservable = this.isEditMode // Corrigido: erro de sintaxe 'const-'
+      ? this.estabelecimentosService.updateEstabelecimento(this.estabelecimentoId!, payload)
+      : this.estabelecimentosService.salvarEstabelecimento(payload);
+
+    saveObservable.pipe(
       finalize(() => this.isLoading = false)
     ).subscribe({
-      next: (novoEstabelecimento) => {
-        this.salvarIdLocalmente(novoEstabelecimento.id);
-        this.snackBar.open('Estabelecimento cadastrado com sucesso!', 'Ok', { duration: 3000 });
+      next: (estabelecimentoSalvo: Estabelecimento) => { // Corrigido: tipagem do parâmetro
+        if (!this.isEditMode) {
+          this.salvarIdLocalmente(estabelecimentoSalvo.id);
+        }
+        this.snackBar.open(
+          `Estabelecimento ${this.isEditMode ? 'atualizado' : 'cadastrado'} com sucesso!`,
+          'Ok',
+          { duration: 3000 }
+        );
         // Redireciona o usuário para a página de gerenciamento
         this.router.navigate(['/meus-estabelecimentos']);
       },
-      error: (err) => {
-        console.error('Erro ao cadastrar:', err);
-        this.snackBar.open('Ocorreu um erro ao cadastrar. Tente novamente.', 'Fechar', { duration: 3000 });
+      error: (err: any) => { // Corrigido: tipagem do parâmetro
+        console.error(`Erro ao ${this.isEditMode ? 'atualizar' : 'cadastrar'}:`, err);
+        const message = err.error?.message || `Ocorreu um erro ao ${this.isEditMode ? 'atualizar' : 'cadastrar'}. Tente novamente.`;
+        this.snackBar.open(message, 'Fechar', { duration: 4000 });
       }
     });
   }
