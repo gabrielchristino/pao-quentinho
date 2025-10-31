@@ -1,7 +1,7 @@
 import { Routes } from '@angular/router';
 import { MapaComponent } from './mapa/mapa.component';
 import { notificationRedirectGuard } from './notification-redirect.guard';
-import { authGuard } from './mapa/auth.guard';
+import { lojistaGuard } from './services/lojista.guard';
 
 export const routes: Routes = [
   // Rota principal, exibe a lista de estabelecimentos
@@ -14,20 +14,20 @@ export const routes: Routes = [
   {
     path: 'cadastrar-estabelecimento',
     loadComponent: () => import('./cadastro-estabelecimento/cadastro-estabelecimento.component').then(m => m.CadastroEstabelecimentoComponent),
-    canActivate: [authGuard] // Protege esta rota
+    canActivate: [lojistaGuard] // Protege esta rota para lojistas
   },
 
   // Rota para editar um estabelecimento existente
   {
     path: 'editar-estabelecimento/:id',
     loadComponent: () => import('./cadastro-estabelecimento/cadastro-estabelecimento.component').then(m => m.CadastroEstabelecimentoComponent),
-    canActivate: [authGuard] // Protege esta rota
+    canActivate: [lojistaGuard] // Protege esta rota para lojistas
   },
 
   // Rota para gerenciar os estabelecimentos do usuário logado
   {
     path: 'meus-estabelecimentos',
     loadComponent: () => import('./gerenciar-estabelecimentos/gerenciar-estabelecimentos.component').then(m => m.GerenciarEstabelecimentosComponent),
-    canActivate: [authGuard] // Protege esta rota
+    canActivate: [lojistaGuard] // Protege esta rota para lojistas
   },
 ];

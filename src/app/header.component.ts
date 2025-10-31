@@ -31,6 +31,10 @@ export class HeaderComponent {
   private snackBar = inject(MatSnackBar);
   private router = inject(Router);
 
+  get isLojista(): boolean {
+    return this.authService.getUserRole() === 'lojista';
+  }
+
   abrirLogin(): void {
     this.dialog.open(AuthDialogComponent, {
       width: '450px'

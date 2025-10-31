@@ -12,10 +12,17 @@
       <mat-icon>person</mat-icon>
     </button>
     <mat-menu #userMenu="matMenu">
-      <a mat-menu-item routerLink="/meus-estabelecimentos">
-        <mat-icon>storefront</mat-icon>
-        <span>Meus Estabelecimentos</span>
+      <!-- O link de gerenciamento só aparece para lojistas -->
+      <a *ngIf="isLojista" mat-menu-item routerLink="/meus-estabelecimentos">
+          <mat-icon>storefront</mat-icon>
+          <span>Meus Estabelecimentos</span>
       </a>
+      <!-- Link para cadastrar novo estabelecimento, também só para lojistas -->
+      <a *ngIf="isLojista" mat-menu-item routerLink="/cadastrar-estabelecimento">
+        <mat-icon>add_business</mat-icon>
+        <span>Cadastrar Estabelecimento</span>
+      </a>
+
       <button mat-menu-item (click)="logout()">
         <mat-icon>logout</mat-icon>
         <span>Sair</span>

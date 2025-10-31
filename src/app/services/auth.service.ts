@@ -43,11 +43,31 @@ export class AuthService {
 
   logout(): void {
     localStorage.removeItem(this.TOKEN_KEY);
+    // Limpa também as inscrições locais para evitar inconsistências ao logar com outro usuário.
+    localStorage.removeItem('user-subscriptions');
     this.authState.next(false);
   }
 
   getToken(): string | null {
     return localStorage.getItem(this.TOKEN_KEY);
+  }
+
+  private decodeToken(): any | null {
+    const token = this.getToken();
+    if (!token) {
+      return null;
+    }
+    try {
+      // O payload do JWT fica na segunda parte, decodificado de Base64
+      return JSON.parse(atob(token.split('.')[1]));
+    } catch (e) {
+      console.error('Falha ao decodificar o token:', e);
+      return null;
+    }
+  }
+
+  getUserRole(): 'lojista' | 'cliente' | null {
+    return this.decodeToken()?.role ?? null;
   }
 
   isLoggedIn(): boolean {
