@@ -67,7 +67,6 @@ export class AuthDialogComponent {
       finalize(() => this.isLoading = false)
     ).subscribe({
       next: (syncResponse) => {
-        this.snackBar.open('Login realizado com sucesso!', 'Ok', { duration: 3000 });
         this.dialogRef.close(); // Fecha o modal com sucesso
 
         // Redireciona o usuário com base no seu perfil
@@ -97,7 +96,6 @@ export class AuthDialogComponent {
     ).subscribe({
       next: (syncResponse) => {
         // O novo fluxo no AuthService já faz o login e a sincronização.
-        this.snackBar.open('Cadastro e login realizados com sucesso!', 'Ok', { duration: 4000 });
         this.dialogRef.close(); // Fecha o modal com sucesso
 
         // Redireciona o usuário se ele for um lojista

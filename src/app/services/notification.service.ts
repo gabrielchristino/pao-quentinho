@@ -23,7 +23,6 @@ export class NotificationService {
   private _authService: AuthService | null = null;
 
   private get authService(): AuthService {
-    // O serviço é obtido do injetor na primeira vez que é usado.
     if (!this._authService) {
       this._authService = this.injector.get(AuthService);
     }
@@ -31,11 +30,9 @@ export class NotificationService {
   }
 
   addPushSubscriber(sub: PushSubscription, estabelecimentoId: number): Observable<any> {
-    // Se o usuário não estiver logado, salvamos a inscrição localmente para sincronizar depois.
     if (!this.authService.isLoggedIn()) {
       const subAsJson = sub.toJSON();
       const anonymousSubs = JSON.parse(localStorage.getItem('anonymous-subscriptions') || '[]');
-      // Evita adicionar endpoints duplicados
       if (!anonymousSubs.some((s: any) => s.endpoint === subAsJson.endpoint)) {
         anonymousSubs.push(subAsJson);
         localStorage.setItem('anonymous-subscriptions', JSON.stringify(anonymousSubs));
@@ -52,9 +49,7 @@ export class NotificationService {
   syncSubscriptions(anonymousEndpoints: string[]): Observable<{ syncedEstablishmentIds: number[] }> {
     return this.http.post<{ syncedEstablishmentIds: number[] }>(`${this.apiUrl}/auth/sync`, { anonymousEndpoints })
       .pipe(
-        tap(response => {
-          // Após a sincronização, limpamos os endpoints anônimos do localStorage
-          // para não enviá-los novamente em um futuro login.
+        tap(() => {
           if (anonymousEndpoints.length > 0) {
             localStorage.removeItem('anonymous-subscriptions');
           }
@@ -72,25 +67,20 @@ export class NotificationService {
       return;
     }
 
-    // A função que será executada APENAS se a permissão for concedida.
     const onGranted = async () => {
       let snackBarRef: MatSnackBarRef<SimpleSnackBar> | null = null;
       try {
-        // 1. Verifica se já existe uma inscrição push neste dispositivo.
         let currentSub = await this.swPush.subscription.toPromise();
 
-        // 2. Se não existir, precisamos criar uma.
         if (!currentSub) {
           console.log('[SYNC-SUB] Nenhuma inscrição push encontrada. Criando uma nova...');
           snackBarRef = this.snackBar.open('Ativando notificações para este dispositivo...', undefined, { duration: 0 });
 
-          // Para criar uma inscrição, precisamos da chave VAPID.
           const vapidPublicKey = await firstValueFrom(this.getVapidPublicKey());
           currentSub = await this.swPush.requestSubscription({ serverPublicKey: vapidPublicKey });
           console.log('[SYNC-SUB] Nova inscrição push criada:', currentSub);
         }
 
-        // 3. Agora com uma inscrição (existente ou nova), sincronizamos o que falta.
         const count = await this.subscribeToMissingEstablishments(currentSub, syncedEstablishmentIds);
         snackBarRef?.dismiss();
 
@@ -104,7 +94,6 @@ export class NotificationService {
       }
     };
 
-    // Inicia o fluxo de permissão.
     this.solicitarPermissaoDeNotificacao(onGranted);
   }
 
@@ -154,14 +143,10 @@ export class NotificationService {
 
     try {
       console.log('[SYNC-SUB] Verificando inscrições faltantes com a inscrição push atual.');
-
-      // 2. Pega os IDs dos estabelecimentos que JÁ ESTÃO inscritos neste dispositivo.
       const existingSubs = JSON.parse(localStorage.getItem('user-subscriptions') || '[]');
       const subscribedIdsOnThisDevice = new Set<number>(existingSubs.map((s: any) => s.establishmentId));
-
-      // 3. Filtra para encontrar os que o usuário segue mas que não estão inscritos AQUI.
       const missingIds = syncedEstablishmentIds.filter(id => !subscribedIdsOnThisDevice.has(id));
-
+      
       if (missingIds.length === 0) {
         console.log('[SYNC-SUB] Todas as inscrições já estão sincronizadas neste dispositivo.');
         return 0;
@@ -169,7 +154,6 @@ export class NotificationService {
 
       console.log(`[SYNC-SUB] Encontradas ${missingIds.length} inscrições para sincronizar:`, missingIds);
 
-      // 4. Itera e se inscreve nos que faltam.
       for (const id of missingIds) {
         await firstValueFrom(this.addPushSubscriber(currentSub, id));
       }

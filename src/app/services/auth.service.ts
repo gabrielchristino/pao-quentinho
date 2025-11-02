@@ -17,8 +17,6 @@ export class AuthService {
 
   register(userData: { name: string, email: string, password: string, isLojista?: boolean }): Observable<any> {
     const credentials = { ...userData, role: userData.isLojista ? 'lojista' : 'cliente' };
-
-    // Após o registro, faz o login automaticamente para obter o token e iniciar a sincronização.
     return this.http.post(`${this.apiUrl}/register`, { name: credentials.name, email: credentials.email, password: credentials.password, role: credentials.role }).pipe(
       switchMap(() => this.login({ email: userData.email, password: userData.password }))
     );
@@ -38,7 +36,6 @@ export class AuthService {
         this.setToken(response.token);
         this.authState.next(true);
       }),
-      // Após o login, executa a sincronização
       switchMap(() => this.sync()) // O resultado de sync() será passado para o próximo operador
     );
   }
@@ -60,7 +57,6 @@ export class AuthService {
       return null;
     }
     try {
-      // O payload do JWT fica na segunda parte, decodificado de Base64
       return JSON.parse(atob(token.split('.')[1]));
     } catch (e) {
       console.error('Falha ao decodificar o token:', e);
@@ -77,8 +73,6 @@ export class AuthService {
     if (!token) {
       return false;
     }
-    // Opcional: decodificar o token para verificar a data de expiração
-    // Por enquanto, a simples presença do token é suficiente.
     return true;
   }
 

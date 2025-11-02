@@ -56,8 +56,7 @@ export class GerenciarEstabelecimentosComponent implements OnInit, OnDestroy {
   private loadEstabelecimentos(): void {
     this.estabelecimentosService.getMeusEstabelecimentos().pipe(
       catchError(err => {
-        // Se o token for inválido ou expirado, o interceptor pode não pegar.
-        // Tratamos o erro 401 (Não Autorizado) aqui.
+        // Trata o erro 401 (Não Autorizado) caso o interceptor não o capture.
         if (err.status === 401) {
           this.snackBar.open('Sua sessão expirou. Por favor, faça login novamente.', 'Fechar', { duration: 5000 });
           this.router.navigate(['/']); // Redireciona para o mapa para logar

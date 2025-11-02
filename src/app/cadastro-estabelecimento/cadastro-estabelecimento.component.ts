@@ -45,8 +45,7 @@ export class CadastroEstabelecimentoComponent {
   isLoading = false;
   form: FormGroup;
   fornadaControl = new FormControl('', [Validators.required]);
-  // Propriedades para armazenar as coordenadas internamente
-  private latitude: number | null = null;
+  private latitude: number | null = null; // Coordenadas
   private longitude: number | null = null;
 
   isEditMode = false;
@@ -83,11 +82,10 @@ export class CadastroEstabelecimentoComponent {
 
   private carregarDadosParaEdicao(id: number): void {
     this.isLoading = true;
-    this.estabelecimentosService.getEstabelecimentoById(id.toString()).pipe( // Corrigido: chamada de método
+    this.estabelecimentosService.getEstabelecimentoById(id.toString()).pipe(
       finalize(() => this.isLoading = false)
     ).subscribe({
-      next: (est: Estabelecimento) => { // Corrigido: tipagem do parâmetro
-        // Popula o formulário com os dados recebidos
+      next: (est: Estabelecimento) => {
         this.form.patchValue({
           nome: est.nome,
           info: est.info,
@@ -97,14 +95,11 @@ export class CadastroEstabelecimentoComponent {
           endereco: est.endereco
         });
 
-        // Popula o array de fornadas
         if (est.proximaFornada && est.proximaFornada.length > 0) {
           est.proximaFornada.forEach((horario: string) => {
             this.horariosFornada.push(this.fb.control(horario));
           });
         }
-
-        // Armazena as coordenadas
         this.latitude = est.latitude;
         this.longitude = est.longitude;
       },
@@ -149,7 +144,6 @@ export class CadastroEstabelecimentoComponent {
 
     this.isLoading = true;
     this.estabelecimentosService.getEnderecoPorCep(cep).pipe(
-      // Encadeia a busca de endereço com a busca de coordenadas
       switchMap(dadosEndereco => {
         if (dadosEndereco.erro) {
           throw new Error('CEP não encontrado.');
@@ -164,7 +158,7 @@ export class CadastroEstabelecimentoComponent {
         const enderecoCompleto = `${dadosEndereco.logradouro}, ${dadosEndereco.localidade}, ${dadosEndereco.uf}`;
         return this.estabelecimentosService.getCoordenadasPorEndereco(enderecoCompleto);
       }),
-      finalize(() => this.isLoading = false) // Finaliza o loading ao final de tudo
+      finalize(() => this.isLoading = false)
     ).subscribe({
       next: (dadosCoordenadas) => {
         if (dadosCoordenadas && dadosCoordenadas.length > 0) {
@@ -226,7 +220,7 @@ export class CadastroEstabelecimentoComponent {
   }
 
   onSubmit(): void {
-    this.prosseguirComSubmit(); // A lógica de login já foi removida, podemos chamar diretamente
+    this.prosseguirComSubmit();
   }
 
   private prosseguirComSubmit(): void {
@@ -243,13 +237,11 @@ export class CadastroEstabelecimentoComponent {
     this.isLoading = true;
     const formValue = this.form.getRawValue();
 
-    // Adapta o payload para o formato esperado pelo backend
     const payload = {
       nome: formValue.nome,
       tipo: formValue.tipo,
       latitude: this.latitude,
       longitude: this.longitude,
-      // O backend espera os campos adicionais dentro de um objeto 'details'
       details: {
         info: formValue.info,
         horarioAbertura: formValue.horarioAbertura,
@@ -259,14 +251,14 @@ export class CadastroEstabelecimentoComponent {
       }
     };
 
-    const saveObservable = this.isEditMode // Corrigido: erro de sintaxe 'const-'
+    const saveObservable = this.isEditMode
       ? this.estabelecimentosService.updateEstabelecimento(this.estabelecimentoId!, payload)
       : this.estabelecimentosService.salvarEstabelecimento(payload);
 
     saveObservable.pipe(
       finalize(() => this.isLoading = false)
     ).subscribe({
-      next: (estabelecimentoSalvo: Estabelecimento) => { // Corrigido: tipagem do parâmetro
+      next: (estabelecimentoSalvo: Estabelecimento) => {
         if (!this.isEditMode) {
           this.salvarIdLocalmente(estabelecimentoSalvo.id);
         }
@@ -275,10 +267,9 @@ export class CadastroEstabelecimentoComponent {
           'Ok',
           { duration: 3000 }
         );
-        // Redireciona o usuário para a página de gerenciamento
         this.router.navigate(['/meus-estabelecimentos']);
       },
-      error: (err: any) => { // Corrigido: tipagem do parâmetro
+      error: (err: any) => {
         console.error(`Erro ao ${this.isEditMode ? 'atualizar' : 'cadastrar'}:`, err);
         const message = err.error?.message || `Ocorreu um erro ao ${this.isEditMode ? 'atualizar' : 'cadastrar'}. Tente novamente.`;
         this.snackBar.open(message, 'Fechar', { duration: 4000 });
