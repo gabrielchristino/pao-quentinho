@@ -45,22 +45,6 @@ export class HeaderComponent {
     this.authService.logout();
     this.snackBar.open('Você saiu da sua conta.', 'Ok', { duration: 3000 });
 
-    // Check if the user is on a protected route
-    const isProtected = this.router.url.includes('/meus-estabelecimentos') || this.router.url.includes('/cadastrar-estabelecimento');
-
-    if (isProtected) {
-      // If on a protected route, open the login modal immediately.
-      const dialogRef = this.dialog.open(AuthDialogComponent, {
-        width: '450px',
-        disableClose: true
-      });
-
-      dialogRef.afterClosed().subscribe(result => {
-        // After the modal closes, decide where to go.
-        this.router.navigate([result ? '/meus-estabelecimentos' : '/']);
-      });
-    } else {
-      // If on a public page like the map, just stay there.
-    }
+    this.router.navigate(['/']);
   }
 }

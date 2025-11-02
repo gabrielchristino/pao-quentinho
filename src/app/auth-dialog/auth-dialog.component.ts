@@ -8,9 +8,11 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatIconModule } from '@angular/material/icon';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { finalize } from 'rxjs';
 import { AuthService } from '../services/auth.service';
+import { Router } from '@angular/router';
 import { NotificationService } from '../services/notification.service';
 
 @Component({
@@ -25,7 +27,8 @@ import { NotificationService } from '../services/notification.service';
     MatButtonModule,
     MatDialogModule,
     MatIconModule,
-    MatTooltipModule
+    MatTooltipModule,
+    MatCheckboxModule
   ],
   templateUrl: './auth-dialog.component.html',
   styleUrl: './auth-dialog.component.scss'
@@ -35,6 +38,7 @@ export class AuthDialogComponent {
   private authService = inject(AuthService);
   private notificationService = inject(NotificationService);
   private snackBar = inject(MatSnackBar);
+  private router = inject(Router);
   public dialogRef = inject(MatDialogRef<AuthDialogComponent>);
 
   loginForm: FormGroup;
@@ -50,7 +54,8 @@ export class AuthDialogComponent {
     this.registerForm = this.fb.group({
       name: ['', Validators.required],
       email: ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.required, Validators.minLength(6)]]
+      password: ['', [Validators.required, Validators.minLength(6)]],
+      isLojista: [false]
     });
   }
 
@@ -63,7 +68,13 @@ export class AuthDialogComponent {
     ).subscribe({
       next: (syncResponse) => {
         this.snackBar.open('Login realizado com sucesso!', 'Ok', { duration: 3000 });
-        this.dialogRef.close(true); // Fecha o modal com sucesso
+        this.dialogRef.close(); // Fecha o modal com sucesso
+
+        // Redireciona o usuário com base no seu perfil
+        const userRole = this.authService.getUserRole();
+        if (userRole === 'lojista') {
+          this.router.navigate(['/meus-estabelecimentos']);
+        }
 
         // Após o login, dispara o fluxo de sincronização, que agora lida com a permissão.
         if (syncResponse?.syncedEstablishmentIds) {
@@ -86,8 +97,14 @@ export class AuthDialogComponent {
     ).subscribe({
       next: (syncResponse) => {
         // O novo fluxo no AuthService já faz o login e a sincronização.
-        this.snackBar.open('Cadastro e login realizados com sucesso!', 'Ok', { duration: 3000 });
-        this.dialogRef.close(true); // Fecha o modal com sucesso
+        this.snackBar.open('Cadastro e login realizados com sucesso!', 'Ok', { duration: 4000 });
+        this.dialogRef.close(); // Fecha o modal com sucesso
+
+        // Redireciona o usuário se ele for um lojista
+        const userRole = this.authService.getUserRole();
+        if (userRole === 'lojista') {
+          this.router.navigate(['/meus-estabelecimentos']);
+        }
 
         // Após o registro, também dispara o fluxo de sincronização.
         if (syncResponse?.syncedEstablishmentIds) {

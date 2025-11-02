@@ -36,6 +36,9 @@
           <input matInput formControlName="password" type="password" required>
           <mat-hint>Mínimo de 6 caracteres</mat-hint>
         </mat-form-field>
+        <mat-checkbox formControlName="isLojista" class="auth-checkbox">
+          Quero divulgar meu estabelecimento
+        </mat-checkbox>
         <button mat-raised-button color="accent" type="submit" [disabled]="isLoading || registerForm.invalid">
           {{ isLoading ? 'Cadastrando...' : 'Cadastrar' }}
         </button>

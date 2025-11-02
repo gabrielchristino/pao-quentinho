@@ -17,11 +17,6 @@
           <mat-icon>storefront</mat-icon>
           <span>Meus Estabelecimentos</span>
       </a>
-      <!-- Link para cadastrar novo estabelecimento, também só para lojistas -->
-      <a *ngIf="isLojista" mat-menu-item routerLink="/cadastrar-estabelecimento">
-        <mat-icon>add_business</mat-icon>
-        <span>Cadastrar Estabelecimento</span>
-      </a>
 
       <button mat-menu-item (click)="logout()">
         <mat-icon>logout</mat-icon>

@@ -107,8 +107,6 @@ export class CadastroEstabelecimentoComponent {
         // Armazena as coordenadas
         this.latitude = est.latitude;
         this.longitude = est.longitude;
-
-        this.snackBar.open('Dados carregados para edição.', 'Ok', { duration: 2000 });
       },
       error: () => {
         this.snackBar.open('Erro ao carregar dados do estabelecimento.', 'Fechar', { duration: 3000 });
@@ -162,7 +160,6 @@ export class CadastroEstabelecimentoComponent {
           cidade: dadosEndereco.localidade,
           estado: dadosEndereco.uf
         });
-        this.snackBar.open('Endereço encontrado! Buscando coordenadas...', 'Ok', { duration: 2000 });
         
         const enderecoCompleto = `${dadosEndereco.logradouro}, ${dadosEndereco.localidade}, ${dadosEndereco.uf}`;
         return this.estabelecimentosService.getCoordenadasPorEndereco(enderecoCompleto);
@@ -173,7 +170,6 @@ export class CadastroEstabelecimentoComponent {
         if (dadosCoordenadas && dadosCoordenadas.length > 0) {
           this.latitude = parseFloat(dadosCoordenadas[0].lat);
           this.longitude = parseFloat(dadosCoordenadas[0].lon);
-          this.snackBar.open('Endereço e coordenadas preenchidos com sucesso!', 'Ok', { duration: 3000 });
         } else {
           this.snackBar.open('Não foi possível encontrar as coordenadas para este CEP. Por favor, preencha manualmente.', 'Fechar', { duration: 5000 });
           return;
@@ -194,7 +190,6 @@ export class CadastroEstabelecimentoComponent {
     }
 
     this.isLoading = true;
-    this.snackBar.open('Obtendo sua localização...', 'Ok', { duration: 4000 });
 
     navigator.geolocation.getCurrentPosition(
       (position) => {
@@ -219,7 +214,6 @@ export class CadastroEstabelecimentoComponent {
               cidade: address.city || address.town || '',
               estado: address.state || ''
             });
-            this.snackBar.open('Endereço preenchido com sua localização atual!', 'Ok', { duration: 3000 });
           },
           error: () => this.snackBar.open('Erro ao buscar endereço pela localização.', 'Fechar', { duration: 3000 })
         });

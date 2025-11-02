@@ -15,10 +15,12 @@ export class AuthService {
   private authState = new BehaviorSubject<boolean>(this.isLoggedIn());
   public authState$ = this.authState.asObservable();
 
-  register(credentials: { name: string, email: string, password: string }): Observable<any> {
+  register(userData: { name: string, email: string, password: string, isLojista?: boolean }): Observable<any> {
+    const credentials = { ...userData, role: userData.isLojista ? 'lojista' : 'cliente' };
+
     // Após o registro, faz o login automaticamente para obter o token e iniciar a sincronização.
-    return this.http.post(`${this.apiUrl}/register`, credentials).pipe(
-      switchMap(() => this.login({ email: credentials.email, password: credentials.password }))
+    return this.http.post(`${this.apiUrl}/register`, { name: credentials.name, email: credentials.email, password: credentials.password, role: credentials.role }).pipe(
+      switchMap(() => this.login({ email: userData.email, password: userData.password }))
     );
   }
 
