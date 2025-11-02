@@ -6,7 +6,7 @@ export interface Estabelecimento {
   longitude: number;
   distanciaKm?: number;
   info: string;
-  proximaFornada: string[];
+  proximaFornada: string[]; // Garante que seja sempre um array
   horarioAbertura: string;
   horarioFechamento: string;
   endereco: {
@@ -17,4 +17,5 @@ export interface Estabelecimento {
     estado: string;
     cep: string;
   };
+  followers_count?: number;
 }

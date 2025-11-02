@@ -39,9 +39,66 @@
   }
 }
 
-mat-list-item {
-  .actions {
+.mat-expansion-panel-header {
+  padding: 12px 24px !important;
+}
+
+.panel-title-container {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+
+  .panel-text-content {
     display: flex;
-    gap: 8px;
+    flex-direction: column;
+    gap: 4px;
   }
+
+  .item-line {
+    font-size: 0.9em;
+    color: rgba(0,0,0,0.6);
+  }
+}
+
+.panel-content-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 0 24px 16px;
+}
+
+.details-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  font-size: 14px;
+
+  .detail-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: rgba(0,0,0,0.7);
+  }
+
+  .fornadas-list {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  mat-chip-set {
+    // Remove o padding padrão para melhor alinhamento
+    padding: 0 !important;
+  }
+}
+
+.actions-section {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  border-top: 1px solid rgba(0,0,0,0.08);
+  padding-top: 8px;
+  margin-top: 8px;
 }

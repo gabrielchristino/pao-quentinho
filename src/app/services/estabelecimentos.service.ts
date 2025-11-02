@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
-import { HttpClient, HttpResponse } from '@angular/common/http';
+import { Observable, map } from 'rxjs';
+import { HttpClient, HttpParams, HttpResponse } from '@angular/common/http';
 import { Estabelecimento } from '../estabelecimento.model';
 
 export interface GeocodingResult {
@@ -19,16 +19,43 @@ export class EstabelecimentosService {
   constructor(private http: HttpClient) {}
 
   getEstabelecimentosProximos(userLat: number, userLng: number): Observable<HttpResponse<Estabelecimento[]>> {
-    // Passa a localização do usuário como query params para o backend calcular a distância
-    return this.http.get<Estabelecimento[]>(`${this.apiUrl}/estabelecimentos?lat=${userLat}&lng=${userLng}`, { observe: 'response' });
+    const params = new HttpParams()
+      .set('lat', userLat.toString())
+      .set('lng', userLng.toString());
+
+    return this.http.get<Estabelecimento[]>(`${this.apiUrl}/estabelecimentos`, { params, observe: 'response' }).pipe(
+      map(response => {
+        const body = response.body?.map(this.flattenEstabelecimento) || [];
+        return response.clone({ body });
+      })
+    );
   }
 
   getEstabelecimentoById(id: string): Observable<Estabelecimento> {
-    return this.http.get<Estabelecimento>(`${this.apiUrl}/estabelecimentos/${id}`);
+    return this.http.get<Estabelecimento>(`${this.apiUrl}/estabelecimentos/${id}`).pipe(
+      map(this.flattenEstabelecimento)
+    );
   }
 
   getMeusEstabelecimentos(): Observable<Estabelecimento[]> {
-    return this.http.get<Estabelecimento[]>(`${this.apiUrl}/users/me/estabelecimentos`);
+    return this.http.get<Estabelecimento[]>(`${this.apiUrl}/users/me/estabelecimentos`).pipe(
+      map(estabelecimentos => estabelecimentos.map(this.flattenEstabelecimento))
+    );
+  }
+
+  private flattenEstabelecimento(est: any): Estabelecimento {
+    let finalEst: any;
+    if (est.details) {
+      const { details, ...rest } = est;
+      finalEst = {
+        ...rest,
+        ...details
+      };
+    } else {
+      finalEst = { ...est };
+    }
+    finalEst.proximaFornada = finalEst.proximaFornada || [];
+    return finalEst as Estabelecimento;
   }
 
   salvarEstabelecimento(estabelecimento: Partial<Estabelecimento>): Observable<Estabelecimento> {

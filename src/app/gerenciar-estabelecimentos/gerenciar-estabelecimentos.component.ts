@@ -8,6 +8,9 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatExpansionModule } from '@angular/material/expansion';
+import { MatChipsModule } from '@angular/material/chips';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
@@ -23,7 +26,10 @@ import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.compone
     MatIconModule,
     MatButtonModule,
     MatCardModule,
-    MatDialogModule
+    MatDialogModule,
+    MatExpansionModule,
+    MatTooltipModule,
+    MatChipsModule,
   ],
   templateUrl: './gerenciar-estabelecimentos.component.html',
   styleUrl: './gerenciar-estabelecimentos.component.scss'
@@ -101,7 +107,10 @@ export class GerenciarEstabelecimentosComponent implements OnInit, OnDestroy {
           next: () => {
             this.snackBar.open('Estabelecimento apagado com sucesso!', 'Ok', { duration: 3000 });
             // Remove o item da lista local para atualizar a UI instantaneamente
-            this.meusEstabelecimentos = this.meusEstabelecimentos.filter(est => est.id !== id);
+            this.meusEstabelecimentos = this.meusEstabelecimentos.filter(est => {
+              est.proximaFornada = est.proximaFornada || [];
+              return est.id !== id;
+            });
           },
           error: (err) => {
             const message = err.error?.message || 'Erro ao apagar o estabelecimento.';
@@ -111,4 +120,4 @@ export class GerenciarEstabelecimentosComponent implements OnInit, OnDestroy {
       }
     });
   }
-}
+} 
