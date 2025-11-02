@@ -15,6 +15,8 @@ import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
+import { NotificationService } from '../services/notification.service';
+import { NotificationDialogComponent, NotificationDialogResult } from '../notification-dialog/notification-dialog.component';
 
 @Component({
   selector: 'app-gerenciar-estabelecimentos',
@@ -40,6 +42,7 @@ export class GerenciarEstabelecimentosComponent implements OnInit, OnDestroy {
   private router = inject(Router);
   private authService = inject(AuthService);
   private dialog = inject(MatDialog);
+  private notificationService = inject(NotificationService);
   private destroy$ = new Subject<void>();
 
   meusEstabelecimentos: Estabelecimento[] = [];
@@ -115,6 +118,31 @@ export class GerenciarEstabelecimentosComponent implements OnInit, OnDestroy {
           error: (err) => {
             const message = err.error?.message || 'Erro ao apagar o estabelecimento.';
             this.snackBar.open(message, 'Fechar', { duration: 4000 });
+          }
+        });
+      }
+    });
+  }
+
+  notificar(id: number, nome: string): void {
+    const dialogRef = this.dialog.open(NotificationDialogComponent, {
+      width: '500px',
+      data: { establishmentName: nome }
+    });
+
+    dialogRef.afterClosed().subscribe((result: NotificationDialogResult | undefined) => {
+      // Procede apenas se o usuário clicou em "Enviar" e temos um resultado.
+      if (result) {
+        this.isLoading = true;
+        this.notificationService.sendNotification(id, result.title, result.message).pipe(
+          finalize(() => this.isLoading = false)
+        ).subscribe({
+          next: (response) => {
+            this.snackBar.open(response.message || 'Notificações enviadas com sucesso!', 'Ok', { duration: 4000 });
+          },
+          error: (err) => {
+            const message = err.error?.message || 'Ocorreu um erro ao enviar as notificações.';
+            this.snackBar.open(message, 'Fechar', { duration: 5000 });
           }
         });
       }

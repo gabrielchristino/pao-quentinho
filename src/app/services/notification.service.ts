@@ -163,4 +163,15 @@ export class NotificationService {
       return 0;
     }
   }
+
+  /**
+   * Envia uma notificação manual para os seguidores de um estabelecimento.
+   * @param estabelecimentoId O ID do estabelecimento.
+   * @param title O título opcional da notificação.
+   * @param message A mensagem opcional da notificação.
+   */
+  sendNotification(estabelecimentoId: number, title?: string, message?: string): Observable<any> {
+    const payload = { title, message };
+    return this.http.post(`${this.apiUrl}/notify/${estabelecimentoId}`, payload);
+  }
 }

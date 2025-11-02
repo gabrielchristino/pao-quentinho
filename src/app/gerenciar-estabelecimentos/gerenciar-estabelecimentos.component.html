@@ -50,12 +50,20 @@
           </div>
         </div>
         <div class="actions-section">
-          <button mat-icon-button color="primary" (click)="editar(est.id)" matTooltip="Editar">
-            <mat-icon>edit</mat-icon>
+          <!-- Botão de notificar à esquerda -->
+          <button mat-stroked-button color="primary" (click)="notificar(est.id, est.nome)" matTooltip="Notificar seguidores sobre uma nova fornada">
+            <mat-icon>notifications</mat-icon>
+            <span>Notificar Fornada</span>
           </button>
-          <button mat-icon-button color="warn" (click)="apagar(est.id, est.nome)" matTooltip="Apagar">
-            <mat-icon>delete</mat-icon>
-          </button>
+          <!-- Grupo de ícones à direita -->
+          <div class="icon-actions">
+            <button mat-icon-button (click)="editar(est.id)" matTooltip="Editar dados do estabelecimento">
+              <mat-icon>edit</mat-icon>
+            </button>
+            <button mat-icon-button color="warn" (click)="apagar(est.id, est.nome)" matTooltip="Apagar estabelecimento">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </div>
         </div>
       </div>
     </mat-expansion-panel>
