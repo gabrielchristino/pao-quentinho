@@ -18,6 +18,11 @@
           <span>Meus Estabelecimentos</span>
       </a>
 
+      <a *ngIf="!isLojista" mat-menu-item routerLink="/minhas-inscricoes">
+          <mat-icon>storefront</mat-icon>
+          <span>Minhas inscrições</span>
+      </a>
+
       <button mat-menu-item (click)="logout()">
         <mat-icon>logout</mat-icon>
         <span>Sair</span>

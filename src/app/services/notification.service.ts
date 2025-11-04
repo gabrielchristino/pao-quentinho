@@ -1,6 +1,6 @@
 import { ApplicationRef, Injectable, Injector, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable, of, tap } from 'rxjs';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Observable, of, switchMap, take, tap } from 'rxjs';
 import { SwPush } from '@angular/service-worker';
 import { firstValueFrom } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
@@ -40,6 +40,23 @@ export class NotificationService {
       }
     }
     return this.http.post(`${this.apiUrl}/subscribe`, { subscription: sub.toJSON(), estabelecimentoId });
+  }
+
+  unsubscribeFromEstablishment(estabelecimentoId: number): Observable<any> {
+    return this.swPush.subscription.pipe(
+      take(1),
+      switchMap(sub => {
+        if (!sub) {
+          // Não há inscrição push neste dispositivo, então não há o que fazer no backend.
+          // Podemos considerar isso um sucesso do ponto de vista do cliente.
+          return of({ message: 'No subscription on this device.' });
+        }
+        const params = new HttpParams()
+          .set('endpoint', sub.endpoint)
+          .set('estabelecimentoId', estabelecimentoId.toString());
+        return this.http.delete(`${this.apiUrl}/unsubscribe`, { params });
+      })
+    );
   }
 
   getVapidPublicKey(): Observable<string> {

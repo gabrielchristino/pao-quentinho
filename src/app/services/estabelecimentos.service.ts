@@ -43,6 +43,12 @@ export class EstabelecimentosService {
     );
   }
 
+  getMinhasInscricoes(): Observable<Estabelecimento[]> {
+    return this.http.get<Estabelecimento[]>(`${this.apiUrl}/users/me/inscricoes`).pipe(
+      map(estabelecimentos => estabelecimentos.map(this.flattenEstabelecimento))
+    );
+  }
+
   private flattenEstabelecimento(est: any): Estabelecimento {
     let finalEst: any;
     if (est.details) {
