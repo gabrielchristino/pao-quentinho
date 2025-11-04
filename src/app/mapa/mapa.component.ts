@@ -2,9 +2,11 @@ import { Component, AfterViewInit, ViewChild, ElementRef, Input, OnChanges, Simp
 import L from 'leaflet';
 import { EstabelecimentosService } from '../services/estabelecimentos.service';
 import { Estabelecimento } from '../estabelecimento.model';
-import { firstValueFrom, Subject, takeUntil, combineLatest, filter, BehaviorSubject, switchMap, tap, map, take } from 'rxjs';
+import { firstValueFrom, Subject, takeUntil, combineLatest, filter, BehaviorSubject, switchMap, tap, map, take, finalize } from 'rxjs';
 import { NotificationService } from '../services/notification.service';
-import { FormsModule } from '@angular/forms';
+import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 import 'leaflet-routing-machine';
 import { CommonModule } from '@angular/common';
 import { MatBottomSheetModule } from '@angular/material/bottom-sheet';
@@ -50,6 +52,9 @@ const SWIPE_THRESHOLD = 50;
   imports: [
     FormsModule,
     CommonModule,
+    ReactiveFormsModule,
+    MatFormFieldModule,
+    MatInputModule,
     MatBottomSheetModule,
     MatListModule,
     MatButtonToggleModule,
@@ -61,7 +66,8 @@ const SWIPE_THRESHOLD = 50;
     MatRippleModule,
     MatSnackBarModule,
     MatProgressSpinnerModule,
-    MatDialogModule
+    MatDialogModule,
+    
   ],
   templateUrl: './mapa.component.html',
   styleUrl: './mapa.component.scss', 
@@ -74,6 +80,7 @@ const SWIPE_THRESHOLD = 50;
 export class MapaComponent implements AfterViewInit {
   @ViewChild('map', { static: true }) mapElementRef!: ElementRef<HTMLDivElement>;
   location$ = new BehaviorSubject<{ lat: number; lng: number } | null>(null);
+  searchControl = new FormControl('');
 
   raio: number = 500; // Raio inicial em metros
   private map?: L.Map;
@@ -223,6 +230,50 @@ export class MapaComponent implements AfterViewInit {
     this._elementRef.nativeElement.ownerDocument.body.classList.remove('no-scroll');
 
   }
+
+  buscarEndereco(): void {
+    const query = this.searchControl.value;
+    if (!query || !this.map) {
+      return;
+    }
+
+    this.isLoading = true;
+    const cepPattern = /^\d{5}-?\d{3}$/;
+    const queryLimpo = query.replace('-', '');
+
+    const busca$ = cepPattern.test(queryLimpo)
+      ? this.estabelecimentoService.getEnderecoPorCep(queryLimpo).pipe(
+          switchMap(dadosEndereco => {
+            if (dadosEndereco.erro) {
+              throw new Error('CEP não encontrado.');
+            }
+            const enderecoCompleto = `${dadosEndereco.logradouro}, ${dadosEndereco.localidade}, ${dadosEndereco.uf}`;
+            return this.estabelecimentoService.getCoordenadasPorEndereco(enderecoCompleto);
+          })
+        )
+      : this.estabelecimentoService.getCoordenadasPorEndereco(query);
+
+    busca$.pipe(
+      finalize(() => this.isLoading = false)
+    ).subscribe({
+      next: (dadosCoordenadas) => {
+        if (dadosCoordenadas && dadosCoordenadas.length > 0) {
+          const lat = parseFloat(dadosCoordenadas[0].lat);
+          const lng = parseFloat(dadosCoordenadas[0].lon);
+          this.map?.flyTo([lat, lng], 15);
+          // Opcional: mover o marcador do usuário para o local pesquisado
+          this.location$.next({ lat, lng });
+        } else {
+          this._snackBar.open('Endereço não encontrado.', 'Fechar', { duration: 3000 });
+        }
+      },
+      error: (err) => {
+        this._snackBar.open(err.message || 'Erro ao buscar endereço.', 'Fechar', { duration: 3000 });
+      }
+    });
+  }
+
+
 
   private solicitarPermissoesIniciais(): void {
     this.solicitarPermissaoDeLocalizacao().then(() => this.initializeDataFlow());

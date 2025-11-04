@@ -12,6 +12,20 @@
   </div>
 </div>
 <div class="map-container">
+    <!-- Caixa de Busca -->
+  <div class="search-box-container">
+    <mat-form-field appearance="outline" class="search-input" subscriptSizing="dynamic">
+      <mat-label>Buscar por Endereço ou CEP</mat-label>
+      <input matInput [formControl]="searchControl" (keyup.enter)="buscarEndereco()">
+      <button mat-icon-button matSuffix (click)="buscarEndereco()" aria-label="Buscar">
+        <mat-icon>search</mat-icon>
+      </button>
+    </mat-form-field>
+    <button mat-icon-button (click)="centralizarNoUsuario()" matTooltip="Usar minha localização atual" class="my-location-btn">
+      <mat-icon>my_location</mat-icon>
+    </button>
+  </div>
+  
   <!-- Overlay de Carregamento -->
   <div class="loading-overlay" *ngIf="isLoading">
     <mat-progress-spinner mode="indeterminate" diameter="50" aria-label="Carregando"></mat-progress-spinner>
@@ -39,16 +53,6 @@
     Sair da Navegação
   </button>
 
-  <!-- Botão para Centralizar no Usuário -->
-  <button
-    mat-fab
-    color="primary"
-    class="recenter-button"
-    *ngIf="!isLoading && location$.value"
-    (click)="centralizarNoUsuario()"
-    matTooltip="Centralizar na minha localização">
-    <mat-icon>my_location</mat-icon>
-  </button>
 </div>
 
 <!-- Bottom Sheet customizado -->

@@ -11,6 +11,30 @@
   }
 }
 
+.search-box-container {
+  position: absolute;
+  top: 72px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1001; // Acima do mapa
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 90%;
+  max-width: 500px;
+
+  .search-input {
+    flex-grow: 1;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  }
+
+  .my-location-btn {
+    background-color: white;
+  }
+}
+
 /* Overlay de Carregamento */
 .loading-overlay {
   position: absolute;
