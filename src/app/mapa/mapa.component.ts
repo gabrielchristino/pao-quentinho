@@ -99,6 +99,7 @@ export class MapaComponent implements AfterViewInit {
   private locationWatchId: number | null = null;
   private destroy$ = new Subject<void>();
   isLoading = true;
+  private isLocationOverridden = false; // Flag para controlar a centralização
 
   constructor(
     private estabelecimentoService: EstabelecimentosService,
@@ -262,6 +263,7 @@ export class MapaComponent implements AfterViewInit {
           const lng = parseFloat(dadosCoordenadas[0].lon);
           this.map?.flyTo([lat, lng], 15);
           // Opcional: mover o marcador do usuário para o local pesquisado
+          this.isLocationOverridden = true; // Impede a centralização automática
           this.location$.next({ lat, lng });
         } else {
           this._snackBar.open('Endereço não encontrado.', 'Fechar', { duration: 3000 });
@@ -352,6 +354,7 @@ export class MapaComponent implements AfterViewInit {
       take(1) // Pega apenas a próxima localização emitida para evitar recentralizações indesejadas
     ).subscribe(loc => {
       if (this.map) this.map.flyTo([loc.lat, loc.lng], this.calculateZoomLevel(this.raio));
+      this.isLocationOverridden = false; // Permite que a localização volte a ser atualizada
     });
   }
 
@@ -389,6 +392,12 @@ export class MapaComponent implements AfterViewInit {
     // Atualiza a posição do marcador e do círculo sem mover o mapa
     this.userMarker.setLatLng(newLatLng);
     this.circle.setLatLng(newLatLng);
+
+    // Se a localização não foi sobrescrita por uma busca, centraliza suavemente.
+    if (!this.isLocationOverridden && this.map ) {
+      const zoomLevel = this.calculateZoomLevel(this.raio);
+      this.map.setView(newLatLng, zoomLevel, { animate: true});
+    }
   }
 
   private carregarEstabelecimentos(): void {
