@@ -15,8 +15,7 @@
     <!-- Caixa de Busca -->
   <div class="search-box-container">
     <mat-form-field appearance="outline" class="search-input" subscriptSizing="dynamic">
-      <mat-label>Buscar por Endereço ou CEP</mat-label>
-      <input matInput [formControl]="searchControl" (keyup.enter)="buscarEndereco()">
+      <input matInput [formControl]="searchControl" (keyup.enter)="buscarEndereco()" placeholder="Buscar por Endereço ou CEP">
       <button mat-icon-button matSuffix (click)="buscarEndereco()" aria-label="Buscar">
         <mat-icon>search</mat-icon>
       </button>
