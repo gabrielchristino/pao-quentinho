@@ -140,6 +140,7 @@ export class MapaComponent implements AfterViewInit {
       dialogRef.afterClosed().subscribe(result => {
         if (result) {
           // Usuário clicou em "Permitir"
+          this.notificationService.solicitarPermissaoDeNotificacao(() => {});
           this.getUserLocation();
         } else {
           // Usuário clicou em "Agora não" ou fechou o diálogo
