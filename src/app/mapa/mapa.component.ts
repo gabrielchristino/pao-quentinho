@@ -27,6 +27,7 @@ import { MapStateService } from '../services/map-state.service';
 import { PermissionDialogComponent, PermissionDialogData } from './permission-diolog.component';
 import { AuthService } from '../services/auth.service';
 import { AuthDialogComponent } from '../auth-dialog/auth-dialog.component';
+import { Router } from '@angular/router';
 const iconRetinaUrl = 'assets/marker-icon-2x.png';
 const iconUrl = 'assets/marker-icon.png';
 const shadowUrl = 'assets/marker-shadow.png';
@@ -110,7 +111,8 @@ export class MapaComponent implements AfterViewInit {
     private notificationService: NotificationService,
     private mapStateService: MapStateService,
     public dialog: MatDialog,
-    public authService: AuthService
+    public authService: AuthService,
+    private router: Router
   ) { 
     // Adiciona a classe ao body para desabilitar o scroll global
     // quando este componente está ativo.
@@ -532,6 +534,11 @@ export class MapaComponent implements AfterViewInit {
       this.map.touchZoom.disable();
       this.map.doubleClickZoom.disable();
       this.map.scrollWheelZoom.disable();
+    }
+
+    // Limpa a URL, removendo o ID do estabelecimento.
+    if (this.router.url !== '/') {
+      this.router.navigate(['/']);
     }
   }
 
