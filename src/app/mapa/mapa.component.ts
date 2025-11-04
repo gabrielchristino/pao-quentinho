@@ -218,6 +218,7 @@ export class MapaComponent implements AfterViewInit {
     // Inicializa o mapa com uma visão padrão para evitar "tela branca"
     this.inicializarMapa(-14.235, -51.925, 4); // Centro do Brasil, zoom afastado
     this.solicitarPermissoesIniciais();
+    this.ouvirMudancasDeAutenticacao();
     this.bottomSheetEl = this._elementRef.nativeElement.querySelector('#bottomSheet');
   }
 
@@ -323,16 +324,33 @@ export class MapaComponent implements AfterViewInit {
     });
   }
 
+  private ouvirMudancasDeAutenticacao(): void {
+    this.authService.authState$
+      .pipe(
+        filter(isLoggedIn => isLoggedIn && this.authService.getUserRole() === 'lojista'),
+        takeUntil(this.destroy$)
+      )
+      .subscribe(() => {
+        console.log('[AUTH-CHANGE] Lojista logado. Verificando permissões de notificação...');
+        this.verificarEAtivarNotificacoesLojista();
+      });
+  }
+
+  private verificarEAtivarNotificacoesLojista(): void {
+    if (!this.swPush.isEnabled) return;
+
+    navigator.permissions.query({ name: 'push' }).then(permissionStatus => {
+      if (permissionStatus.state === 'prompt') {
+        this.habilitarNotificacoesParaLojista();
+      }
+    });
+  }
+
   /**
    * Habilita as notificações para o lojista logado, registrando seu dispositivo
    * para receber alertas (ex: novo seguidor).
    */
   private habilitarNotificacoesParaLojista(): void {
-    // Esta função só deve ser chamada se o usuário for um lojista.
-    if (this.authService.getUserRole() !== 'lojista') {
-      return;
-    }
-
     this.notificationService.solicitarPermissaoDeNotificacao(() => {
       this.notificationService.getVapidPublicKey().pipe(
         switchMap(vapidPublicKey => this.swPush.requestSubscription({ serverPublicKey: vapidPublicKey })),
