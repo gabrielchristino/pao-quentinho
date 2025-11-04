@@ -436,7 +436,8 @@ export class MapaComponent implements AfterViewInit {
     this.circle.setLatLng(newLatLng);
 
     // Se a localização não foi sobrescrita por uma busca, centraliza suavemente.
-    if (!this.isLocationOverridden && this.map ) {
+    // A centralização só deve ocorrer se nenhum estabelecimento estiver selecionado.
+    if (!this.isLocationOverridden && this.map && !this.selectedEstabelecimento) {
       const zoomLevel = this.calculateZoomLevel(this.raio);
       this.map.setView(newLatLng, zoomLevel, { animate: true});
     }
@@ -535,6 +536,9 @@ export class MapaComponent implements AfterViewInit {
       this.map.doubleClickZoom.disable();
       this.map.scrollWheelZoom.disable();
     }
+
+    // Limpa o estado de seleção para evitar que o popup reabra.
+    this.mapStateService.clearSelection();
 
     // Limpa a URL, removendo o ID do estabelecimento.
     if (this.router.url !== '/') {

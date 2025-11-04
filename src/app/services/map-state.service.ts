@@ -13,4 +13,8 @@ export class MapStateService {
   selectEstablishment(id: number) {
     this.selectEstablishmentSource.next(id);
   }
+
+  clearSelection(): void {
+    this.selectEstablishmentSource.next(null as any);
+  }
 }
