@@ -148,7 +148,7 @@ export class MapaComponent implements AfterViewInit {
       dialogRef.afterClosed().subscribe(result => {
         if (result) {
           // Usuário clicou em "Permitir"
-          this.notificationService.solicitarPermissaoDeNotificacao(() => {});
+          this.habilitarNotificacoesParaLojista();
           this.getUserLocation();
         } else {
           // Usuário clicou em "Agora não" ou fechou o diálogo
@@ -320,6 +320,28 @@ export class MapaComponent implements AfterViewInit {
         this.atualizarLocalizacaoMapa();
       }),
     ).subscribe(loc => {
+    });
+  }
+
+  /**
+   * Habilita as notificações para o lojista logado, registrando seu dispositivo
+   * para receber alertas (ex: novo seguidor).
+   */
+  private habilitarNotificacoesParaLojista(): void {
+    // Esta função só deve ser chamada se o usuário for um lojista.
+    if (this.authService.getUserRole() !== 'lojista') {
+      return;
+    }
+
+    this.notificationService.solicitarPermissaoDeNotificacao(() => {
+      this.notificationService.getVapidPublicKey().pipe(
+        switchMap(vapidPublicKey => this.swPush.requestSubscription({ serverPublicKey: vapidPublicKey })),
+        switchMap(sub => this.notificationService.addPushSubscriber(sub, -1)), // -1 indica inscrição de lojista
+        take(1) // Garante que a operação execute apenas uma vez
+      ).subscribe({
+        next: () => this._snackBar.open('Notificações habilitadas para este dispositivo!', 'Ok', { duration: 4000 }),
+        error: (err) => this._snackBar.open('Não foi possível habilitar as notificações para o lojista.', 'Fechar', { duration: 5000 })
+      });
     });
   }
 
