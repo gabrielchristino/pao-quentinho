@@ -346,11 +346,13 @@ export class MapaComponent implements AfterViewInit {
   }
 
   centralizarNoUsuario(): void {
-    const loc = this.location$.value;
-    if (!this.map || !loc) return;
-
-    const zoomLevel = this.calculateZoomLevel(this.raio);
-    this.map.flyTo([loc.lat, loc.lng], zoomLevel);
+    this.getUserLocation(); // Força a busca pela localização mais recente
+    this.location$.pipe(
+      filter((loc): loc is { lat: number; lng: number } => loc !== null),
+      take(1) // Pega apenas a próxima localização emitida para evitar recentralizações indesejadas
+    ).subscribe(loc => {
+      if (this.map) this.map.flyTo([loc.lat, loc.lng], this.calculateZoomLevel(this.raio));
+    });
   }
 
   private inicializarMarcadorUsuario(latitude: number, longitude: number): void {
