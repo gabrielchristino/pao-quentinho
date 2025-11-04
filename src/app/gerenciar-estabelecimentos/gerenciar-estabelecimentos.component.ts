@@ -1,8 +1,8 @@
-import { Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { EstabelecimentosService } from '../services/estabelecimentos.service';
 import { Estabelecimento } from '../estabelecimento.model';
-import { of, catchError, Subject, takeUntil, finalize } from 'rxjs';
+import { of, catchError, Subject, takeUntil, finalize, switchMap } from 'rxjs';
 import { MatListModule } from '@angular/material/list';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
@@ -17,6 +17,7 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
 import { NotificationService } from '../services/notification.service';
 import { NotificationDialogComponent, NotificationDialogResult } from '../notification-dialog/notification-dialog.component';
+import { SwPush } from '@angular/service-worker';
 
 @Component({
   selector: 'app-gerenciar-estabelecimentos',
@@ -43,9 +44,12 @@ export class GerenciarEstabelecimentosComponent implements OnInit, OnDestroy {
   private authService = inject(AuthService);
   private dialog = inject(MatDialog);
   private notificationService = inject(NotificationService);
+  private swPush = inject(SwPush);
+  private cdr = inject(ChangeDetectorRef);
   private destroy$ = new Subject<void>();
 
   meusEstabelecimentos: Estabelecimento[] = [];
+  isSubscribing = false;
   isLoading = true;
 
   ngOnInit(): void {
@@ -60,6 +64,8 @@ export class GerenciarEstabelecimentosComponent implements OnInit, OnDestroy {
           this.loadEstabelecimentos();
         }
       });
+
+    this.verificarEAtivarNotificacoes();
   }
 
   private loadEstabelecimentos(): void {
@@ -146,6 +152,42 @@ export class GerenciarEstabelecimentosComponent implements OnInit, OnDestroy {
           }
         });
       }
+    });
+  }
+
+  private verificarEAtivarNotificacoes(): void {
+    if (!this.swPush.isEnabled) {
+      console.warn('Push Notifications não são suportadas neste navegador.');
+      return;
+    }
+
+    navigator.permissions.query({ name: 'push' }).then(permissionStatus => {
+      if (permissionStatus.state === 'prompt') {
+        // Se a permissão ainda não foi solicitada, inicia o fluxo automaticamente.
+        this.habilitarNotificacoes();
+      } else if (permissionStatus.state === 'denied') {
+        // Se foi negada, informa o usuário.
+        this.snackBar.open('As notificações estão bloqueadas. Habilite nas configurações do navegador para receber alertas.', 'Ok', { duration: 7000 });
+      }
+      // Se for 'granted', não faz nada, pois já está tudo certo.
+    });
+  }
+
+  private habilitarNotificacoes(): void {
+    this.isSubscribing = true;
+    this.notificationService.solicitarPermissaoDeNotificacao(() => {
+      // Callback executado quando a permissão é concedida.
+      this.notificationService.getVapidPublicKey().pipe(
+        switchMap(vapidPublicKey => this.swPush.requestSubscription({ serverPublicKey: vapidPublicKey })),
+        switchMap(sub => this.notificationService.addPushSubscriber(sub, -1)), // -1 indica inscrição de lojista
+        finalize(() => {
+          this.isSubscribing = false;
+          this.cdr.detectChanges();
+        })
+      ).subscribe({
+        next: () => this.snackBar.open('Notificações habilitadas para este dispositivo!', 'Ok', { duration: 4000 }),
+        error: (err) => this.snackBar.open('Não foi possível habilitar as notificações.', 'Fechar', { duration: 5000 })
+      });
     });
   }
 } 
