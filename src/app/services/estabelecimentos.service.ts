@@ -92,4 +92,13 @@ export class EstabelecimentosService {
     const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`;
     return this.http.get<any>(url);
   }
+
+  /**
+   * Envia uma solicitação de reserva para um estabelecimento específico.
+   * @param establishmentId O ID do estabelecimento a ser reservado.
+   * @returns Um Observable com a resposta da API.
+   */
+  reserveEstablishment(establishmentId: number): Observable<any> { 
+    return this.http.post(`${this.apiUrl}/reserve`, { establishmentId });
+  }
 }

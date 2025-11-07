@@ -1,8 +1,8 @@
-import { Component, AfterViewInit, ViewChild, ElementRef, Input, OnChanges, SimpleChanges, NgZone, HostListener } from '@angular/core';
+import { Component, AfterViewInit, ViewChild, ElementRef, Input, OnChanges, SimpleChanges, NgZone, HostListener, OnInit } from '@angular/core';
 import L from 'leaflet';
 import { EstabelecimentosService } from '../services/estabelecimentos.service';
 import { Estabelecimento } from '../estabelecimento.model';
-import { firstValueFrom, Subject, takeUntil, combineLatest, filter, BehaviorSubject, switchMap, tap, map, take, finalize, debounceTime } from 'rxjs';
+import { firstValueFrom, Subject, takeUntil, combineLatest, filter, BehaviorSubject, switchMap, tap, map, take, finalize, debounceTime, of } from 'rxjs';
 import { NotificationService } from '../services/notification.service';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -26,8 +26,8 @@ import { SwPush } from '@angular/service-worker';
 import { MapStateService } from '../services/map-state.service';
 import { PermissionDialogComponent, PermissionDialogData } from './permission-diolog.component';
 import { AuthService } from '../services/auth.service';
-import { AuthDialogComponent } from '../auth-dialog/auth-dialog.component';
-import { Router } from '@angular/router';
+import { AuthDialogComponent } from '../auth-dialog/auth-dialog.component'; // Não usado, pode ser removido se não for necessário
+import { Router, ActivatedRoute } from '@angular/router';
 const iconRetinaUrl = 'assets/marker-icon-2x.png';
 const iconUrl = 'assets/marker-icon.png';
 const shadowUrl = 'assets/marker-shadow.png';
@@ -78,7 +78,7 @@ const SWIPE_THRESHOLD = 50;
     '[style.overflow]': "'hidden'"
   }
 })
-export class MapaComponent implements AfterViewInit {
+export class MapaComponent implements AfterViewInit, OnInit {
   @ViewChild('map', { static: true }) mapElementRef!: ElementRef<HTMLDivElement>;
   location$ = new BehaviorSubject<{ lat: number; lng: number } | null>(null);
   searchControl = new FormControl('');
@@ -112,7 +112,8 @@ export class MapaComponent implements AfterViewInit {
     private mapStateService: MapStateService,
     public dialog: MatDialog,
     public authService: AuthService,
-    private router: Router
+    private router: Router,
+    private route: ActivatedRoute // Injeta ActivatedRoute
   ) { 
     // Adiciona a classe ao body para desabilitar o scroll global
     // quando este componente está ativo.
@@ -222,6 +223,32 @@ export class MapaComponent implements AfterViewInit {
     this.solicitarPermissoesIniciais();
     this.ouvirMudancasDeAutenticacao();
     this.bottomSheetEl = this._elementRef.nativeElement.querySelector('#bottomSheet');
+    this.handleRouteActions(); // Chama o novo método para lidar com ações da rota
+  }
+
+  ngOnInit(): void {
+    // Opcional: Se precisar de alguma lógica de inicialização antes de AfterViewInit
+    // para garantir que o mapa esteja pronto para receber comandos de navegação.
+  }
+
+  private handleRouteActions(): void {
+    this.route.paramMap.pipe(
+      switchMap(params => {
+        const id = params.get('id');
+        if (id) {
+          return this.route.queryParams.pipe(
+            map(queryParams => ({ id: +id, action: queryParams['action'] }))
+          );
+        }
+        return of(null); // Retorna um observable que emite null se não houver id
+      }),
+      filter(data => data !== null && data.action === 'reserve'),
+      takeUntil(this.destroy$)
+    ).subscribe(data => {
+      if (data && data.id) {
+        this.handleReserveAction(data.id);
+      }
+    });
   }
 
   ngOnDestroy(): void {
@@ -754,5 +781,29 @@ export class MapaComponent implements AfterViewInit {
       .find(h => h.mins > currentMinutes);
 
     return proximoHorario ? proximoHorario.str : horarios[0]; // Se todos já passaram, mostra o primeiro do dia seguinte
+  }
+
+   /**
+   * Lida com a ação de reserva de um estabelecimento, chamando o backend.
+   * @param establishmentId O ID do estabelecimento a ser reservado.
+   */
+  private handleReserveAction(establishmentId: number): void {
+    console.log(`[LOG] Tratando ação de reserva para o estabelecimento ID: ${establishmentId}`);
+    this.estabelecimentoService.reserveEstablishment(establishmentId).pipe(
+      take(1) // Pega apenas uma emissão e completa
+    ).subscribe({
+      next: () => {
+        this._snackBar.open('Sua solicitação de reserva foi enviada ao estabelecimento!', 'Ok', {
+          duration: 5000,
+          panelClass: ['pao-quentinho-snackbar']
+        });
+        // Remove o parâmetro 'action=reserve' da URL para evitar re-execuções
+        this.router.navigate([], { queryParams: { action: null }, queryParamsHandling: 'merge', replaceUrl: true });
+      },
+      error: (err) => {
+        console.error('Erro ao enviar solicitação de reserva:', err);
+        this._snackBar.open('Não foi possível enviar sua solicitação de reserva. Tente novamente.', 'Fechar', { duration: 5000, panelClass: ['pao-quentinho-snackbar'] });
+      }
+    });
   }
 }
