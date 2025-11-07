@@ -2,7 +2,7 @@ import { Component, AfterViewInit, ViewChild, ElementRef, Input, OnChanges, Simp
 import L from 'leaflet';
 import { EstabelecimentosService } from '../services/estabelecimentos.service';
 import { Estabelecimento } from '../estabelecimento.model';
-import { firstValueFrom, Subject, takeUntil, combineLatest, filter, BehaviorSubject, switchMap, tap, map, take, finalize } from 'rxjs';
+import { firstValueFrom, Subject, takeUntil, combineLatest, filter, BehaviorSubject, switchMap, tap, map, take, finalize, debounceTime } from 'rxjs';
 import { NotificationService } from '../services/notification.service';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -287,6 +287,7 @@ export class MapaComponent implements AfterViewInit {
   private initializeDataFlow(): void {
     console.log(`[LOG ${new Date().toLocaleTimeString()}] 4. Iniciando fluxo de dados com a localização...`);
     const estabelecimentos$ = this.location$.pipe(
+      debounceTime(50), // Evita re-execuções rápidas e desnecessárias
       filter((loc): loc is { lat: number; lng: number } => loc !== null),
       tap(loc => console.log(`[LOG ${new Date().toLocaleTimeString()}] 4. Localização válida recebida. Disparando chamada para API de estabelecimentos...`)),
       switchMap(loc =>
@@ -395,7 +396,7 @@ export class MapaComponent implements AfterViewInit {
       filter((loc): loc is { lat: number; lng: number } => loc !== null),
       take(1) // Pega apenas a próxima localização emitida para evitar recentralizações indesejadas
     ).subscribe(loc => {
-      if (this.map) this.map.flyTo([loc.lat, loc.lng], this.calculateZoomLevel(this.raio));
+      if (this.map && !this.selectedEstabelecimento) this.map.flyTo([loc.lat, loc.lng], this.calculateZoomLevel(this.raio));
       this.isLocationOverridden = false; // Permite que a localização volte a ser atualizada
     });
   }
@@ -434,9 +435,7 @@ export class MapaComponent implements AfterViewInit {
     // Atualiza a posição do marcador e do círculo sem mover o mapa
     this.userMarker.setLatLng(newLatLng);
     this.circle.setLatLng(newLatLng);
-
-    // Se a localização não foi sobrescrita por uma busca, centraliza suavemente.
-    // A centralização só deve ocorrer se nenhum estabelecimento estiver selecionado.
+    console.log(this.selectedEstabelecimento);
     if (!this.isLocationOverridden && this.map && !this.selectedEstabelecimento) {
       const zoomLevel = this.calculateZoomLevel(this.raio);
       this.map.setView(newLatLng, zoomLevel, { animate: true});
@@ -488,12 +487,11 @@ export class MapaComponent implements AfterViewInit {
   }
 
   selecionarEstabelecimento(est: Estabelecimento): void {
-    if (this.selectedEstabelecimento?.id === est.id && this.selectedEstabelecimento !== null) {
-      this.selectedEstabelecimento = null;
-      // Garante que a UI processe a remoção antes de re-adicionar
-      setTimeout(() => this._ngZone.run(() => this.selectedEstabelecimento = est), 10);
+    // Se o estabelecimento já está selecionado, não faz nada para evitar o pisca-pisca.
+    if (this.selectedEstabelecimento?.id === est.id) {
       return;
     }
+
     this.selectedEstabelecimento = est;
     this.isListOpen = false;
 
@@ -541,9 +539,7 @@ export class MapaComponent implements AfterViewInit {
     this.mapStateService.clearSelection();
 
     // Limpa a URL, removendo o ID do estabelecimento.
-    if (this.router.url !== '/') {
-      this.router.navigate(['/']);
-    }
+    this.router.navigate(['/']);
   }
 
   iniciarNavegacao(est: Estabelecimento, event: MouseEvent): void {
@@ -675,8 +671,11 @@ export class MapaComponent implements AfterViewInit {
     if (this.map && this.circle && loc) {
       this.circle.setRadius(this.raio);
       const zoomLevel = this.calculateZoomLevel(this.raio);
+      // Só recentraliza no usuário se nenhum estabelecimento estiver selecionado.
+      if (!this.selectedEstabelecimento) {
+        this.map.flyTo(new L.LatLng(loc.lat, loc.lng), zoomLevel);
+      }
       this.filtrarEstabelecimentos();
-      this.map.flyTo(new L.LatLng(loc.lat, loc.lng), zoomLevel);
     } else {
       this.filtrarEstabelecimentos();
     }
