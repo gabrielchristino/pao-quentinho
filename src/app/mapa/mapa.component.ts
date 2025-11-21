@@ -43,6 +43,8 @@ const iconDefault = L.icon({
 });
 L.Marker.prototype.options.icon = iconDefault;
 
+import { environment } from '../../environments/environment';
+
 // --- Constantes ---
 const BOTTOM_SHEET_PEEK_HEIGHT = 80;
 const SWIPE_THRESHOLD = 50;
@@ -660,10 +662,10 @@ export class MapaComponent implements AfterViewInit, OnInit {
 
     if (!est) return;
 
-    const shareData = {
+      const shareData = {
       title: `Pão Quentinho: ${est.nome}`,
       text: `Confira este lugar que encontrei no Pão Quentinho! ${est.nome}`,
-      url: `https://pao-quentinho-production.up.railway.app/estabelecimento/${est.id}`
+      url: `${environment.frontendUrl}/estabelecimento/${est.id}`
     };
 
     if (navigator.share) {

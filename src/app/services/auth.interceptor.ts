@@ -1,13 +1,14 @@
 import { HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { AuthService } from '../services/auth.service';
+import { environment } from '../../environments/environment';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
   const token = authService.getToken();
 
   // Verifica se a requisição é para a nossa API e se o usuário está logado
-  if (token && req.url.startsWith('https://pao-quentinho-backend-production.up.railway.app/api')) {
+  if (token && req.url.startsWith(environment.apiUrl)) {
     // Clona a requisição e adiciona o cabeçalho de autorização
     const cloned = req.clone({
       headers: req.headers.set('Authorization', `Bearer ${token}`)
