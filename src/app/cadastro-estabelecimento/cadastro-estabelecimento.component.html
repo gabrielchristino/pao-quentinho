@@ -68,7 +68,7 @@
           </button>
           <mat-form-field appearance="outline" class="cep-field">
             <mat-label>CEP</mat-label>
-            <input matInput formControlName="cep" required placeholder="00000-000">
+            <input matInput cepMask formControlName="cep" required placeholder="00000-000">
             <mat-error *ngIf="form.get('endereco.cep')?.hasError('pattern')">Formato de CEP inválido.</mat-error>
           </mat-form-field>
           <button mat-stroked-button type="button" (click)="buscarPorCep()" [disabled]="isLoading">Buscar CEP</button>

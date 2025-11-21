@@ -15,6 +15,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { AuthService } from '../services/auth.service';
 import { Estabelecimento } from '../estabelecimento.model';
 import { AuthDialogComponent } from '../auth-dialog/auth-dialog.component';
+import { CepMaskDirective } from '../shared/cep-mask.directive';
 
 @Component({
   selector: 'app-cadastro-estabelecimento',
@@ -29,6 +30,7 @@ import { AuthDialogComponent } from '../auth-dialog/auth-dialog.component';
     MatIconModule,
     MatSnackBarModule,
     MatChipsModule,
+    CepMaskDirective,
   ],
   templateUrl: './cadastro-estabelecimento.component.html',
   styleUrl: './cadastro-estabelecimento.component.scss'
