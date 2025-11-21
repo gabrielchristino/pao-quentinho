@@ -1,4 +1,5 @@
 import { Injectable, inject } from '@angular/core';
+import { environment } from '../../environments/environment';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, of, switchMap, tap } from 'rxjs';
 import { NotificationService } from './notification.service';
@@ -9,7 +10,7 @@ import { NotificationService } from './notification.service';
 export class AuthService {
   private http = inject(HttpClient);
   private notificationService = inject(NotificationService);
-  private readonly apiUrl = 'https://pao-quentinho-backend-production.up.railway.app/api/auth';
+  private readonly apiUrl = `${environment.apiUrl}/auth`;
   private readonly TOKEN_KEY = 'pao-quentinho-token';
 
   private authState = new BehaviorSubject<boolean>(this.isLoggedIn());

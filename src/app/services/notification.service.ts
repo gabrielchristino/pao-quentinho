@@ -1,4 +1,5 @@
 import { ApplicationRef, Injectable, Injector, inject } from '@angular/core';
+import { environment } from '../../environments/environment';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, of, switchMap, take, tap } from 'rxjs';
 import { SwPush } from '@angular/service-worker';
@@ -11,7 +12,7 @@ import { AuthService } from './auth.service';
   providedIn: 'root'
 })
 export class NotificationService {
-  private readonly apiUrl = 'https://pao-quentinho-backend-production.up.railway.app/api';
+  private readonly apiUrl = environment.apiUrl;
 
   private http = inject(HttpClient);
   private swPush = inject(SwPush);

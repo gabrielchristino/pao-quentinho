@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { environment } from '../../environments/environment';
 import { Observable, map } from 'rxjs';
 import { HttpClient, HttpParams, HttpResponse } from '@angular/common/http';
 import { Estabelecimento } from '../estabelecimento.model';
@@ -14,7 +15,7 @@ export interface GeocodingResult {
 
 @Injectable({ providedIn: 'root' })
 export class EstabelecimentosService {
-  private readonly apiUrl = 'https://pao-quentinho-backend-production.up.railway.app/api';
+  private readonly apiUrl = environment.apiUrl;
 
   constructor(private http: HttpClient) {}
 
