@@ -1,2 +1,3 @@
-// Default runtime env. This file will be overwritten at build/deploy time by scripts/generate-env.js
 window.__env = window.__env || {};
+window.__env.API_URL = 'http://localhost:3000/api';
+window.__env.FRONTEND_URL = 'http://localhost:4200';
