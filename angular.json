@@ -42,6 +42,11 @@
                 "output": "/"
               },
               {
+                "glob": "ads.txt",
+                "input": "src/",
+                "output": "/"
+              },
+              {
                 "glob": "**/*",
                 "input": "src/assets",
                 "output": "assets"
