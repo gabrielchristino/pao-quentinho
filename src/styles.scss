@@ -7,6 +7,7 @@
 // aplicar em diferentes estados (hover, focus, etc.).
 // A cor principal (#D96C2C) é a 500.
 $pao-quentinho-orange-palette: (
+  10: #fcf7f4,
   50: #fbe9e0,
   100: #f5cbb3,
   200: #efab81,
@@ -17,6 +18,7 @@ $pao-quentinho-orange-palette: (
   700: #b35322,
   800: #a0461d,
   900: #8c3213,
+  1000: #3f1609,
   contrast: (
     500: #ffffff, // Cor do texto para o tom 500
   )
@@ -46,4 +48,22 @@ body.no-scroll {
 .cdk-overlay-container {
     z-index: 1050;
     /* Um valor alto para garantir a sobreposição */
+}
+
+/*
+  Estilização personalizada para o SnackBar (notificações).
+  Isso garante que ele siga a identidade visual do aplicativo.
+*/
+.pao-quentinho-snackbar {
+    .mdc-snackbar__surface {
+        background-color: mat.get-color-from-palette($pao-quentinho-primary, 10) !important;
+    }
+
+    .mat-mdc-button.mat-mdc-snack-bar-action {
+        color: mat.get-color-from-palette($pao-quentinho-primary, 900) !important;
+    }
+
+    .mdc-snackbar__label {
+        color: mat.get-color-from-palette($pao-quentinho-primary, 1000) !important;
+    }
 }
