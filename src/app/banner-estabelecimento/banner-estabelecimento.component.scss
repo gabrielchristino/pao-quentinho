@@ -1,0 +1,56 @@
+* {
+  overflow: hidden;
+}
+
+:host {
+  display: block;
+  height: 85vh;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.wrap {
+  position: relative;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  width: 100%;
+  max-width: var(--banner-bg-width);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  .estname {
+    position: absolute;
+    top: 40%; // Posição ajustada para o novo layout
+    width: 100%;
+    max-width: 100%;
+    text-align: center;
+    font-size: 36px;
+    font-weight: bold;
+    color: #814417;
+  }
+}
+
+#qrcode {
+  position: absolute;
+}
+
+.actions {
+  position: absolute;
+  bottom: 16px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+.actions button {
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+}

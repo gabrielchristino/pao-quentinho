@@ -37,4 +37,11 @@ export const routes: Routes = [
     path: 'minhas-inscricoes',
     loadComponent: () => import('./meus-estabelecimentos/meus-estabelecimentos.component').then(m => m.MeusEstabelecimentosComponent),
   },
+
+  // Rota para o banner com QR Code do estabelecimento
+  {
+    path: 'estabelecimento/:id/banner',
+    loadComponent: () => import('./banner-estabelecimento/banner-estabelecimento.component').then(m => m.BannerEstabelecimentoComponent),
+    canActivate: [lojistaGuard] // Protege esta rota para lojistas
+  }
 ];

@@ -1,9 +1,9 @@
 <div class="container">
-    <h1>Meus Estabelecimentos</h1>
-    <a mat-stroked-button routerLink="/cadastrar-estabelecimento">
-      <mat-icon>add</mat-icon>
-      Cadastrar Novo
-    </a>
+  <h1>Meus Estabelecimentos</h1>
+  <a mat-stroked-button routerLink="/cadastrar-estabelecimento">
+    <mat-icon>add</mat-icon>
+    Cadastrar Novo
+  </a>
 
   <div *ngIf="isLoading">Carregando seus estabelecimentos...</div>
 
@@ -46,10 +46,21 @@
               </ng-template>
             </div>
           </div>
+          <div class="detail-item">
+            <mat-icon>qr_code</mat-icon>
+            <div class="fornadas-list">
+              <button mat-stroked-button color="primary" (click)="abrirBanner(est.id, est.nome)"
+                matTooltip="Notificar seguidores sobre uma nova fornada">
+                <mat-icon>download</mat-icon>
+                <span>abrir banner com QRCode</span>
+              </button>
+            </div>
+          </div>
         </div>
         <div class="actions-section">
           <!-- Botão de notificar à esquerda -->
-          <button mat-stroked-button color="primary" (click)="notificar(est.id, est.nome)" matTooltip="Notificar seguidores sobre uma nova fornada">
+          <button mat-stroked-button color="primary" (click)="notificar(est.id, est.nome)"
+            matTooltip="Notificar seguidores sobre uma nova fornada">
             <mat-icon>notifications</mat-icon>
             <span>Notificar Fornada</span>
           </button>
