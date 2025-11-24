@@ -108,7 +108,7 @@ export class BannerEstabelecimentoComponent implements AfterViewInit, OnInit, On
   }
 
   private calculateQrCodeProperties(): void {
-    this.size = this.bgWidth * 0.35;
+    this.size = this.bgWidth * 0.37;
     this.qrTop = this.bgHeight * 0.6;
     this.qrRight = this.bgWidth * 0.06;
   }
@@ -138,7 +138,7 @@ export class BannerEstabelecimentoComponent implements AfterViewInit, OnInit, On
       cornersSquareOptions: { type: 'square', color: '#000000' },
       cornersDotOptions: { type: 'square', color: '#000000' },
       backgroundOptions: { color: '#ffffff' },
-      margin: 20 * this.scale
+      margin: 0
     });
 
     const el = this.qrcodeEl.nativeElement;
@@ -165,7 +165,7 @@ export class BannerEstabelecimentoComponent implements AfterViewInit, OnInit, On
       cornersSquareOptions: { type: 'square', color: '#000000' },
       cornersDotOptions: { type: 'square', color: '#000000' },
       backgroundOptions: { color: '#ffffff' },
-      margin: 20
+      margin: 0
     });
 
     const qrBlob = await downloadQrInstance.getRawData('png');
