@@ -190,4 +190,10 @@ export class GerenciarEstabelecimentosComponent implements OnInit, OnDestroy {
       });
     });
   }
+
+  abrirBanner(id: number, nome: string): void {
+    this.router.navigate(['/estabelecimento', id, 'banner'], {
+      state: { nomeEstabelecimento: nome }
+    });
+  }
 } 

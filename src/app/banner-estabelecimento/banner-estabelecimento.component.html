@@ -1,0 +1,16 @@
+<div class="wrap" [style.backgroundImage]="'url(' + background + ')'" [style.height.px]="bgHeight * scale">
+  <span #estname class="estname">{{nome}}</span>
+  <div #qrcode id="qrcode" [style.top.px]="qrTop * scale" [style.right.px]="qrRight * scale"></div>
+</div>
+<div class="actions">
+  <button mat-stroked-button color="secondary" (click)="goBack()"
+    matTooltip="Notificar seguidores sobre uma nova fornada">
+    <mat-icon>arrow_back</mat-icon>
+    <span>voltar</span>
+  </button>
+  <button mat-stroked-button color="primary" (click)="downloadCombined()"
+    matTooltip="Notificar seguidores sobre uma nova fornada">
+    <mat-icon>download</mat-icon>
+    <span>baixar banner</span>
+  </button>
+</div>
