@@ -108,7 +108,7 @@ export class BannerEstabelecimentoComponent implements AfterViewInit, OnInit, On
   }
 
   private calculateQrCodeProperties(): void {
-    this.size = this.bgWidth * 0.37;
+    this.size = this.bgWidth * 0.33;
     this.qrTop = this.bgHeight * 0.6;
     this.qrRight = this.bgWidth * 0.06;
   }
