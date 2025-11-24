@@ -664,7 +664,7 @@ export class MapaComponent implements AfterViewInit, OnInit {
 
       const shareData = {
       title: `Pão Quentinho: ${est.nome}`,
-      text: `Confira este lugar que encontrei no Pão Quentinho! ${est.nome}`,
+      text: `Confira este lugar que encontrei no Pão Quentinho!\n ${est.nome}`,
       url: `${environment.frontendUrl}/estabelecimento/${est.id}`
     };
 
