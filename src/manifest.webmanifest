@@ -1,7 +1,7 @@
 {
   "name": "Pão Quentinho",
   "short_name": "Pão Quentinho",
-  "theme_color": "#f7c7ce",
+  "theme_color": "#FFE0B2",
   "background_color": "#ffffff",
   "display": "standalone",
   "scope": "/",
