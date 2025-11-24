@@ -27,7 +27,7 @@ export interface NotificationDialogResult {
     MatButtonModule
   ],
   template: `
-    <h2 mat-dialog-title>Notificar seguidores de "{{ data.establishmentName }}"</h2>
+    <h2 mat-dialog-title>Notificar seguidores</h2>
     <mat-dialog-content [formGroup]="form">
       <p>Envie uma mensagem para avisar sobre uma nova fornada ou promoção.</p>
       <p>Se você não digitar nada, não se preocupe, nosso sistema vai gerar uma.</p>

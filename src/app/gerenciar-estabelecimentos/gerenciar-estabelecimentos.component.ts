@@ -132,7 +132,9 @@ export class GerenciarEstabelecimentosComponent implements OnInit, OnDestroy {
 
   notificar(id: number, nome: string): void {
     const dialogRef = this.dialog.open(NotificationDialogComponent, {
-      width: '500px',
+      width: '90vw',
+      maxWidth: '90vw',
+      position: { top: '100px' },
       data: { establishmentName: nome }
     });
 
