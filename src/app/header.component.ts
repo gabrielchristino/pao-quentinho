@@ -31,6 +31,9 @@ export class HeaderComponent {
   private snackBar = inject(MatSnackBar);
   private router = inject(Router);
 
+  contactEmail: string = 'paoquentinho.sac@gmail.com';
+  contactSubject: string = 'Ajuda com o aplicativo Pão Quentinho';
+
   get isLojista(): boolean {
     return this.authService.getUserRole() === 'lojista';
   }
@@ -46,5 +49,10 @@ export class HeaderComponent {
     this.snackBar.open('Você saiu da sua conta.', 'Ok', { duration: 3000 });
 
     this.router.navigate(['/']);
+  }
+
+  getMailtoLink(): string {
+    const subjectEncoded = encodeURIComponent(this.contactSubject);
+    return `mailto:${this.contactEmail}?subject=${subjectEncoded}`;
   }
 }
