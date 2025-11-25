@@ -23,6 +23,11 @@
           <span>Minhas inscrições</span>
       </a>
 
+      <a mat-menu-item [href]="getMailtoLink()">
+          <mat-icon>help_outline</mat-icon>
+          <span>Preciso de ajuda</span>
+      </a>
+
       <button mat-menu-item (click)="logout()">
         <mat-icon>logout</mat-icon>
         <span>Sair</span>

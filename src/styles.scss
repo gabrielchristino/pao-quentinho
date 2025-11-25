@@ -2,12 +2,35 @@
 
 @include mat.core();
 
-$pao-quentinho-primary: mat.define-palette(mat.$indigo-palette);
+// 1. Definição da paleta de cores personalizada.
+// O Angular Material precisa de vários tons (mais claros, mais escuros) para
+// aplicar em diferentes estados (hover, focus, etc.).
+// A cor principal (#D96C2C) é a 500.
+$pao-quentinho-orange-palette: (
+  10: #fcf7f4,
+  50: #fbe9e0,
+  100: #f5cbb3,
+  200: #efab81,
+  300: #e98b4f,
+  400: #e4742b,
+  500: #D96C2C,
+  600: #c76028,
+  700: #b35322,
+  800: #a0461d,
+  900: #8c3213,
+  1000: #3f1609,
+  contrast: (
+    500: #ffffff, // Cor do texto para o tom 500
+  )
+);
+
+$pao-quentinho-primary: mat.define-palette($pao-quentinho-orange-palette);
 $pao-quentinho-accent: mat.define-palette(mat.$pink-palette, A200, A100, A400);
 $pao-quentinho-theme: mat.define-light-theme((color: (primary: $pao-quentinho-primary, accent: $pao-quentinho-accent)));
 @include mat.all-component-themes($pao-quentinho-theme);
 
-html, body {
+html,
+body {
     width: 100%;
     height: 100%;
     margin: 0;
@@ -23,5 +46,24 @@ body.no-scroll {
 /* Garante que todos os componentes de overlay do Material (SnackBar, Dialog, etc.)
    apareçam sobre os outros elementos da aplicação. */
 .cdk-overlay-container {
-    z-index: 1050; /* Um valor alto para garantir a sobreposição */
+    z-index: 1050;
+    /* Um valor alto para garantir a sobreposição */
+}
+
+/*
+  Estilização personalizada para o SnackBar (notificações).
+  Isso garante que ele siga a identidade visual do aplicativo.
+*/
+.pao-quentinho-snackbar {
+    .mdc-snackbar__surface {
+        background-color: mat.get-color-from-palette($pao-quentinho-primary, 10) !important;
+    }
+
+    .mat-mdc-button.mat-mdc-snack-bar-action {
+        color: mat.get-color-from-palette($pao-quentinho-primary, 900) !important;
+    }
+
+    .mdc-snackbar__label {
+        color: mat.get-color-from-palette($pao-quentinho-primary, 1000) !important;
+    }
 }

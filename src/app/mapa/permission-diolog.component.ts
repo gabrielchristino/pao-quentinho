@@ -30,7 +30,7 @@ export interface PermissionDialogData {
   `,
   styles: [`
     .dialog-header { display: flex; align-items: center; gap: 12px; padding-top: 16px; }
-    .dialog-icon { font-size: 28px; width: 28px; height: 28px; color: #6200ee; }
+    .dialog-icon { font-size: 28px; width: 28px; height: 28px; color: #d96c2c; }
   `],
   standalone: true,
   imports: [CommonModule, MatDialogModule, MatButtonModule, MatIconModule],

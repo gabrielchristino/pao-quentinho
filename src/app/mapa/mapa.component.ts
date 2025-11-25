@@ -589,7 +589,7 @@ export class MapaComponent implements AfterViewInit, OnInit {
       addWaypoints: false,
       fitSelectedRoutes: false,
       lineOptions: {
-        styles: [{ color: '#6200ee', opacity: 0.8, weight: 6 }]
+        styles: [{ color: '#d96c2c', opacity: 0.8, weight: 6 }]
       } as any,
       plan: L.Routing.plan([
         L.latLng(loc.lat, loc.lng),
@@ -664,7 +664,7 @@ export class MapaComponent implements AfterViewInit, OnInit {
 
       const shareData = {
       title: `Pão Quentinho: ${est.nome}`,
-      text: `Confira este lugar que encontrei no Pão Quentinho! ${est.nome}`,
+      text: `Confira este lugar que encontrei no Pão Quentinho!\n ${est.nome}`,
       url: `${environment.frontendUrl}/estabelecimento/${est.id}`
     };
 
