@@ -42,6 +42,7 @@ export class MeusEstabelecimentosComponent implements OnInit {
   estabelecimentos: Estabelecimento[] = [];
   isLoading = true;
   unsubscribingId: number | null = null;
+  diasDaSemana = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
 
   ngOnInit(): void {
     this.carregarEstabelecimentos();

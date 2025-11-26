@@ -30,7 +30,16 @@
         <div class="details-section">
           <div class="detail-item">
             <mat-icon>schedule</mat-icon>
-            <span>Funciona de <b>{{est.horarioAbertura}}</b> às <b>{{est.horarioFechamento}}</b></span>
+            <div class="horarios-lista">
+              <span>Horários de Funcionamento: </span>
+              <ul>
+                <li *ngFor="let dia of diasDaSemana; let i = index">
+                  <b>{{ dia }}:</b>
+                  <span *ngIf="est.horarioAbertura[i]"> {{ est.horarioAbertura[i] }} às {{ est.horarioFechamento[i] }}</span>
+                  <span *ngIf="!est.horarioAbertura[i]" class="horario-fechado"> Fechado</span>
+                </li>
+              </ul>
+            </div>
           </div>
           <div class="detail-item">
             <mat-icon>bakery_dining</mat-icon>

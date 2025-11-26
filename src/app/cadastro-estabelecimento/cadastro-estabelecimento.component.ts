@@ -52,14 +52,16 @@ export class CadastroEstabelecimentoComponent {
 
   isEditMode = false;
   private estabelecimentoId: number | null = null;
+  diasDaSemana = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
   
   constructor() {
+    const horariosIniciais = Array(7).fill(''); // Cria 7 campos vazios
     this.form = this.fb.group({
       nome: ['', Validators.required],
       info: ['', Validators.required],
       tipo: ['padaria', Validators.required],
-      horarioAbertura: ['', Validators.required],
-      horarioFechamento: ['', Validators.required],
+      horarioAbertura: this.fb.array(horariosIniciais.map(h => this.fb.control(h))),
+      horarioFechamento: this.fb.array(horariosIniciais.map(h => this.fb.control(h))),
       horariosFornada: this.fb.array([]),
       endereco: this.fb.group({
         cep: ['', [Validators.required, Validators.pattern(/^\d{5}-\d{3}$/)]],
@@ -88,13 +90,21 @@ export class CadastroEstabelecimentoComponent {
       finalize(() => this.isLoading = false)
     ).subscribe({
       next: (est: Estabelecimento) => {
+        // Lógica de compatibilidade: verifica se os horários são arrays ou strings
+        const aberturas = Array.isArray(est.horarioAbertura) 
+          ? est.horarioAbertura 
+          : Array(7).fill(est.horarioAbertura);
+        const fechamentos = Array.isArray(est.horarioFechamento) 
+          ? est.horarioFechamento 
+          : Array(7).fill(est.horarioFechamento);
+
         this.form.patchValue({
           nome: est.nome,
           info: est.info,
           tipo: est.tipo,
-          horarioAbertura: est.horarioAbertura,
-          horarioFechamento: est.horarioFechamento,
-          endereco: est.endereco
+          horarioAbertura: aberturas,
+          horarioFechamento: fechamentos,
+          endereco: est.endereco,
         });
 
         if (est.proximaFornada && est.proximaFornada.length > 0) {

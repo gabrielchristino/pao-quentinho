@@ -55,15 +55,15 @@ body.no-scroll {
   Isso garante que ele siga a identidade visual do aplicativo.
 */
 .pao-quentinho-snackbar {
-    .mdc-snackbar__surface {
-        background-color: mat.get-color-from-palette($pao-quentinho-primary, 10) !important;
-    }
+  .mdc-snackbar__surface {
+    background-color: mat.get-color-from-palette($pao-quentinho-primary, 10) !important;
+  }
 
-    .mat-mdc-button.mat-mdc-snack-bar-action {
-        color: mat.get-color-from-palette($pao-quentinho-primary, 900) !important;
-    }
+  .mat-mdc-button.mat-mdc-snack-bar-action {
+    color: mat.get-color-from-palette($pao-quentinho-primary, 900) !important;
+  }
 
-    .mdc-snackbar__label {
-        color: mat.get-color-from-palette($pao-quentinho-primary, 1000) !important;
-    }
+  .mdc-snackbar__label {
+    color: mat.get-color-from-palette($pao-quentinho-primary, 1000) !important;
+  }
 }

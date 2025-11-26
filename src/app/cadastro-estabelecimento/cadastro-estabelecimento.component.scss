@@ -37,14 +37,52 @@ p {
   mat-form-field {
     flex: 1;
   }
+
+  .horario-fornada-field {
+    flex-grow: 1;
+
+    input[type="time"]::-webkit-calendar-picker-indicator {
+      display: block;
+    }
+  }
 }
 
-// Ajustes para telas menores
-@media (max-width: 600px) {
-  .container {
-    // O padding do container não é mais necessário
+.horarios-tabela {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 24px;
+
+  th, td {
+    padding: 8px;
+    text-align: left;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.12);
   }
 
+  th {
+    font-weight: 500;
+  }
+
+  td:first-child {
+    width: 30%;
+  }
+
+  td .mat-mdc-form-field-infix {
+    padding: 0;
+  }
+  
+  input[type="time"] {
+    width: 100%;
+    border: none;
+    background: transparent;
+    font-size: inherit;
+    font-family: inherit;
+    color: inherit;
+    padding: 8px 4px;
+    box-sizing: border-box;
+  }
+}
+
+@media (max-width: 600px) {
   .form-row {
     flex-direction: column;
     align-items: stretch;

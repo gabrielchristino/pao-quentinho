@@ -28,21 +28,32 @@
       </mat-form-field>
 
       <!-- Horários -->
-      <div class="form-row">
-        <mat-form-field appearance="outline">
-          <mat-label>Abre às</mat-label>
-          <input matInput type="time" formControlName="horarioAbertura" required>
-        </mat-form-field>
-        <mat-form-field appearance="outline">
-          <mat-label>Fecha às</mat-label>
-          <input matInput type="time" formControlName="horarioFechamento" required>
-        </mat-form-field>
-      </div>
+      <h2>Horários de Funcionamento</h2>
+      <table class="horarios-tabela">
+        <thead>
+          <tr>
+            <th>Dia</th>
+            <th>Abre às</th>
+            <th>Fecha às</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let dia of diasDaSemana; let i = index">
+            <td>{{ dia }}</td>
+            <td [formArrayName]="'horarioAbertura'">
+              <input matInput type="time" [formControlName]="i">
+            </td>
+            <td [formArrayName]="'horarioFechamento'">
+              <input matInput type="time" [formControlName]="i">
+            </td>
+          </tr>
+        </tbody>
+      </table>
 
       <!-- Horários das Fornadas -->
       <h2>Horários das Fornadas</h2>
       <div class="form-row">
-        <mat-form-field appearance="outline">
+        <mat-form-field appearance="outline" class="horario-fornada-field">
           <mat-label>Horário da Fornada</mat-label>
           <input matInput type="time" [formControl]="fornadaControl" required>
         </mat-form-field>
