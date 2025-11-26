@@ -808,4 +808,23 @@ export class MapaComponent implements AfterViewInit, OnInit {
       }
     });
   }
+
+  getHorarioHoje(est: Estabelecimento | null): string | null {
+    if (!est) return null;
+
+    const hoje = new Date().getDay(); // Domingo = 0, Segunda = 1, etc.
+
+    // Lógica para o novo formato (array)
+    if (Array.isArray(est.horarioAbertura) && Array.isArray(est.horarioFechamento)) {
+      const abertura = est.horarioAbertura[hoje];
+      const fechamento = est.horarioFechamento[hoje];
+      return (abertura && fechamento) ? `Aberto hoje: ${abertura} às ${fechamento}` : 'Fechado hoje';
+    }
+
+    // Lógica de fallback para o formato antigo (string)
+    if (typeof est.horarioAbertura === 'string' && typeof est.horarioFechamento === 'string') {
+      return `${est.horarioAbertura} às ${est.horarioFechamento}`;
+    }
+    return 'Horário não informado';
+  }
 }

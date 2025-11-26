@@ -119,6 +119,35 @@ p {
   }
 }
 
+.horarios-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  ul {
+    list-style: none;
+    padding-left: 8px;
+    margin: 0;
+
+    li {
+      display: flex;
+      align-items: baseline;
+      padding: 4px 0;
+
+      b {
+        font-weight: 500;
+        min-width: 75px; // Garante alinhamento dos horários
+        display: inline-block;
+      }
+
+      .horario-fechado {
+        color: rgba(0,0,0,0.5);
+        font-style: italic;
+      }
+    }
+  }
+}
+
 .actions-section {
   display: flex;
   justify-content: flex-end;

@@ -51,6 +51,7 @@ export class GerenciarEstabelecimentosComponent implements OnInit, OnDestroy {
   meusEstabelecimentos: Estabelecimento[] = [];
   isSubscribing = false;
   isLoading = true;
+  diasDaSemana = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
 
   ngOnInit(): void {
     // Listen for authentication state changes

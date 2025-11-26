@@ -7,8 +7,8 @@ export interface Estabelecimento {
   distanciaKm?: number;
   info: string;
   proximaFornada: string[]; // Garante que seja sempre um array
-  horarioAbertura: string;
-  horarioFechamento: string;
+  horarioAbertura: string[];
+  horarioFechamento: string[];
   endereco: {
     rua: string;
     numero: string;

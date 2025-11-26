@@ -295,6 +295,18 @@
       color: #78350f; // Texto mais escuro para contraste
     }
 
+    .horario-highlight {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-radius: 12px;
+      padding: 12px;
+      font-size: 1rem;
+      .horario-icon {
+        color: rgba(0,0,0,0.5);
+      }
+    }
+
     .info-text {
       color: rgba(0,0,0,0.7);
       margin: 0;
