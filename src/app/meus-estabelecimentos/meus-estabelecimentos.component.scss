@@ -3,19 +3,12 @@
   box-sizing: border-box;
 }
 
-.container {
-  max-width: 800px;
-  margin: 0 auto;
-  box-sizing: border-box;
-  padding: 24px;
-}
-
 h1 {
   margin-bottom: 8px;
 }
 
 p {
-  margin-bottom: 24px;
+  @extend .page-description; // Usa a classe do arquivo compartilhado
   color: rgba(0, 0, 0, 0.6);
 }
 
@@ -39,120 +32,14 @@ p {
   }
 }
 
-// Ajustes para telas menores
 @media (max-width: 600px) {
-  .container {
-    // O padding do container não é mais necessário
-  }
-
   .form-row {
     flex-direction: column;
     align-items: stretch;
   }
 }
 
-.empty-state {
-  text-align: center;
-  padding: 48px;
-  color: #777;
-
-  .empty-icon {
-    font-size: 64px;
-    width: 64px;
-    height: 64px;
-    margin-bottom: 16px;
-    color: #E8A786;
-  }
-}
-
-.mat-expansion-panel-header {
-  padding: 12px 24px !important;
-}
-
-.panel-title-container {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  width: 100%;
-
-  .panel-text-content {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-  }
-
-  .item-line {
-    font-size: 0.9em;
-    color: rgba(0,0,0,0.6);
-  }
-}
-
-.panel-content-wrapper {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.details-section {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  font-size: 14px;
-
-  .detail-item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    color: rgba(0,0,0,0.7);
-  }
-
-  .fornadas-list {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
-  }
-
-  mat-chip-set {
-    // Remove o padding padrão para melhor alinhamento
-    padding: 0 !important;
-  }
-}
-
-.horarios-lista {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-
-  ul {
-    list-style: none;
-    padding-left: 8px;
-    margin: 0;
-
-    li {
-      display: flex;
-      align-items: baseline;
-      padding: 4px 0;
-
-      b {
-        font-weight: 500;
-        min-width: 75px; // Garante alinhamento dos horários
-        display: inline-block;
-      }
-
-      .horario-fechado {
-        color: rgba(0,0,0,0.5);
-        font-style: italic;
-      }
-    }
-  }
-}
-
-.actions-section {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  border-top: 1px solid rgba(0,0,0,0.08);
-  padding-top: 8px;
-  margin-top: 8px;
+.empty-state .empty-icon {
+  // Estilo específico que sobrou
+  color: #E8A786;
 }

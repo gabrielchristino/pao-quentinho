@@ -1,5 +1,4 @@
 :host {
-  /* Garante que o mapa ocupe toda a tela */
   .map-container,
   #map {
     height: 100%;
@@ -16,7 +15,7 @@
   top: 72px;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 1001; // Acima do mapa
+  z-index: 1001;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -37,21 +36,19 @@
   }
 }
 
-/* Overlay de Carregamento */
 .loading-overlay {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  // Fundo semitransparente com efeito de desfoque para um visual moderno.
   background-color: rgba(255, 255, 255, 0.5);
   backdrop-filter: blur(8px);
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  z-index: 2000; // Z-index alto para ficar sobre todos os outros elementos
+  z-index: 2000;
   gap: 16px;
 
   .loading-text {
@@ -62,7 +59,6 @@
   }
 }
 
-/* Banner de Instalação do PWA */
 .install-banner {
   position: absolute;
   top: 0;
@@ -99,18 +95,16 @@
 }
 
 
-/* Posiciona o filtro de raio no topo */
 .radius-filter {
   position: absolute;
-  bottom: 150px; /* Ajustado para ficar acima do bottom sheet */
+  bottom: 150px;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 1001; /* Aumentado para ficar acima do bottom sheet */
+  z-index: 1001;
   background-color: white;
   border-radius: 8px;
 }
 
-/* Botão para sair da rota */
 .exit-route-button {
   position: absolute;
   bottom: 150px;
@@ -119,7 +113,6 @@
   z-index: 1001;
 }
 
-/* Botão para recentralizar */
 .recenter-button {
   position: absolute;
   bottom: 150px;
@@ -127,7 +120,6 @@
   z-index: 1001;
 }
 
-/* Botão de conta/login */
 .account-button {
   position: absolute;
   top: 80px;
@@ -136,12 +128,10 @@
 }
 
 
-/* Estilos para o conteúdo dentro do Bottom Sheet */
 .list-item-spacer {
   flex: 1 1 auto;
 }
 
-/* Bottom Sheet customizado */
 #bottomSheet {
   position: absolute;
   bottom: 0;
@@ -154,7 +144,7 @@
   z-index: 1000;
   border-top-left-radius: 16px;
   border-top-right-radius: 16px;
-  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.15); // Sombra mais suave
+  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.15);
   display: flex;
   flex-direction: column;
 
@@ -162,7 +152,6 @@
     transform: translateY(0);
   }
 
-  /* Remove a transição durante o arraste para que o painel siga o dedo instantaneamente */
   &.dragging {
     transition: none !important;
   }
@@ -213,7 +202,7 @@
     }
 
     .list-item-icon {
-      color: #d96c2c; // Cor primária
+      color: #d96c2c;
       background-color: #f3eafd;
       border-radius: 50%;
       padding: 8px;
@@ -229,7 +218,7 @@
     }
 
     .list-item-line {
-      text-transform: capitalize; // Ex: "padaria" -> "Padaria"
+      text-transform: capitalize;
       font-size: 0.9em;
       color: rgba(0,0,0,0.6);
     }
@@ -242,23 +231,22 @@
   }
 }
 
-/* Card de Detalhes do Estabelecimento */
 .establishment-details-container {
   position: absolute;
   top: 0;
   bottom: 0;
   left: 0;
   right: 0;
-  z-index: 1002; /* Acima do filtro e do bottom sheet */
+  z-index: 1002;
   display: flex;
   justify-content: center;
   align-items: flex-end;
   padding: 16px;
-  background: rgba(0, 0, 0, 0.2); // Fundo sutil para destacar o card
+  background: rgba(0, 0, 0, 0.2);
 
   .establishment-card {
     width: 100%;
-    max-width: 400px; // Um pouco mais estreito para melhor leitura
+    max-width: 400px;
     animation: slide-up 0.3s ease-out;
 
     mat-card-header {
@@ -277,22 +265,22 @@
     }
 
     mat-card-content {
-      padding: 8px 16px; // Ajuste de padding
+      padding: 8px 16px;
       display: flex;
       flex-direction: column;
-      gap: 16px; // Espaçamento entre os elementos
+      gap: 16px;
     }
 
     .fornada-highlight {
       display: flex;
       align-items: center;
       gap: 12px;
-      background-color: #fffbeb; // Amarelo bem claro
-      border: 1px solid #fde68a; // Borda amarela
+      background-color: #fffbeb;
+      border: 1px solid #fde68a;
       border-radius: 12px;
       padding: 12px;
       font-size: 1rem;
-      color: #78350f; // Texto mais escuro para contraste
+      color: #78350f;
     }
 
     .horario-highlight {
@@ -319,13 +307,13 @@
       justify-content: space-between;
       text-decoration: none;
       color: inherit;
-      background-color: #f9fafb; // Cinza muito claro
+      background-color: #f9fafb;
       border: 1px solid #e5e7eb;
       border-radius: 12px;
       padding: 12px;
       cursor: pointer;
       transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-      position: relative; // Para o mat-ripple
+      position: relative;
 
       &:hover {
         background-color: #f3f4f6;
@@ -349,12 +337,12 @@
           margin: 0;
         }
         small {
-          color: #4f46e5; // Cor primária (índigo)
+          color: #4f46e5;
           font-weight: 500;
         }
       }
 
-      mat-icon:last-of-type { // O chevron
+      mat-icon:last-of-type {
         color: rgba(0,0,0,0.4);
       }
     }
@@ -362,11 +350,11 @@
     .card-actions-wrapper {
       padding: 8px 16px 16px;
       display: flex;
-      flex-wrap: wrap; // Permite que os botões quebrem a linha se necessário
+      flex-wrap: wrap;
       gap: 8px;
 
       .follow-button {
-        flex-grow: 1; // Faz o botão principal ocupar mais espaço
+        flex-grow: 1;
       }
 
       .close-button {

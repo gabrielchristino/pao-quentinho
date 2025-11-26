@@ -41,23 +41,11 @@ p {
   .horario-fornada-field {
     flex-grow: 1;
 
-    // Força a exibição do ícone de relógio nativo do navegador
-    // dentro do mat-form-field.
     input[type="time"]::-webkit-calendar-picker-indicator {
       display: block;
     }
   }
 }
-  // input[type="time"] {
-  //   width: 100%;
-  //   border: none;
-  //   background: transparent;
-  //   font-size: inherit;
-  //   font-family: inherit;
-  //   color: inherit;
-  //   padding: 8px 4px; // Adiciona um padding interno
-  //   box-sizing: border-box;
-  // }
 
 .horarios-tabela {
   width: 100%;
@@ -75,10 +63,9 @@ p {
   }
 
   td:first-child {
-    width: 30%; // Dá mais espaço para o nome do dia
+    width: 30%;
   }
 
-  // Remove o padding padrão do mat-form-field para alinhar o input na célula
   td .mat-mdc-form-field-infix {
     padding: 0;
   }
@@ -90,17 +77,12 @@ p {
     font-size: inherit;
     font-family: inherit;
     color: inherit;
-    padding: 8px 4px; // Adiciona um padding interno
+    padding: 8px 4px;
     box-sizing: border-box;
   }
 }
 
-// Ajustes para telas menores
 @media (max-width: 600px) {
-  .container {
-    // O padding do container não é mais necessário
-  }
-
   .form-row {
     flex-direction: column;
     align-items: stretch;

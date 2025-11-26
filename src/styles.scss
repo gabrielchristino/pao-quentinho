@@ -29,6 +29,9 @@ $pao-quentinho-accent: mat.define-palette(mat.$pink-palette, A200, A100, A400);
 $pao-quentinho-theme: mat.define-light-theme((color: (primary: $pao-quentinho-primary, accent: $pao-quentinho-accent)));
 @include mat.all-component-themes($pao-quentinho-theme);
 
+/* 2. Importação dos estilos compartilhados para páginas de formulário/listagem. */
+@import 'shared-styles.scss';
+
 html,
 body {
     width: 100%;
@@ -55,15 +58,15 @@ body.no-scroll {
   Isso garante que ele siga a identidade visual do aplicativo.
 */
 .pao-quentinho-snackbar {
-    .mdc-snackbar__surface {
-        background-color: mat.get-color-from-palette($pao-quentinho-primary, 10) !important;
-    }
+  .mdc-snackbar__surface {
+    background-color: mat.get-color-from-palette($pao-quentinho-primary, 10) !important;
+  }
 
-    .mat-mdc-button.mat-mdc-snack-bar-action {
-        color: mat.get-color-from-palette($pao-quentinho-primary, 900) !important;
-    }
+  .mat-mdc-button.mat-mdc-snack-bar-action {
+    color: mat.get-color-from-palette($pao-quentinho-primary, 900) !important;
+  }
 
-    .mdc-snackbar__label {
-        color: mat.get-color-from-palette($pao-quentinho-primary, 1000) !important;
-    }
+  .mdc-snackbar__label {
+    color: mat.get-color-from-palette($pao-quentinho-primary, 1000) !important;
+  }
 }
