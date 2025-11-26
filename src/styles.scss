@@ -29,9 +29,6 @@ $pao-quentinho-accent: mat.define-palette(mat.$pink-palette, A200, A100, A400);
 $pao-quentinho-theme: mat.define-light-theme((color: (primary: $pao-quentinho-primary, accent: $pao-quentinho-accent)));
 @include mat.all-component-themes($pao-quentinho-theme);
 
-/* 2. Importação dos estilos compartilhados para páginas de formulário/listagem. */
-@import 'shared-styles.scss';
-
 html,
 body {
     width: 100%;
