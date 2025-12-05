@@ -108,6 +108,11 @@
 
       <!-- Informações -->
       <p class="info-text">{{ selectedEstabelecimento.info }}</p>
+       <!-- Horário de Funcionamento -->
+      <div class="horario-highlight" *ngIf="getHorarioHoje(selectedEstabelecimento) as horarioHoje">
+        <mat-icon class="horario-icon">schedule</mat-icon>
+        <span>{{ horarioHoje }}</span>
+      </div>
 
       <!-- Destaque da Próxima Fornada -->
       <div class="fornada-highlight">
@@ -115,11 +120,6 @@
         <span>Próxima fornada quentinha às <b>{{ getNextFornada(selectedEstabelecimento.proximaFornada) }}</b></span>
       </div>
 
-       <!-- Horário de Funcionamento -->
-      <div class="horario-highlight" *ngIf="getHorarioHoje(selectedEstabelecimento) as horarioHoje">
-        <mat-icon class="horario-icon">schedule</mat-icon>
-        <span>{{ horarioHoje }}</span>
-      </div>
 
       <!-- Endereço Clicável -->
       <a class="address-container" (click)="iniciarNavegacao(selectedEstabelecimento, $event)" mat-ripple>
