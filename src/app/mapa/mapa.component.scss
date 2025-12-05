@@ -386,3 +386,137 @@
     transform: translateY(0);
   }
 }
+
+/* Estilos do Tour Guiado */
+.tour-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1100; /* Acima do mapa e outros elementos */
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+.tour-step {
+  background-color: white;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between; /* Empurra conteúdo e ações para as extremidades */
+  align-items: center;
+  text-align: center;
+  animation: fadeIn 0.3s ease-in-out;
+  padding: 24px;
+  box-sizing: border-box;
+}
+
+.tour-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  flex-grow: 1; /* Ocupa o espaço disponível, centralizando verticalmente */
+  width: 100%;
+  max-width: 450px; /* Limita a largura do conteúdo de texto */
+}
+
+.tour-actions {
+  width: 100%;
+  max-width: 450px; /* Mesma largura do conteúdo para alinhamento */
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-bottom: 16px; /* Espaçamento seguro na parte inferior */
+}
+
+.tour-icon {
+  font-size: 48px;
+  width: 48px;
+  height: 48px;
+  color: var(--primary-color, #d96c2c); /* Cor primária do app */
+  margin-bottom: 16px;
+}
+
+.tour-title {
+  font-size: 1.5rem;
+  font-weight: 500;
+  margin-top: 0;
+  margin-bottom: 8px;
+}
+
+.tour-description {
+  font-size: 1rem;
+  color: #666;
+  margin-bottom: 24px;
+  line-height: 1.5;
+}
+
+.tour-step button[mat-button],
+.skip-button {
+  color: #888;
+  font-weight: 500;
+  margin-top: 16px;
+}
+
+.auth-tabs {
+  margin-top: 16px;
+  width: 100%;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 24px;
+}
+
+.tour-actions button[mat-flat-button] {
+  width: 100%;
+  padding: 12px 0;
+  font-size: 1rem;
+}
+
+.auth-button {
+  position: relative;
+  min-height: 48px; // Garante altura mínima para o botão
+
+  mat-spinner {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+}
+
+.lojista-checkbox {
+  margin-top: 16px; // Adiciona um espaçamento extra acima para evitar sobreposição com mensagens de erro
+  margin-bottom: 8px;
+}
+
+.error-message {
+  color: #b91c1c; // Um vermelho mais escuro para melhor contraste
+  background-color: #fee2e2; // Fundo avermelhado bem claro
+  border: 1px solid #fecaca; // Borda avermelhada clara
+  border-radius: 8px; // Bordas arredondadas
+  padding: 10px 12px; // Espaçamento interno
+  font-size: 0.875rem; // Um pouco maior
+  font-weight: 500; // Semi-bold
+  margin-top: 16px; // Mais espaço acima
+  text-align: center;
+  display: flex; // Para alinhar ícone e texto
+  align-items: center;
+  justify-content: center;
+  gap: 8px; // Espaço entre ícone e texto
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
