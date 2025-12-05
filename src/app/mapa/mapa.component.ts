@@ -602,17 +602,14 @@ export class MapaComponent implements AfterViewInit, OnInit {
     }
   }
 
-  instalarPWA(): void {
+  async instalarPWA(): Promise<void> {
     if (!this.installPrompt) {
       return;
     }
-    this.installPrompt.prompt();
-    this.installPrompt = null;
-  }
-
-  instalarPWAeAvancar(): void {
-    this.instalarPWA();
-    this.avancarTour();
+    this.installPrompt.prompt(); // Mostra o prompt de instalação do navegador
+    await this.installPrompt.userChoice; // Aguarda a escolha do usuário
+    this.installPrompt = null; // Limpa o prompt
+    this.finalizarTour(); // Finaliza o tour para remover o overlay
   }
 
   dismissInstallBanner(): void {
