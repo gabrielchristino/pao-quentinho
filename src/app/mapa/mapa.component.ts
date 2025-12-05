@@ -946,6 +946,7 @@ export class MapaComponent implements AfterViewInit, OnInit {
         if (syncResponse?.syncedEstablishmentIds) {
           this.notificationService.triggerSubscriptionSync(syncResponse.syncedEstablishmentIds);
         }
+        this.router.navigate(['/']); // Limpa o query param 'action=login'
         this.avancarTour(); // Avança para o próximo passo do tour (instalação)
       },
       error: (err) => {
@@ -965,6 +966,7 @@ export class MapaComponent implements AfterViewInit, OnInit {
       finalize(() => this.isRegistering = false)
     ).subscribe({
       next: (syncResponse) => {
+        this.router.navigate(['/']); // Limpa o query param 'action=login'
         this.avancarTour(); // Avança para o próximo passo do tour (instalação)
         const userRole = this.authService.getUserRole();
         if (userRole === 'lojista') {
