@@ -128,28 +128,13 @@ export class NotificationService {
     if (permission === 'granted') {
       onGranted();
     } else if (permission === 'default') {
-      const dialogRef = this.dialog.open<PermissionDialogComponent, PermissionDialogData, boolean>(PermissionDialogComponent, {
-        data: {
-          icon: 'notifications_active',
-          title: 'Permitir notificações?',
-          content: 'Quer ser avisado quando uma fornada sair? Ative as notificações para sincronizar suas inscrições neste dispositivo.',
-          confirmButton: 'Permitir',
-          cancelButton: 'Agora não'
-        },
-        disableClose: true
-      });
-
-      dialogRef.afterClosed().subscribe(result => {
-        if (result) {
-          Notification.requestPermission().then(p => {
-            if (p === 'granted') {
-              onGranted();
-            } else {
-              onDeniedOrDismissed?.(); // Chamado se o usuário negar no prompt do navegador
-            }
-          });
+      // Removemos o diálogo intermediário e solicitamos a permissão diretamente.
+      // Isso é mais direto para o usuário.
+      Notification.requestPermission().then(p => {
+        if (p === 'granted') {
+          onGranted();
         } else {
-          onDeniedOrDismissed?.(); // Chamado se o usuário clicar em "Agora não"
+          onDeniedOrDismissed?.(); // Negado ou dispensado no prompt do navegador
         }
       });
     } else if (permission === 'denied') {
