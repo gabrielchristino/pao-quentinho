@@ -3,7 +3,7 @@ import L from 'leaflet';
 import { EstabelecimentosService } from '../services/estabelecimentos.service';
 import { Estabelecimento } from '../estabelecimento.model';
 import { firstValueFrom, Subject, takeUntil, combineLatest, filter, BehaviorSubject, switchMap, tap, map, take, finalize, debounceTime, of } from 'rxjs';
-import { NotificationService } from '../services/notification.service'; 
+import { NotificationService } from '../services/notification.service';
 import { FormBuilder, FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -11,7 +11,7 @@ import 'leaflet-routing-machine';
 import { CommonModule } from '@angular/common';
 import { MatBottomSheetModule } from '@angular/material/bottom-sheet';
 import { MatListModule } from '@angular/material/list';
-import { MatButtonToggleModule } from '@angular/material/button-toggle'; 
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
@@ -139,7 +139,7 @@ export class MapaComponent implements AfterViewInit, OnInit {
     private router: Router,
     private route: ActivatedRoute, // Injeta ActivatedRoute
     private fb: FormBuilder
-  , private location: Location) {
+    , private location: Location) {
     // Adiciona a classe ao body para desabilitar o scroll global
     // quando este componente está ativo.
     this._elementRef.nativeElement.ownerDocument.body.classList.add('no-scroll');
@@ -199,7 +199,7 @@ export class MapaComponent implements AfterViewInit, OnInit {
     if (result.state === 'granted') {
       this.getUserLocation();
     } else if (result.state === 'prompt') {
-      
+
       const dialogRef = this.dialog.open<PermissionDialogComponent, PermissionDialogData, boolean>(PermissionDialogComponent, {
         data: {
           icon: 'location_on',
@@ -934,14 +934,10 @@ export class MapaComponent implements AfterViewInit, OnInit {
       finalize(() => this.isLoggingIn = false)
     ).subscribe({
       next: (syncResponse) => {
-        this.finalizarTour(); // Fecha o tour com sucesso
-        const userRole = this.authService.getUserRole();
-        if (userRole === 'lojista') {
-          this.router.navigate(['/meus-estabelecimentos']);
-        }
         if (syncResponse?.syncedEstablishmentIds) {
           this.notificationService.triggerSubscriptionSync(syncResponse.syncedEstablishmentIds);
         }
+        this.avancarTour(); // Avança para o próximo passo do tour (instalação)
       },
       error: (err) => {
         const message = err.status === 401 ? 'Credenciais inválidas.' : 'Erro ao fazer login.';
@@ -960,7 +956,7 @@ export class MapaComponent implements AfterViewInit, OnInit {
       finalize(() => this.isRegistering = false)
     ).subscribe({
       next: (syncResponse) => {
-        this.finalizarTour(); // Fecha o tour com sucesso
+        this.avancarTour(); // Avança para o próximo passo do tour (instalação)
         const userRole = this.authService.getUserRole();
         if (userRole === 'lojista') {
           this.router.navigate(['/meus-estabelecimentos']);
@@ -998,9 +994,11 @@ export class MapaComponent implements AfterViewInit, OnInit {
     if (this.tourStep === 'location') {
       this.tourStep = 'notification';
     } else if (this.tourStep === 'notification') {
-      this.tourStep = this.installPrompt ? 'install' : 'login'; // Pula para 'install' se possível
-    } else if (this.tourStep === 'install') {
       this.tourStep = 'login';
+    } else if (this.tourStep === 'login') {
+      this.tourStep = this.installPrompt ? 'install' : null;
+    } else if (this.tourStep === 'install') {
+      this.finalizarTour();
     } else {
       this.finalizarTour();
     }
@@ -1008,9 +1006,12 @@ export class MapaComponent implements AfterViewInit, OnInit {
 
   finalizarTour(): void {
     this.tourStep = null;
-    // Garante que o fluxo de dados do mapa seja iniciado se ainda não estiver rodando.
+    const userRole = this.authService.getUserRole();
     if (!this.userMarker) {
       this.solicitarPermissoesIniciais();
+    }
+    if (userRole === 'lojista') {
+      this.router.navigate(['/meus-estabelecimentos']);
     }
   }
 }
