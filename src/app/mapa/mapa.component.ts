@@ -926,14 +926,12 @@ export class MapaComponent implements AfterViewInit, OnInit {
   }
 
   solicitarPermissaoNotificacao(): void {
-    // Lógica para pedir permissão de notificação
-    // Ex: this.notificationService.requestPermission();
-    this.notificationService.solicitarPermissaoDeNotificacao(() => { // Callback de sucesso
-      this.avancarTour();
-    });
-    // Se a permissão for negada, o serviço lida com isso, e o tour não avança até uma ação do usuário.
-    // Para garantir que o tour sempre continue, avançamos também fora do callback.
-    this.avancarTour();
+    // Define os callbacks para avançar o tour APÓS a interação do usuário.
+    const onGranted = () => this.avancarTour();
+    const onDeniedOrDismissed = () => this.avancarTour();
+
+    // Chama o serviço, que por sua vez chamará um dos callbacks.
+    this.notificationService.solicitarPermissaoDeNotificacao(onGranted, onDeniedOrDismissed);
   }
 
   onLogin(): void {

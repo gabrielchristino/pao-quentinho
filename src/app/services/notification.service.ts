@@ -120,7 +120,7 @@ export class NotificationService {
    * mostrando um pré-alerta amigável.
    * @param onGranted Callback a ser executado se a permissão for concedida.
    */
-  solicitarPermissaoDeNotificacao(onGranted: () => void): void {
+  solicitarPermissaoDeNotificacao(onGranted: () => void, onDeniedOrDismissed?: () => void): void {
     if (!('Notification' in window) || !this.swPush.isEnabled) return;
 
     const permission = Notification.permission;
@@ -141,11 +141,20 @@ export class NotificationService {
 
       dialogRef.afterClosed().subscribe(result => {
         if (result) {
-          Notification.requestPermission().then(p => { if (p === 'granted') onGranted(); });
+          Notification.requestPermission().then(p => {
+            if (p === 'granted') {
+              onGranted();
+            } else {
+              onDeniedOrDismissed?.(); // Chamado se o usuário negar no prompt do navegador
+            }
+          });
+        } else {
+          onDeniedOrDismissed?.(); // Chamado se o usuário clicar em "Agora não"
         }
       });
     } else if (permission === 'denied') {
       this.snackBar.open('As notificações estão bloqueadas. Habilite nas configurações do navegador para sincronizar.', 'Ok', { duration: 7000 });
+      onDeniedOrDismissed?.(); // Permissão já negada, avança
     }
   }
 
