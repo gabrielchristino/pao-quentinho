@@ -152,6 +152,7 @@ export class MapaComponent implements AfterViewInit, OnInit {
     this.ouvirMudancasDeAutenticacao();
     this.bottomSheetEl = this._elementRef.nativeElement.querySelector('#bottomSheet');
     this.handleRouteActions();
+    this.handleLoginAction();
   }
   ngOnInit(): void {
     // Lógica para verificar se é a primeira visita do usuário
@@ -309,6 +310,19 @@ export class MapaComponent implements AfterViewInit, OnInit {
       if (data && data.id) {
         this.handleReserveAction(data.id);
       }
+    });
+  }
+
+  private handleLoginAction(): void {
+    this.route.queryParams.pipe(
+      filter(params => params['action'] === 'login'),
+      takeUntil(this.destroy$)
+    ).subscribe(() => {
+      // Garante que a ação de login não interfira com o tour de primeira visita
+      if (!localStorage.getItem('hasVisited')) {
+        localStorage.setItem('hasVisited', 'true');
+      }
+      this.tourStep = 'login';
     });
   }
 
