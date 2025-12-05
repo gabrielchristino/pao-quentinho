@@ -127,16 +127,24 @@
 
 
 <div class="map-container">
+  <!-- Cabeçalho Flutuante -->
+  <div class="floating-header">
     <!-- Caixa de Busca -->
-  <div class="search-box-container">
     <mat-form-field appearance="outline" class="search-input" subscriptSizing="dynamic">
       <input matInput [formControl]="searchControl" (keyup.enter)="buscarEndereco()" placeholder="Buscar por Endereço ou CEP">
       <button mat-icon-button matSuffix (click)="buscarEndereco()" aria-label="Buscar">
         <mat-icon>search</mat-icon>
       </button>
     </mat-form-field>
-    <button mat-icon-button (click)="centralizarNoUsuario()" matTooltip="Usar minha localização atual" class="my-location-btn">
+
+    <!-- Botão de Localização -->
+    <button mat-icon-button (click)="centralizarNoUsuario()" matTooltip="Usar minha localização atual" class="location-button">
       <mat-icon>my_location</mat-icon>
+    </button>
+
+    <!-- Botão de Conta/Menu -->
+    <button mat-icon-button [matMenuTriggerFor]="userMenu" class="account-button" matTooltip="Minha Conta">
+      <mat-icon>account_circle</mat-icon>
     </button>
   </div>
   
@@ -155,20 +163,53 @@
     <mat-button-toggle [value]="5000">5km</mat-button-toggle>
   </mat-button-toggle-group>
 
-  <!-- Botão para Sair da Rota -->
-  <button
-    mat-fab extended
-    color="warn"
-    class="exit-route-button"
-    *ngIf="routingControl"
-    (click)="fecharDetalhe()"
-  >
-    <mat-icon>close</mat-icon>
-    Sair da Navegação
-  </button>
+  <!-- Nova UI de Navegação -->
+  <div class="navigation-ui-container" *ngIf="routingControl">
+    <!-- Card de Rota no Rodapé -->
+    <mat-card class="route-card">
+      <mat-card-content>
+        <button mat-icon-button class="back-button-card" (click)="fecharDetalhe()" matTooltip="Sair da rota">
+          <mat-icon>close</mat-icon>
+        </button>
+        <div class="route-info">
+          <span>Rota para <b>{{ selectedEstabelecimento?.nome }}</b></span>
+        </div>
+        <button mat-flat-button color="primary" class="gps-button" (click)="abrirNoGPS()">
+          Abrir no GPS
+        </button>
+      </mat-card-content>
+    </mat-card>
+  </div>
 
 </div>
 
+<!-- Menu do Usuário -->
+<mat-menu #userMenu="matMenu">
+  <ng-container *ngIf="authService.authState$ | async; else loggedOutMenu">
+    <div class="menu-header" *ngIf="(authService.currentUser$ | async) as user">
+      <div class="user-name" *ngIf="user.name">{{ user.name }}</div>
+      <div class="user-email">{{ user.email }}</div>
+    </div>
+    <mat-divider *ngIf="authService.authState$ | async"></mat-divider>
+
+    <button mat-menu-item (click)="navigateTo(['/meus-estabelecimentos'])" *ngIf="isLojista">
+      <mat-icon>storefront</mat-icon>
+      <span>Meus Estabelecimentos</span>
+    </button>
+    <button mat-menu-item (click)="navigateTo(['/minhas-inscricoes'])" *ngIf="!isLojista">
+      <mat-icon>notifications</mat-icon>
+      <span>Minhas Inscrições</span>
+    </button>
+    <button mat-menu-item (click)="abrirLinkDeAjuda()">
+      <mat-icon>help_outline</mat-icon>
+      <span>Preciso de ajuda</span>
+    </button>
+    <button mat-menu-item (click)="authService.logout()">
+      <mat-icon>logout</mat-icon>Sair
+    </button>
+  </ng-container>
+  <ng-template #loggedOutMenu><button mat-menu-item (click)="authService.requestLogin()">Entrar / Cadastrar</button></ng-template>
+</mat-menu>
 <!-- Bottom Sheet customizado -->
 <div
   id="bottomSheet"
@@ -208,7 +249,7 @@
 </div>
 
 <!-- Card de Detalhes do Estabelecimento -->
-<div class="establishment-details-container" *ngIf="selectedEstabelecimento" (click)="fecharDetalhe()">
+<div class="establishment-details-container" *ngIf="selectedEstabelecimento && !routingControl" (click)="fecharDetalhe()">
   <mat-card class="establishment-card" (click)="$event.stopPropagation()">
     <mat-card-header>
       <div class="header-text-content">
@@ -230,12 +271,13 @@
       </div>
 
       <!-- Destaque da Próxima Fornada -->
-      <div class="fornada-highlight">
-        <mat-icon>bakery_dining</mat-icon>
-        <span>Próxima fornada quentinha às <b>{{ getNextFornada(selectedEstabelecimento.proximaFornada) }}</b></span>
-      </div>
-
-
+      <ng-container *ngIf="getHorarioHoje(selectedEstabelecimento) as horarioHoje">
+        <div class="fornada-highlight" *ngIf="!horarioHoje.toLowerCase().includes('fechado')">
+          <mat-icon>bakery_dining</mat-icon>
+          <span>Próxima fornada quentinha às <b>{{ getNextFornada(selectedEstabelecimento.proximaFornada) }}</b></span>
+        </div>
+      </ng-container>
+      
       <!-- Endereço Clicável -->
       <a class="address-container" (click)="iniciarNavegacao(selectedEstabelecimento, $event)" mat-ripple>
         <div class="address-content">

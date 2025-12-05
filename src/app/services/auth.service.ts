@@ -1,8 +1,14 @@
 import { Injectable, inject } from '@angular/core';
 import { environment } from '../../environments/environment';
 import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable, of, switchMap, tap } from 'rxjs';
+import { BehaviorSubject, Observable, of, switchMap, tap, map, Subject } from 'rxjs';
 import { NotificationService } from './notification.service';
+
+export interface User {
+  name: string;
+  email: string;
+  role: 'lojista' | 'cliente';
+}
 
 @Injectable({
   providedIn: 'root'
@@ -15,6 +21,15 @@ export class AuthService {
 
   private authState = new BehaviorSubject<boolean>(this.isLoggedIn());
   public authState$ = this.authState.asObservable();
+
+  private requestLoginSource = new Subject<void>();
+  public requestLogin$ = this.requestLoginSource.asObservable();
+
+  public currentUser$: Observable<User | null> = this.authState$.pipe(
+    map(isLoggedIn => {
+      return isLoggedIn ? this.getCurrentUser() : null;
+    })
+  );
 
   register(userData: { name: string, email: string, password: string, isLojista?: boolean }): Observable<any> {
     const credentials = { ...userData, role: userData.isLojista ? 'lojista' : 'cliente' };
@@ -69,7 +84,7 @@ export class AuthService {
     return this.decodeToken()?.role ?? null;
   }
 
-  isLoggedIn(): boolean {
+  public isLoggedIn(): boolean {
     const token = this.getToken();
     if (!token) {
       return false;
@@ -79,5 +94,18 @@ export class AuthService {
 
   private setToken(token: string): void {
     localStorage.setItem(this.TOKEN_KEY, token);
+  }
+
+  public getCurrentUser(): User | null {
+    const decodedToken = this.decodeToken();
+    if (decodedToken) {
+      // Extrai o nome e o email diretamente do payload do token decodificado.
+      return { name: decodedToken.name, email: decodedToken.email, role: decodedToken.role };
+    }
+    return null;
+  }
+
+  public requestLogin(): void {
+    this.requestLoginSource.next();
   }
 }

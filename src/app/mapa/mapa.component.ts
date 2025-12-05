@@ -3,7 +3,7 @@ import L from 'leaflet';
 import { EstabelecimentosService } from '../services/estabelecimentos.service';
 import { Estabelecimento } from '../estabelecimento.model';
 import { firstValueFrom, Subject, takeUntil, combineLatest, filter, BehaviorSubject, switchMap, tap, map, take, finalize, debounceTime, of } from 'rxjs';
-import { NotificationService } from '../services/notification.service';
+import { NotificationService } from '../services/notification.service'; 
 import { FormBuilder, FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -11,7 +11,7 @@ import 'leaflet-routing-machine';
 import { CommonModule } from '@angular/common';
 import { MatBottomSheetModule } from '@angular/material/bottom-sheet';
 import { MatListModule } from '@angular/material/list';
-import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import { MatButtonToggleModule } from '@angular/material/button-toggle'; 
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
@@ -23,6 +23,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { Location } from '@angular/common';
 import { SwPush } from '@angular/service-worker';
 
 import { MapStateService } from '../services/map-state.service';
@@ -117,6 +118,12 @@ export class MapaComponent implements AfterViewInit, OnInit {
   public loginErrorMessage: string | null = null; // Nova propriedade para mensagem de erro de login
   public registerErrorMessage: string | null = null; // Nova propriedade para mensagem de erro de cadastro
   public activeTabIndex = 0;
+  contactEmail: string = 'paoquentinho.sac@gmail.com';
+  contactSubject: string = 'Ajuda com o aplicativo Pão Quentinho';
+
+  get isLojista(): boolean {
+    return this.authService.getUserRole() === 'lojista';
+  }
 
 
   constructor(
@@ -132,7 +139,7 @@ export class MapaComponent implements AfterViewInit, OnInit {
     private router: Router,
     private route: ActivatedRoute, // Injeta ActivatedRoute
     private fb: FormBuilder
-  ) {
+  , private location: Location) {
     // Adiciona a classe ao body para desabilitar o scroll global
     // quando este componente está ativo.
     this._elementRef.nativeElement.ownerDocument.body.classList.add('no-scroll');
@@ -180,7 +187,6 @@ export class MapaComponent implements AfterViewInit, OnInit {
   }
 
   private async solicitarPermissaoDeLocalizacao(): Promise<void> {
-    console.log(`[LOG ${new Date().toLocaleTimeString()}] 1. Verificando permissão de localização...`);
 
     // Fallback para navegadores que não suportam a API de Permissões
     if (!navigator.permissions?.query) {
@@ -191,11 +197,9 @@ export class MapaComponent implements AfterViewInit, OnInit {
     const result = await navigator.permissions.query({ name: 'geolocation' });
 
     if (result.state === 'granted') {
-      console.log(`[LOG ${new Date().toLocaleTimeString()}] 1.1. ✅ Permissão já concedida.`);
       this.getUserLocation();
     } else if (result.state === 'prompt') {
-      console.log(`[LOG ${new Date().toLocaleTimeString()}] 1.1. ❔ Permissão necessária. Exibindo pré-alerta.`);
-
+      
       const dialogRef = this.dialog.open<PermissionDialogComponent, PermissionDialogData, boolean>(PermissionDialogComponent, {
         data: {
           icon: 'location_on',
@@ -217,14 +221,11 @@ export class MapaComponent implements AfterViewInit, OnInit {
         }
       });
     } else if (result.state === 'denied') {
-      console.log(`[LOG ${new Date().toLocaleTimeString()}] 1.1. ❌ Permissão negada.`);
       this.getUserLocation();
     }
   }
 
   private getUserLocation(): void {
-    console.log(`[LOG ${new Date().toLocaleTimeString()}] 2. Solicitando localização do navegador...`);
-
     if ('geolocation' in navigator) {
       // Para de monitorar a localização anterior, se houver.
       if (this.locationWatchId) {
@@ -233,7 +234,6 @@ export class MapaComponent implements AfterViewInit, OnInit {
 
       this.locationWatchId = navigator.geolocation.watchPosition(
         ({ coords }) => {
-          console.log(`[LOG ${new Date().toLocaleTimeString()}] 3. ✅ Localização recebida do navegador:`, { lat: coords.latitude, lng: coords.longitude });
           this.location$.next({ lat: coords.latitude, lng: coords.longitude });
         },
         (error) => {
@@ -246,7 +246,6 @@ export class MapaComponent implements AfterViewInit, OnInit {
         }
       );
     } else {
-      console.error(`[LOG ${new Date().toLocaleTimeString()}] 3. ❌ Geolocalização não suportada, usando fallback.`);
       this.location$.next({ lat: -23.55052, lng: -46.633308 });
     }
   }
@@ -255,18 +254,13 @@ export class MapaComponent implements AfterViewInit, OnInit {
  * @param error O erro retornado pela API de Geolocalização.
  */
   private handleLocationError(error: GeolocationPositionError): void {
-    console.error(`[LOG ${new Date().toLocaleTimeString()}] 3. ❌ Erro ao obter localização (alta precisão):`, error.message);
-
     // Se o erro for timeout, tenta com baixa precisão.
     if (error.code === error.TIMEOUT) {
-      console.log(`[LOG ${new Date().toLocaleTimeString()}] 3.1. ⏳ Timeout. Tentando com baixa precisão...`);
       navigator.geolocation.getCurrentPosition(
         ({ coords }) => {
-          console.log(`[LOG ${new Date().toLocaleTimeString()}] 3.2. ✅ Localização de baixa precisão obtida:`, { lat: coords.latitude, lng: coords.longitude });
           this.location$.next({ lat: coords.latitude, lng: coords.longitude });
         },
         (lowAccuracyError) => {
-          console.error(`[LOG ${new Date().toLocaleTimeString()}] 3.2. ❌ Erro também em baixa precisão. Usando fallback.`, lowAccuracyError.message);
           this.location$.next({ lat: -23.55052, lng: -46.633308 }); // Fallback final para SP
         },
         { enableHighAccuracy: false, timeout: 10000, maximumAge: 60000 }
@@ -379,11 +373,9 @@ export class MapaComponent implements AfterViewInit, OnInit {
   }
 
   private initializeDataFlow(): void {
-    console.log(`[LOG ${new Date().toLocaleTimeString()}] 4. Iniciando fluxo de dados com a localização...`);
     const estabelecimentos$ = this.location$.pipe(
       debounceTime(50), // Evita re-execuções rápidas e desnecessárias
       filter((loc): loc is { lat: number; lng: number } => loc !== null),
-      tap(loc => console.log(`[LOG ${new Date().toLocaleTimeString()}] 4. Localização válida recebida. Disparando chamada para API de estabelecimentos...`)),
       switchMap(loc =>
         this.estabelecimentoService.getEstabelecimentosProximos(loc.lat, loc.lng).pipe(map(response => response.body ?? [] as Estabelecimento[]))
       ),
@@ -428,7 +420,6 @@ export class MapaComponent implements AfterViewInit, OnInit {
         takeUntil(this.destroy$)
       )
       .subscribe(() => {
-        console.log('[AUTH-CHANGE] Lojista logado. Verificando permissões de notificação...');
         this.verificarEAtivarNotificacoesLojista();
       });
   }
@@ -529,7 +520,6 @@ export class MapaComponent implements AfterViewInit, OnInit {
     // Atualiza a posição do marcador e do círculo sem mover o mapa
     this.userMarker.setLatLng(newLatLng);
     this.circle.setLatLng(newLatLng);
-    console.log(this.selectedEstabelecimento);
     if (!this.isLocationOverridden && this.map && !this.selectedEstabelecimento) {
       const zoomLevel = this.calculateZoomLevel(this.raio);
       this.map.setView(newLatLng, zoomLevel, { animate: true });
@@ -646,6 +636,8 @@ export class MapaComponent implements AfterViewInit, OnInit {
 
     this.fecharDetalhe(false);
 
+    this.selectedEstabelecimento = est;
+
     const loc = this.location$.value;
     if (!this.map || !loc) return;
 
@@ -682,6 +674,26 @@ export class MapaComponent implements AfterViewInit, OnInit {
       this.map.touchZoom.enable();
       this.map.doubleClickZoom.enable();
     }
+  }
+
+  /**
+   * Navega para a visualização anterior.
+   */
+  voltar(): void {
+    this.fecharDetalhe();
+    this.location.back();
+  }
+
+  /**
+   * Abre o aplicativo de GPS padrão do usuário com o destino pré-selecionado.
+   */
+  abrirNoGPS(): void {
+    if (!this.selectedEstabelecimento) return;
+
+    const lat = this.selectedEstabelecimento.latitude;
+    const lng = this.selectedEstabelecimento.longitude;
+    const url = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+    window.open(url, '_blank');
   }
 
   /**
@@ -860,7 +872,6 @@ export class MapaComponent implements AfterViewInit, OnInit {
   * @param establishmentId O ID do estabelecimento a ser reservado.
   */
   private handleReserveAction(establishmentId: number): void {
-    console.log(`[LOG] Tratando ação de reserva para o estabelecimento ID: ${establishmentId}`);
     this.estabelecimentoService.reserveEstablishment(establishmentId).pipe(
       take(1) // Pega apenas uma emissão e completa
     ).subscribe({
@@ -914,11 +925,6 @@ export class MapaComponent implements AfterViewInit, OnInit {
     this.avancarTour();
   }
 
-  abrirModalLogin(): void {
-    // Esta função não é mais necessária, pois o formulário está embutido.
-    // A lógica foi movida para onLogin e onRegister.
-  }
-
   onLogin(): void {
     if (this.loginForm.invalid) return;
 
@@ -969,6 +975,23 @@ export class MapaComponent implements AfterViewInit, OnInit {
         this._snackBar.open(message, 'Fechar', { duration: 3000 });
       }
     });
+  }
+
+  /**
+   * Navega para uma rota específica.
+   * @param route A rota para a qual navegar.
+   */
+  navigateTo(route: string[]): void {
+    this.router.navigate(route);
+  }
+
+  getMailtoLink(): string {
+    const subjectEncoded = encodeURIComponent(this.contactSubject);
+    return `mailto:${this.contactEmail}?subject=${subjectEncoded}`;
+  }
+
+  abrirLinkDeAjuda(): void {
+    window.location.href = this.getMailtoLink();
   }
 
   avancarTour(): void {

@@ -3,8 +3,26 @@
 :host {
   display: block;
   box-sizing: border-box;
+  // Adiciona um espaçamento no final da página para que o conteúdo não
+  // fique escondido atrás da nova barra de ação.
+  padding-bottom: 96px;
 }
 
-a {
-  margin-bottom: 8px;
+.footer-action {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 16px;
+  background-color: #fff; // Fundo branco para destacar
+  box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1); // Sombra para dar elevação
+  z-index: 100;
+  display: flex;
+}
+
+.footer-action a {
+  width: 100%; // Faz o botão ocupar toda a largura
+  padding-top: 12px;
+  padding-bottom: 12px;
+  font-size: 1rem;
 }

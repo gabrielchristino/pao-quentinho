@@ -1,8 +1,10 @@
-<div class="container">
-  <h1>{{ isEditMode ? 'Editar' : 'Cadastre seu' }} Estabelecimento</h1>
-  <p>Preencha os dados abaixo para que os clientes possam encontrar seu pão quentinho!</p>
+<div class="container page-container">
+  <div class="page-intro">
+    <h2>{{ isEditMode ? 'Editar' : 'Cadastre seu' }} Estabelecimento</h2>
+    <p class="intro-subtitle">Preencha os dados abaixo para que os clientes possam encontrar seu pão quentinho!</p>
+  </div>
 
-    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="form-container">
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="form-container">
       <!-- Informações Básicas -->
       <mat-form-field appearance="outline">
         <mat-label>Nome do Estabelecimento</mat-label>

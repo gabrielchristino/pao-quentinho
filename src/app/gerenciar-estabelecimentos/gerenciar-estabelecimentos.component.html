@@ -1,10 +1,4 @@
-<div class="container">
-  <h1>Meus Estabelecimentos</h1>
-  <a mat-stroked-button routerLink="/cadastrar-estabelecimento">
-    <mat-icon>add</mat-icon>
-    Cadastrar Novo
-  </a>
-
+<div class="container page-container">
   <div *ngIf="isLoading">Carregando seus estabelecimentos...</div>
 
   <div *ngIf="!isLoading && meusEstabelecimentos.length === 0" class="empty-state">
@@ -86,4 +80,10 @@
       </div>
     </mat-expansion-panel>
   </mat-accordion>
+</div>
+
+<div class="footer-action">
+  <a mat-raised-button color="primary" routerLink="/cadastrar-estabelecimento">
+    Cadastrar novo estabelecimento
+  </a>
 </div>

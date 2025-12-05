@@ -1,8 +1,8 @@
 <mat-toolbar class="app-toolbar">
-  <a routerLink="/" class="logo">
-    <img src="assets/icons/icon-72x72.png" alt="Logo Pão Quentinho" class="header-logo">
-    <span>Pão Quentinho</span>
-  </a>
+  <button mat-icon-button (click)="goBack()" aria-label="Voltar para a página anterior">
+    <mat-icon>arrow_back</mat-icon>
+  </button>
+  <span>{{ pageTitle$ | async }}</span>
 
   <span class="spacer"></span>
 
@@ -12,21 +12,27 @@
       <mat-icon>person</mat-icon>
     </button>
     <mat-menu #userMenu="matMenu">
+      <div class="menu-header" *ngIf="(currentUser$ | async) as user">
+        <div class="user-name" *ngIf="user.name">{{ user.name }}</div>
+        <div class="user-email">{{ user.email }}</div>
+      </div>
+      <mat-divider *ngIf="authService.authState$ | async"></mat-divider>
+
       <!-- O link de gerenciamento só aparece para lojistas -->
-      <a *ngIf="isLojista" mat-menu-item routerLink="/meus-estabelecimentos">
+      <button mat-menu-item *ngIf="isLojista" (click)="navigateTo(['/meus-estabelecimentos'])">
           <mat-icon>storefront</mat-icon>
           <span>Meus Estabelecimentos</span>
-      </a>
+      </button>
 
-      <a *ngIf="!isLojista" mat-menu-item routerLink="/minhas-inscricoes">
-          <mat-icon>storefront</mat-icon>
+      <button mat-menu-item *ngIf="!isLojista" (click)="navigateTo(['/minhas-inscricoes'])">
+          <mat-icon>notifications</mat-icon>
           <span>Minhas inscrições</span>
-      </a>
+      </button>
 
-      <a mat-menu-item [href]="getMailtoLink()">
+      <button mat-menu-item (click)="abrirLinkDeAjuda()">
           <mat-icon>help_outline</mat-icon>
           <span>Preciso de ajuda</span>
-      </a>
+      </button>
 
       <button mat-menu-item (click)="logout()">
         <mat-icon>logout</mat-icon>

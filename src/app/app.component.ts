@@ -1,8 +1,9 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterOutlet } from '@angular/router';
+import { Router, RouterOutlet, NavigationEnd } from '@angular/router';
 import { HeaderComponent } from './header.component';
 import { SwPush } from '@angular/service-worker';
+import { filter, map } from 'rxjs/operators';
 
 @Component({
   selector: 'app-root',
@@ -14,11 +15,20 @@ import { SwPush } from '@angular/service-worker';
 export class AppComponent {
   private swPush = inject(SwPush);
   private router = inject(Router);
+  showHeader = true;
 
   title = 'pao-quentinho';
 
   constructor() {
     this.handleNotificationClicks();
+
+    // Ouve as mudanças de rota para decidir se o header deve ser exibido
+    this.router.events.pipe(
+      filter((event): event is NavigationEnd => event instanceof NavigationEnd)
+    ).subscribe((event: NavigationEnd) => {
+      // Esconde o header na rota do mapa ('/' ou '/estabelecimento/:id')
+      this.showHeader = !(event.urlAfterRedirects === '/' || event.urlAfterRedirects.startsWith('/estabelecimento/'));
+    });
   }
 
   private handleNotificationClicks(): void {
