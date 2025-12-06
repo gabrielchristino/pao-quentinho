@@ -153,12 +153,12 @@
     </mat-form-field>
 
     <!-- Botão de Localização -->
-    <button mat-icon-button (click)="centralizarNoUsuario()" matTooltip="Usar minha localização atual" class="location-button">
+    <button mat-icon-button (click)="centralizarNoUsuario()" matTooltip="Usar minha localização atual" class="location-button" aria-label="Centralizar na sua localização atual">
       <mat-icon>my_location</mat-icon>
     </button>
 
     <!-- Botão de Conta/Menu -->
-    <button mat-icon-button [matMenuTriggerFor]="userMenu" class="account-button" matTooltip="Minha Conta">
+    <button mat-icon-button [matMenuTriggerFor]="userMenu" class="account-button" matTooltip="Minha Conta" aria-label="Abrir menu da conta">
       <mat-icon>account_circle</mat-icon>
     </button>
   </div>

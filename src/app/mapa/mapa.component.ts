@@ -974,7 +974,7 @@ export class MapaComponent implements AfterViewInit, OnInit {
       this.tourStep = 'login';
     } else if (this.tourStep === 'notification') { // Avança da notificação para o login
       this.tourStep = 'login';
-    } else if (this.tourStep === 'login' && skipped) { // Se pular o login, finaliza o tour
+    } else if (this.tourStep === 'login' && skipped) {
       this.finalizarTour();
     } else if (this.tourStep === 'login') { // Avança do login para a instalação (ou finaliza)
       this.tourStep = this.installPrompt ? 'install' : null;

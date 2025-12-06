@@ -17,6 +17,6 @@ export class AjudaComponent {
 
   getMailtoLink(): string {
     const subjectEncoded = encodeURIComponent(this.contactSubject);
-    return `mailto:${this.contactEmail}?subject=`;
+    return `mailto:${this.contactEmail}?subject=${subjectEncoded}`;
   }
 }
