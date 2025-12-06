@@ -37,9 +37,10 @@ export class AppComponent {
       console.log('Notificação clicada com o app aberto:', event);
       const url = event.notification.data?.url;
       if (url) {
-        // Extrai o caminho da URL (ex: /estabelecimento/5) e navega
+        // Extrai o ID do estabelecimento da URL e navega para a raiz com o query param.
         const path = new URL(url).pathname;
-        this.router.navigateByUrl(path);
+        const establishmentId = path.split('/').pop();
+        this.router.navigate(['/'], { queryParams: { open_establishment_id: establishmentId } });
       }
     });
   }

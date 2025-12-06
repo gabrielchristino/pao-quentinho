@@ -1,19 +1,19 @@
 import { inject } from '@angular/core';
-import { ActivatedRouteSnapshot, CanActivateFn, Router, UrlTree } from '@angular/router';
-import { MapStateService } from './services/map-state.service';
+import { ActivatedRouteSnapshot, CanActivateFn, Router } from '@angular/router';
 
 /**
  * Um guard que intercepta a navegação vinda de um clique de notificação.
- * Ele comanda o mapa para abrir o card do estabelecimento e redireciona
- * o usuário para a página inicial, cancelando a navegação original.
+ * Ele cancela a navegação para /estabelecimento/:id e redireciona para a
+ * página inicial (mapa) com um query param, que será lido pelo MapaComponent.
  */
-export const notificationRedirectGuard: CanActivateFn = (route: ActivatedRouteSnapshot): boolean => {
-  const mapStateService = inject(MapStateService);
+export const notificationRedirectGuard: CanActivateFn = (route: ActivatedRouteSnapshot) => {
+  const router = inject(Router);
   const establishmentId = route.paramMap.get('id');
 
   if (establishmentId) {
-    mapStateService.selectEstablishment(Number(establishmentId));
+    // Redireciona para a raiz, passando o ID como query param.
+    return router.createUrlTree(['/'], { queryParams: { open_establishment_id: establishmentId } });
   }
-  // Permite que a navegação continue para o componente configurado na rota.
-  return true;
+  // Se não houver ID, apenas redireciona para a raiz.
+  return router.createUrlTree(['/']);
 };

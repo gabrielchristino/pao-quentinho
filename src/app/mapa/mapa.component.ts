@@ -232,16 +232,19 @@ export class MapaComponent implements AfterViewInit, OnInit {
   }
 
   private handleRouteActions(): void {
-    combineLatest([this.route.paramMap, this.route.queryParams]).pipe(
-      map(([params, queryParams]) => ({
-        id: params.get('id'),
-        action: queryParams['action']
-      })),
+    this.route.queryParams.pipe(
       takeUntil(this.destroy$)
-    ).subscribe(({ id, action }) => {
-      if (action === 'reserve' && id) {
-        this.handleReserveAction(+id);
-      } else if (action === 'login') {
+    ).subscribe(params => {
+      const establishmentIdToOpen = params['open_establishment_id'];
+      const action = params['action'];
+
+      if (establishmentIdToOpen) {
+        this.mapStateService.selectEstablishment(Number(establishmentIdToOpen));
+        // Limpa o query param da URL após o uso
+        this.router.navigate([], { queryParams: { open_establishment_id: null }, queryParamsHandling: 'merge', replaceUrl: true });
+      }
+
+      if (action === 'login') {
         // Garante que a ação de login não interfira com o tour de primeira visita
         if (!localStorage.getItem('hasVisited')) {
           localStorage.setItem('hasVisited', 'true');
@@ -557,7 +560,7 @@ export class MapaComponent implements AfterViewInit, OnInit {
     this.mapStateService.clearSelection();
 
     // Limpa a URL, removendo o ID do estabelecimento.
-    this.router.navigate(['/']);
+    this.router.navigate(['/'], { replaceUrl: true });
   }
 
   iniciarNavegacao(est: Estabelecimento, event: MouseEvent): void {
@@ -883,7 +886,7 @@ export class MapaComponent implements AfterViewInit, OnInit {
         if (syncResponse?.syncedEstablishmentIds) {
           this.notificationService.triggerSubscriptionSync(syncResponse.syncedEstablishmentIds);
         }
-        this.router.navigate(['/']);
+        this.router.navigate(['/'], { replaceUrl: true });
         this.avancarTour(); // Avança para o próximo passo do tour (instalação)
       },
       error: (err) => {
@@ -900,7 +903,7 @@ export class MapaComponent implements AfterViewInit, OnInit {
       finalize(() => this.isRegistering = false)
     ).subscribe({
       next: (syncResponse) => {
-        this.router.navigate(['/']);
+        this.router.navigate(['/'], { replaceUrl: true });
         this.avancarTour(); // Avança para o próximo passo do tour (instalação)
         const userRole = this.authService.getUserRole();
         if (userRole === 'lojista') {

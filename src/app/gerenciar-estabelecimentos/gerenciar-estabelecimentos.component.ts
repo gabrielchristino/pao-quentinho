@@ -75,7 +75,7 @@ export class GerenciarEstabelecimentosComponent implements OnInit, OnDestroy {
         // Trata o erro 401 (Não Autorizado) caso o interceptor não o capture.
         if (err.status === 401) {
           this.snackBar.open('Sua sessão expirou. Por favor, faça login novamente.', 'Fechar', { duration: 5000 });
-          this.router.navigate(['/']); // Redireciona para o mapa para logar
+          this.router.navigate(['/'], { replaceUrl: true }); // Redireciona para o mapa para logar
         } else {
           this.snackBar.open('Erro ao carregar seus estabelecimentos.', 'Fechar', { duration: 3000 });
         }
@@ -97,9 +97,7 @@ export class GerenciarEstabelecimentosComponent implements OnInit, OnDestroy {
 
   editar(id: number): void {
     // Navega para a rota de edição, passando o ID do estabelecimento
-    this.router.navigate(['/editar-estabelecimento', id], {
-      replaceUrl: true,
-    });
+    this.router.navigate(['/editar-estabelecimento', id]);
   }
 
   apagar(id: number, nome: string): void {

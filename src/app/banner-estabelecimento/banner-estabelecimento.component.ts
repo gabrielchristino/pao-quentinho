@@ -1,10 +1,10 @@
-import { AfterViewInit, Component, ElementRef, HostListener, Input, ViewChild, OnInit, OnDestroy, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { environment } from '../../environments/environment';
-import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { Subscription } from 'rxjs';
-import { MatIconModule } from '@angular/material/icon';
+import { CommonModule, Location } from '@angular/common';
+import { AfterViewInit, Component, ElementRef, HostListener, Input, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { ActivatedRoute, RouterModule } from '@angular/router';
+import { Subscription } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 declare const QRCodeStyling: any;
 
@@ -19,13 +19,13 @@ declare const QRCodeStyling: any;
   styleUrls: ['./banner-estabelecimento.component.scss']
 })
 export class BannerEstabelecimentoComponent implements AfterViewInit, OnInit, OnDestroy {
-  private router = inject(Router);
+  private location = inject(Location);
   id: string = '';
   nome: string = '';
   @Input() logo = 'assets/icons/icon-1024x1024.png';
   @Input() background = 'assets/banner-estabelecimento.png';
 
-  @ViewChild('qrcode', { static: true, read: ElementRef }) qrcodeEl!: ElementRef<HTMLDivElement>;
+  @ViewChild('qrcode', { static: true, read: ElementRef }) qrcodeEl!: ElementRef<HTMLDivElement>; 
   @ViewChild('estname', { static: true, read: ElementRef }) estnameEl!: ElementRef<HTMLElement>;
 
   bgWidth = 2480;
@@ -245,6 +245,6 @@ export class BannerEstabelecimentoComponent implements AfterViewInit, OnInit, On
   }
 
   goBack(): void {
-    this.router.navigate(['/meus-estabelecimentos']);
+    this.location.back();
   }
 }
