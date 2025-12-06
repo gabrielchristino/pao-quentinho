@@ -1,0 +1,43 @@
+<div class="container page-container content-page">
+  <h1>Ajuda & Perguntas Frequentes (FAQ)</h1>
+  <p class="intro">Encontre aqui as respostas para as dúvidas mais comuns sobre o Pão Quentinho. Se não encontrar o que procura, entre em contato conosco!</p>
+
+  <mat-accordion multi>
+    <mat-expansion-panel>
+      <mat-expansion-panel-header>
+        <mat-panel-title>Como faço para encontrar padarias perto de mim?</mat-panel-title>
+      </mat-expansion-panel-header>
+      <p>Ao abrir o aplicativo, permitindo o acesso à sua localização, o mapa mostrará automaticamente os estabelecimentos cadastrados na sua região. Você pode usar o campo de busca para procurar por um endereço ou CEP específico.</p>
+    </mat-expansion-panel>
+
+    <mat-expansion-panel>
+      <mat-expansion-panel-header>
+        <mat-panel-title>O que significa "Seguir" um estabelecimento?</mat-panel-title>
+      </mat-expansion-panel-header>
+      <p>Ao seguir um estabelecimento, você se inscreve para receber notificações push. Sempre que o dono do local anunciar uma nova fornada, você receberá um alerta em tempo real no seu celular, garantindo que você não perca nenhuma novidade.</p>
+    </mat-expansion-panel>
+
+    <mat-expansion-panel>
+      <mat-expansion-panel-header>
+        <mat-panel-title>Sou lojista, como cadastro meu estabelecimento?</mat-panel-title>
+      </mat-expansion-panel-header>
+      <p>É muito simples e gratuito! Crie uma conta marcando a opção "Sou lojista". Em seguida, acesse o menu "Meus Estabelecimentos" e clique em "Cadastrar novo estabelecimento". Preencha os dados e pronto, seu negócio já estará visível no mapa!</p>
+    </mat-expansion-panel>
+
+    <mat-expansion-panel>
+      <mat-expansion-panel-header>
+        <mat-panel-title>Como faço para notificar meus seguidores sobre uma nova fornada?</mat-panel-title>
+      </mat-expansion-panel-header>
+      <p>Acesse a tela "Meus Estabelecimentos", encontre o local desejado e clique no botão "Notificar Fornada". Você poderá escrever uma mensagem personalizada para seus seguidores, como "Pão francês quentinho saindo agora!" ou "Promoção de croissants!".</p>
+    </mat-expansion-panel>
+  </mat-accordion>
+
+  <div class="contact-section">
+    <h2>Ainda precisa de ajuda?</h2>
+    <p>Nossa equipe está pronta para ajudar. Envie um e-mail e responderemos o mais breve possível.</p>
+    <a mat-flat-button color="primary" [href]="getMailtoLink()">
+      <mat-icon>email</mat-icon>
+      Entrar em contato
+    </a>
+  </div>
+</div>

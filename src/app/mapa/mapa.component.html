@@ -215,7 +215,11 @@
       <mat-icon>notifications</mat-icon>
       <span>Minhas Inscrições</span>
     </button>
-    <button mat-menu-item (click)="abrirLinkDeAjuda()">
+    <button mat-menu-item (click)="navigateTo(['/sobre'])">
+      <mat-icon>info_outline</mat-icon>
+      <span>Sobre</span>
+    </button>
+    <button mat-menu-item (click)="navigateTo(['/ajuda'])">
       <mat-icon>help_outline</mat-icon>
       <span>Preciso de ajuda</span>
     </button>

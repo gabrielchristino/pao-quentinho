@@ -29,7 +29,11 @@
           <span>Minhas inscrições</span>
       </button>
 
-      <button mat-menu-item (click)="abrirLinkDeAjuda()">
+      <button mat-menu-item (click)="navigateTo(['/sobre'])">
+        <mat-icon>info_outline</mat-icon>
+        <span>Sobre o Pão Quentinho</span>
+      </button>
+      <button mat-menu-item (click)="navigateTo(['/ajuda'])">
           <mat-icon>help_outline</mat-icon>
           <span>Preciso de ajuda</span>
       </button>
