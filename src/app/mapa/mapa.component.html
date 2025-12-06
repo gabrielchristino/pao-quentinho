@@ -49,7 +49,7 @@
     </div>
     <div class="tour-actions">
       <button mat-flat-button color="primary" (click)="instalarPWA()">Instalar App</button>
-      <button mat-button (click)="avancarTour()">Depois</button>
+      <button mat-button (click)="finalizarTour()">Depois</button>
     </div>
   </div>
 
@@ -120,7 +120,7 @@
         <mat-spinner *ngIf="isLoggingIn" diameter="24"></mat-spinner>
       </button>
       
-      <button mat-button (click)="finalizarTour()" class="skip-button">Pular por enquanto</button>
+      <button mat-button (click)="avancarTour()" class="skip-button">Pular por enquanto</button>
     </div>
   </div>
 </div>
