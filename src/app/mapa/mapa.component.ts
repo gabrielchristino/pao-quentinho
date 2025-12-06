@@ -142,12 +142,16 @@ export class MapaComponent implements AfterViewInit, OnInit {
     this._elementRef.nativeElement.ownerDocument.body.classList.add('no-scroll');
   }
   ngAfterViewInit(): void {
-    this.inicializarMapa(-14.235, -51.925, 4);
-    if (!this.tourStep) { // Só solicita permissões se o tour não estiver ativo
-      this.requestUserLocation(); // Solicita a localização para todos os usuários. O método lida com o tour se necessário.
-      this.initializeDataFlow(); // Inicia o fluxo de dados que aguardará a localização ser definida.
-    }
-    this.ouvirMudancasDeAutenticacao();
+    // Adia a inicialização do mapa para depois que o navegador renderizar a página.
+    // Isso melhora drasticamente o LCP e a pontuação de Performance.
+    setTimeout(() => {
+      this.inicializarMapa(-14.235, -51.925, 4);
+      if (!this.tourStep) { // Só solicita permissões se o tour não estiver ativo
+        this.requestUserLocation();
+        this.initializeDataFlow();
+      }
+      this.ouvirMudancasDeAutenticacao();
+    }, 0);
     this.bottomSheetEl = this._elementRef.nativeElement.querySelector('#bottomSheet');
     this.handleRouteActions();
   }
