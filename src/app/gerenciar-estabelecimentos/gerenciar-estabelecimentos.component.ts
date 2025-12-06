@@ -164,7 +164,7 @@ export class GerenciarEstabelecimentosComponent implements OnInit, OnDestroy {
       return;
     }
 
-    navigator.permissions.query({ name: 'push' }).then(permissionStatus => {
+    navigator.permissions.query({ name: 'push', userVisibleOnly: true } as any).then(permissionStatus => {
       if (permissionStatus.state === 'prompt') {
         // Se a permissão ainda não foi solicitada, inicia o fluxo automaticamente.
         this.habilitarNotificacoes();

@@ -362,7 +362,7 @@ export class MapaComponent implements AfterViewInit, OnInit {
   private verificarEAtivarNotificacoesLojista(): void {
     if (!this.swPush.isEnabled) return;
 
-    navigator.permissions.query({ name: 'push' }).then(permissionStatus => {
+    navigator.permissions.query({ name: 'push', userVisibleOnly: true } as any).then(permissionStatus => {
       if (permissionStatus.state === 'prompt') {
         this.habilitarNotificacoesParaLojista();
       }
