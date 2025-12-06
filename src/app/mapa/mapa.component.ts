@@ -151,17 +151,10 @@ export class MapaComponent implements AfterViewInit, OnInit {
     this.handleRouteActions();
   }
   ngOnInit(): void {
-    // Lógica para verificar se é a primeira visita do usuário
     const isFirstVisit = !localStorage.getItem('hasVisited');
     if (isFirstVisit) {
       this.tourStep = 'location';
-    } else {
-      // Lógica padrão para usuários recorrentes
-      // A chamada foi movida para o AfterViewInit para garantir que o mapa esteja pronto
-      // this.centralizarNoUsuario(); 
     }
-    // Opcional: Se precisar de alguma lógica de inicialização antes de AfterViewInit
-    // para garantir que o mapa esteja pronto para receber comandos de navegação.
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
       password: ['', Validators.required]
@@ -324,7 +317,6 @@ export class MapaComponent implements AfterViewInit, OnInit {
       takeUntil(this.destroy$)
     );
 
-    // 3. Combina o fluxo de seleção com o fluxo de estabelecimentos
     combineLatest([
       this.mapStateService.selectEstablishment$,
       estabelecimentos$
@@ -884,7 +876,6 @@ export class MapaComponent implements AfterViewInit, OnInit {
     if (this.loginForm.invalid) return;
 
     this.isLoggingIn = true;
-    this.loginErrorMessage = null; // Limpa a mensagem de erro anterior
     this.authService.login(this.loginForm.value).pipe(
       finalize(() => this.isLoggingIn = false)
     ).subscribe({
@@ -892,7 +883,7 @@ export class MapaComponent implements AfterViewInit, OnInit {
         if (syncResponse?.syncedEstablishmentIds) {
           this.notificationService.triggerSubscriptionSync(syncResponse.syncedEstablishmentIds);
         }
-        this.router.navigate(['/']); // Limpa o query param 'action=login'
+        this.router.navigate(['/']);
         this.avancarTour(); // Avança para o próximo passo do tour (instalação)
       },
       error: (err) => {
@@ -905,12 +896,11 @@ export class MapaComponent implements AfterViewInit, OnInit {
     if (this.registerForm.invalid) return;
 
     this.isRegistering = true;
-    this.registerErrorMessage = null; // Limpa a mensagem de erro anterior
     this.authService.register(this.registerForm.value).pipe(
       finalize(() => this.isRegistering = false)
     ).subscribe({
       next: (syncResponse) => {
-        this.router.navigate(['/']); // Limpa o query param 'action=login'
+        this.router.navigate(['/']);
         this.avancarTour(); // Avança para o próximo passo do tour (instalação)
         const userRole = this.authService.getUserRole();
         if (userRole === 'lojista') {
