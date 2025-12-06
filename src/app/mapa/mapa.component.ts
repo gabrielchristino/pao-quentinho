@@ -20,6 +20,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { SwPush } from '@angular/service-worker';
 import L from 'leaflet';
 import 'leaflet-routing-machine';
+import ptBR from '../../../node_modules/osrm-text-instructions/languages/translations/pt-BR.json';
 import { BehaviorSubject, combineLatest, debounceTime, filter, finalize, firstValueFrom, map, of, Subject, switchMap, take, takeUntil, tap } from 'rxjs';
 import { Estabelecimento } from '../estabelecimento.model';
 import { EstabelecimentosService } from '../services/estabelecimentos.service';
@@ -580,6 +581,10 @@ export class MapaComponent implements AfterViewInit, OnInit {
     this.routingControl = L.Routing.control({
       routeWhileDragging: true,
       show: false,
+      router: (L.Routing as any).osrmv1({
+        language: 'pt-BR',
+        textInstructions: new (L.Routing as any).Localization({ 'pt-BR': ptBR })
+      } as any),
       addWaypoints: false,
       fitSelectedRoutes: false,
       lineOptions: {
