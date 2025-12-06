@@ -102,7 +102,7 @@ export class MapaComponent implements AfterViewInit, OnInit {
   installPrompt: any = null;
   showInstallBanner = true;
   private destroy$ = new Subject<void>();
-  tourStep: 'location' | 'notification' | 'install' | 'login' | null = null;
+  tourStep: 'welcome' | 'location' | 'notification' | 'install' | 'login' | null = null;
   isLoading = true;
   isLoggingIn = false;
   isRegistering = false;
@@ -153,7 +153,7 @@ export class MapaComponent implements AfterViewInit, OnInit {
   ngOnInit(): void {
     const isFirstVisit = !localStorage.getItem('hasVisited');
     if (isFirstVisit) {
-      this.tourStep = 'location';
+      this.tourStep = 'welcome';
     }
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
@@ -955,7 +955,9 @@ export class MapaComponent implements AfterViewInit, OnInit {
   }
 
   avancarTour(skipped = false): void {
-    if (this.tourStep === 'location' && skipped) {
+    if (this.tourStep === 'welcome') {
+      this.tourStep = 'location';
+    } else if (this.tourStep === 'location' && skipped) {
       // Se o usuário pular a etapa de localização, define uma localização padrão (São Paulo).
       localStorage.setItem('locationPermissionSkipped', 'true');
       this.location$.next({ lat: -23.55052, lng: -46.633308 });
@@ -967,6 +969,8 @@ export class MapaComponent implements AfterViewInit, OnInit {
       this.tourStep = 'login';
     } else if (this.tourStep === 'notification') { // Avança da notificação para o login
       this.tourStep = 'login';
+    } else if (this.tourStep === 'login' && skipped) { // Se pular o login, finaliza o tour
+      this.finalizarTour();
     } else if (this.tourStep === 'login') { // Avança do login para a instalação (ou finaliza)
       this.tourStep = this.installPrompt ? 'install' : null;
     } else if (this.tourStep === 'install') {

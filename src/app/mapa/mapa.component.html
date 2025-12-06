@@ -14,6 +14,21 @@
 
 <!-- Tour Guiado para Novos Usuários -->
 <div class="tour-overlay" *ngIf="tourStep">
+  <!-- Passo 0: Boas-vindas -->
+  <div class="tour-step" *ngIf="tourStep === 'welcome'">
+    <div class="tour-content">
+      <mat-icon class="tour-icon">bakery_dining</mat-icon>
+      <h2 class="tour-title">Bem-vindo ao Pão Quentinho!</h2>
+      <div class="welcome-text">
+        <p>Nosso aplicativo conecta você às melhores padarias, confeitarias e mercados da sua região, mostrando <strong>em tempo real onde encontrar pão quentinho</strong> e outras delícias recém-saídas do forno.</p>
+        <p>Com o Pão Quentinho, você pode <strong>seguir seus locais favoritos</strong>, <strong>receber alertas de novas fornadas</strong> e nunca mais perder a chance de saborear produtos frescos.</p>
+        <p>Vamos começar a encontrar as delícias mais próximas de você!</p>
+      </div>
+    </div>
+    <div class="tour-actions">
+      <button mat-flat-button color="primary" (click)="avancarTour()">Começar</button>
+    </div>
+  </div>
   <!-- Passo 1: Permissão de Localização -->
   <div class="tour-step" *ngIf="tourStep === 'location'">
     <div class="tour-content">
