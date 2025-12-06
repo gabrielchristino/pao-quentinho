@@ -23,7 +23,7 @@
     </div>
     <div class="tour-actions">
       <button mat-flat-button color="primary" (click)="solicitarPermissaoLocalizacao()">Permitir localização</button>
-      <button mat-button (click)="avancarTour()">Pular</button>
+      <button mat-button (click)="avancarTour(true)">Pular</button>
     </div>
   </div>
 
@@ -36,24 +36,11 @@
     </div>
     <div class="tour-actions">
       <button mat-flat-button color="primary" (click)="solicitarPermissaoNotificacao()">Ativar notificações</button>
-      <button mat-button (click)="avancarTour()">Agora não</button>
+      <button mat-button (click)="avancarTour(true)">Agora não</button>
     </div>
   </div>
 
-  <!-- Passo 3: Instalar o App -->
-  <div class="tour-step" *ngIf="tourStep === 'install' && installPrompt">
-    <div class="tour-content">
-      <mat-icon class="tour-icon">add_to_home_screen</mat-icon>
-      <h2 class="tour-title">Instale o Pão Quentinho!</h2>
-      <p class="tour-description">Tenha acesso rápido ao app, direto da sua tela inicial, para uma melhor experiência.</p>
-    </div>
-    <div class="tour-actions">
-      <button mat-flat-button color="primary" (click)="instalarPWA()">Instalar App</button>
-      <button mat-button (click)="finalizarTour()">Depois</button>
-    </div>
-  </div>
-
-  <!-- Passo 4: Cadastro/Login -->
+  <!-- Passo 3: Cadastro/Login -->
   <div class="tour-step" *ngIf="tourStep === 'login'">
     <div class="tour-content auth-form-container">
       <mat-icon class="tour-icon">account_circle</mat-icon>
@@ -120,7 +107,20 @@
         <mat-spinner *ngIf="isLoggingIn" diameter="24"></mat-spinner>
       </button>
       
-      <button mat-button (click)="avancarTour()" class="skip-button">Pular por enquanto</button>
+      <button mat-button (click)="avancarTour(true)" class="skip-button">Pular por enquanto</button>
+    </div>
+  </div>
+
+  <!-- Passo 4: Instalar o App -->
+  <div class="tour-step" *ngIf="tourStep === 'install' && installPrompt">
+    <div class="tour-content">
+      <mat-icon class="tour-icon">add_to_home_screen</mat-icon>
+      <h2 class="tour-title">Instale o Pão Quentinho!</h2>
+      <p class="tour-description">Tenha acesso rápido ao app, direto da sua tela inicial, para uma melhor experiência.</p>
+    </div>
+    <div class="tour-actions">
+      <button mat-flat-button color="primary" (click)="instalarPWA()">Instalar App</button>
+      <button mat-button (click)="finalizarTour()">Depois</button>
     </div>
   </div>
 </div>

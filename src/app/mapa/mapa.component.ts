@@ -1,36 +1,33 @@
-import { Component, AfterViewInit, ViewChild, ElementRef, Input, OnChanges, SimpleChanges, NgZone, HostListener, OnInit } from '@angular/core';
-import L from 'leaflet';
-import { EstabelecimentosService } from '../services/estabelecimentos.service';
-import { Estabelecimento } from '../estabelecimento.model';
-import { firstValueFrom, Subject, takeUntil, combineLatest, filter, BehaviorSubject, switchMap, tap, map, take, finalize, debounceTime, of } from 'rxjs';
-import { NotificationService } from '../services/notification.service';
+import { CommonModule, Location } from '@angular/common';
+import { AfterViewInit, Component, ElementRef, HostListener, NgZone, OnInit, ViewChild } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import 'leaflet-routing-machine';
-import { CommonModule } from '@angular/common';
 import { MatBottomSheetModule } from '@angular/material/bottom-sheet';
-import { MatListModule } from '@angular/material/list';
-import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatCardModule } from '@angular/material/card';
-import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatMenuModule } from '@angular/material/menu';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatRippleModule } from '@angular/material/core';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
+import { MatInputModule } from '@angular/material/input';
+import { MatListModule } from '@angular/material/list';
+import { MatMenuModule } from '@angular/material/menu';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatTabsModule } from '@angular/material/tabs';
-import { MatCheckboxModule } from '@angular/material/checkbox';
-import { Location } from '@angular/common';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { SwPush } from '@angular/service-worker';
+import L from 'leaflet';
+import 'leaflet-routing-machine';
+import { BehaviorSubject, combineLatest, debounceTime, filter, finalize, firstValueFrom, map, of, Subject, switchMap, take, takeUntil, tap } from 'rxjs';
+import { Estabelecimento } from '../estabelecimento.model';
+import { EstabelecimentosService } from '../services/estabelecimentos.service';
+import { NotificationService } from '../services/notification.service';
 
-import { MapStateService } from '../services/map-state.service';
-import { PermissionDialogComponent, PermissionDialogData } from './permission-diolog.component';
+import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
-import { AuthDialogComponent } from '../auth-dialog/auth-dialog.component'; // Não usado, pode ser removido se não for necessário
-import { Router, ActivatedRoute } from '@angular/router';
+import { MapStateService } from '../services/map-state.service';
 const iconRetinaUrl = 'assets/marker-icon-2x.png';
 const iconUrl = 'assets/marker-icon.png';
 const shadowUrl = 'assets/marker-shadow.png';
@@ -148,7 +145,8 @@ export class MapaComponent implements AfterViewInit, OnInit {
   ngAfterViewInit(): void {
     this.inicializarMapa(-14.235, -51.925, 4);
     if (!this.tourStep) { // Só solicita permissões se o tour não estiver ativo
-      this.solicitarPermissoesIniciais();
+      this.requestUserLocation(); // Solicita a localização para todos os usuários. O método lida com o tour se necessário.
+      this.initializeDataFlow(); // Inicia o fluxo de dados que aguardará a localização ser definida.
     }
     this.ouvirMudancasDeAutenticacao();
     this.bottomSheetEl = this._elementRef.nativeElement.querySelector('#bottomSheet');
@@ -188,91 +186,53 @@ export class MapaComponent implements AfterViewInit, OnInit {
 
   }
 
-  private async solicitarPermissaoDeLocalizacao(): Promise<void> {
-
-    // Fallback para navegadores que não suportam a API de Permissões
-    if (!navigator.permissions?.query) {
-      this.getUserLocation();
-      return;
-    }
-
-    // Se o usuário já pulou a permissão anteriormente, usa a localização padrão.
+  /**
+   * Orquestra a obtenção da localização do usuário, lidando com permissões,
+   * fallbacks e a interface do tour.
+   */
+  private async requestUserLocation(): Promise<void> {
     if (localStorage.getItem('locationPermissionSkipped') === 'true') {
       this.location$.next({ lat: -23.55052, lng: -46.633308 });
-      this.isLocationOverridden = true; // Impede que a localização real sobrescreva a padrão
+      this.isLocationOverridden = true;
       return;
     }
 
-    const result = await navigator.permissions.query({ name: 'geolocation' });
-
-    if (result.state === 'granted') {
-      this.getUserLocation();
-    } else if (result.state === 'prompt') {
-      // Se o tour já não estiver ativo, inicia o tour na etapa de localização.
-      // Isso substitui o antigo dialog, unificando a experiência.
-      if (!this.tourStep) {
+    if (navigator.permissions?.query) {
+      const permissionStatus = await navigator.permissions.query({ name: 'geolocation' });
+      if (permissionStatus.state === 'prompt' && !this.tourStep) {
         this.tourStep = 'location';
-      } else {
-        // Se o tour já estiver ativo (ex: primeira visita), não faz nada, pois o tour já está visível.
+        return;
       }
-    } else if (result.state === 'denied') {
-      this.getUserLocation();
     }
-  }
 
-  private getUserLocation(): void {
-    if ('geolocation' in navigator) {
-      navigator.geolocation.getCurrentPosition(
-        ({ coords }) => {
+    const getPosition = (options: PositionOptions): Promise<GeolocationPosition> =>
+      new Promise((resolve, reject) => navigator.geolocation.getCurrentPosition(resolve, reject, options));
+
+    try {
+      const { coords } = await getPosition({ enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 });
+      this.location$.next({ lat: coords.latitude, lng: coords.longitude });
+    } catch (error) {
+      if ((error as GeolocationPositionError).code === (error as GeolocationPositionError).TIMEOUT) {
+        try {
+          const { coords } = await getPosition({ enableHighAccuracy: false, timeout: 10000, maximumAge: 60000 });
           this.location$.next({ lat: coords.latitude, lng: coords.longitude });
-        },
-        (error) => {
-          this.handleLocationError(error);
-        },
-        {
-          enableHighAccuracy: true,
-          timeout: 10000,
-          maximumAge: 60000
+        } catch (lowAccuracyError) {
+          this.location$.next({ lat: -23.55052, lng: -46.633308 }); // Fallback final
         }
-      );
-
-    } else {
-      this.location$.next({ lat: -23.55052, lng: -46.633308 });
+      } else {
+        if ((error as GeolocationPositionError).code === (error as GeolocationPositionError).PERMISSION_DENIED) {
+          const snackBarRef = this._snackBar.open('Sua localização está bloqueada. Que tal habilitá-la para encontrarmos pão quentinho por perto?', 'Como?', {
+            duration: 10000,
+            panelClass: ['pao-quentinho-snackbar']
+          });
+          snackBarRef.onAction().subscribe(() => {
+            const instruction = 'Clique no cadeado ao lado do endereço do site e altere a permissão de Localização para "Permitir".';
+            this._snackBar.open(instruction, 'Entendi', { duration: 15000, panelClass: ['pao-quentinho-snackbar'] });
+          });
+        }
+        this.location$.next({ lat: -23.55052, lng: -46.633308 }); // Fallback para outros erros
+      }
     }
-  }
-  /**
- * Lida com erros ao obter a geolocalização, implementando uma estratégia de fallback.
- * @param error O erro retornado pela API de Geolocalização.
- */
-  private handleLocationError(error: GeolocationPositionError): void {
-    // Se o erro for timeout, tenta com baixa precisão.
-    if (error.code === error.TIMEOUT) {
-      navigator.geolocation.getCurrentPosition(
-        ({ coords }) => {
-          this.location$.next({ lat: coords.latitude, lng: coords.longitude });
-        },
-        (lowAccuracyError) => {
-          this.location$.next({ lat: -23.55052, lng: -46.633308 }); // Fallback final para SP
-        },
-        { enableHighAccuracy: false, timeout: 10000, maximumAge: 60000 }
-      );
-      return;
-    }
-
-    // Se a permissão foi negada, mostra uma mensagem útil.
-    if (error.code === error.PERMISSION_DENIED) {
-      const snackBarRef = this._snackBar.open('Sua localização está bloqueada. Que tal habilitá-la para encontrarmos pão quentinho por perto?', 'Como?', {
-        duration: 10000,
-        panelClass: ['pao-quentinho-snackbar']
-      });
-      snackBarRef.onAction().subscribe(() => {
-        const instruction = 'Clique no cadeado ao lado do endereço do site e altere a permissão de Localização para "Permitir".';
-        this._snackBar.open(instruction, 'Entendi', { duration: 15000, panelClass: ['pao-quentinho-snackbar'] });
-      });
-    }
-
-    // Para todos os outros erros (ou se a tentativa de baixa precisão falhar), usa o fallback.
-    this.location$.next({ lat: -23.55052, lng: -46.633308 });
   }
 
   @HostListener('window:beforeinstallprompt', ['$event'])
@@ -367,12 +327,6 @@ export class MapaComponent implements AfterViewInit, OnInit {
     });
   }
 
-
-
-  private solicitarPermissoesIniciais(): void {
-    this.solicitarPermissaoDeLocalizacao().then(() => this.initializeDataFlow());
-  }
-
   private initializeDataFlow(): void {
     const estabelecimentos$ = this.location$.pipe(
       debounceTime(50), // Evita re-execuções rápidas e desnecessárias
@@ -404,9 +358,11 @@ export class MapaComponent implements AfterViewInit, OnInit {
     this.location$.pipe(
       filter((loc): loc is { lat: number; lng: number } => loc !== null),
       tap((loc) => {
-        if (this.isLoading && !this.userMarker) {
+        // Garante a inicialização do marcador e a centralização do mapa
+        // tanto no carregamento inicial quanto ao final do tour,
+        // quando o marcador ainda não foi criado.
+        if (!this.userMarker) {
           this.inicializarMarcadorUsuario(loc.lat, loc.lng);
-          this.isLoading = false;
         }
         this.atualizarLocalizacaoMapa();
       }),
@@ -457,9 +413,7 @@ export class MapaComponent implements AfterViewInit, OnInit {
 
     this.map = L.map(this.mapElementRef.nativeElement).setView([latitude, longitude], zoom);
     this.map.zoomControl.remove();
-    this.map.scrollWheelZoom.disable();
-    this.map.touchZoom.disable();
-    this.map.doubleClickZoom.disable();
+    this.disableMapNavigation();
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
@@ -483,7 +437,7 @@ export class MapaComponent implements AfterViewInit, OnInit {
       this.tourStep = 'location';
     } else {
       // Comportamento padrão: busca a localização e centraliza o mapa.
-      this.getUserLocation();
+      this.requestUserLocation();
       this.location$.pipe(
         filter((loc): loc is { lat: number; lng: number } => loc !== null),
         take(1) // Pega apenas a próxima localização emitida para evitar recentralizações indesejadas
@@ -518,6 +472,9 @@ export class MapaComponent implements AfterViewInit, OnInit {
 
     const zoomLevel = this.calculateZoomLevel(this.raio);
     this.map.setView([latitude, longitude], zoomLevel);
+
+    // Garante que a tela de carregamento seja removida após a inicialização do marcador.
+    this.isLoading = false;
   }
 
   private atualizarLocalizacaoMapa(): void {
@@ -622,13 +579,7 @@ export class MapaComponent implements AfterViewInit, OnInit {
       this.map.flyTo([loc.lat, loc.lng], zoomLevel);
     }
 
-    if (this.map) {
-      this.map.scrollWheelZoom.disable();
-      this.map.touchZoom.disable();
-      this.map.doubleClickZoom.disable();
-      this.map.scrollWheelZoom.disable();
-    }
-
+    this.disableMapNavigation();
     // Limpa o estado de seleção para evitar que o popup reabra.
     this.mapStateService.clearSelection();
 
@@ -674,11 +625,7 @@ export class MapaComponent implements AfterViewInit, OnInit {
     this.map.fitBounds(bounds, { padding: [50, 50] });
 
     // Habilita o zoom durante a navegação
-    if (this.map) {
-      this.map.scrollWheelZoom.enable();
-      this.map.touchZoom.enable();
-      this.map.doubleClickZoom.enable();
-    }
+    this.enableMapNavigation();
   }
 
   /**
@@ -924,32 +871,34 @@ export class MapaComponent implements AfterViewInit, OnInit {
     return 'Horário não informado';
   }
 
-  solicitarPermissaoLocalizacao() {
-    // Remove a flag para que o app não use mais a localização padrão.
-    localStorage.removeItem('locationPermissionSkipped');
-    this.isLocationOverridden = false;
-    // Se o tour completo não estiver ativo, apenas fecha a etapa atual.
-    // Caso contrário, avança para a próxima etapa.
-    if (this.isTourActive) {
-      this.avancarTour();
-    } else {
-      this.tourStep = null; // Fecha o tour para o usuário ver o mapa carregar.
+  private async requestPermissionAndProceed(permissionType: 'location' | 'notification', requestAction: () => Promise<any> | void): Promise<void> {
+    localStorage.removeItem(`${permissionType}PermissionSkipped`);
+    if (permissionType === 'location') {
+      this.isLocationOverridden = false;
     }
-    this.getUserLocation();
+    // A lógica de avanço do tour foi movida para os callbacks (onGranted/onDenied)
+    // para evitar chamadas duplicadas e garantir que o fluxo seja controlado pelo resultado da permissão.
+    // Para a localização, que não usa callbacks, o avanço é feito aqui após a conclusão.
+    await Promise.resolve(requestAction());
+    if (permissionType === 'location') {
+      this.isTourActive ? this.avancarTour() : (this.tourStep = null);
+    }
+  }
+
+  solicitarPermissaoLocalizacao(): void {
+    this.requestPermissionAndProceed('location', () => this.requestUserLocation());
   }
 
   solicitarPermissaoNotificacao(): void {
-    localStorage.removeItem('notificationPermissionSkipped');
-
     const onGranted = () => {
+      if (this.isTourActive) this.avancarTour();
+      else this.tourStep = null;
       if (this.pendingSubscription) {
         this.subscribeToNotifications(this.pendingSubscription.id).then(() => {
           this._snackBar.open(`Inscrição realizada com sucesso para a ${this.pendingSubscription!.nome}!`, 'Ok', { duration: 3000, panelClass: ['pao-quentinho-snackbar'] });
           this.pendingSubscription = null;
         });
       }
-      if (this.isTourActive) this.avancarTour();
-      else this.tourStep = null;
     };
 
     const onDeniedOrDismissed = () => {
@@ -960,7 +909,7 @@ export class MapaComponent implements AfterViewInit, OnInit {
 
     // O serviço de notificação agora lida com o prompt do navegador
     // e chama o callback apropriado.
-    this.notificationService.solicitarPermissaoDeNotificacao(onGranted, onDeniedOrDismissed);
+    this.requestPermissionAndProceed('notification', () => this.notificationService.solicitarPermissaoDeNotificacao(onGranted, onDeniedOrDismissed));
   }
 
   onLogin(): void {
@@ -979,9 +928,7 @@ export class MapaComponent implements AfterViewInit, OnInit {
         this.avancarTour(); // Avança para o próximo passo do tour (instalação)
       },
       error: (err) => {
-        const message = err.status === 401 ? 'Credenciais inválidas.' : 'Erro ao fazer login.';
-        this.loginErrorMessage = message; // Define a mensagem de erro para exibição no formulário
-        this._snackBar.open(message, 'Fechar', { duration: 3000 });
+        this.handleAuthError(err, 'login');
       }
     });
   }
@@ -1006,11 +953,27 @@ export class MapaComponent implements AfterViewInit, OnInit {
         }
       },
       error: (err) => {
-        const message = err.status === 409 ? 'Este email já está em uso.' : 'Erro ao se cadastrar.';
-        this.registerErrorMessage = message; // Define a mensagem de erro para exibição no formulário
-        this._snackBar.open(message, 'Fechar', { duration: 3000 });
+        this.handleAuthError(err, 'register');
       }
     });
+  }
+  private handleAuthError(err: any, type: 'login' | 'register'): void {
+    let message: string;
+    if (type === 'login') {
+      message = err.status === 401 ? 'Credenciais inválidas.' : 'Erro ao fazer login.';
+      this.loginErrorMessage = message;
+    } else { // register
+      message = err.status === 409 ? 'Este email já está em uso.' : 'Erro ao se cadastrar.';
+      this.registerErrorMessage = message;
+    }
+    this._snackBar.open(message, 'Fechar', { duration: 3000 });
+  }
+
+  private enableMapNavigation(): void {
+    if (!this.map) return;
+    this.map.scrollWheelZoom.enable();
+    this.map.touchZoom.enable();
+    this.map.doubleClickZoom.enable();
   }
 
   /**
@@ -1030,16 +993,20 @@ export class MapaComponent implements AfterViewInit, OnInit {
     window.location.href = this.getMailtoLink();
   }
 
-  avancarTour(): void {
-    if (this.tourStep === 'location' && this.isTourActive) {
+  avancarTour(skipped = false): void {
+    if (this.tourStep === 'location' && skipped) {
       // Se o usuário pular a etapa de localização, define uma localização padrão (São Paulo).
       localStorage.setItem('locationPermissionSkipped', 'true');
       this.location$.next({ lat: -23.55052, lng: -46.633308 });
       this.tourStep = 'notification';
-    } else if (this.tourStep === 'notification') {
-      localStorage.setItem('notificationPermissionSkipped', 'true');
+    } else if (this.tourStep === 'location') { // Se não pulou, apenas avança
+      this.tourStep = 'notification';
+    } else if (this.tourStep === 'notification' && skipped) {
+      localStorage.setItem('notificationPermissionSkipped', 'true'); // Marca como pulado
       this.tourStep = 'login';
-    } else if (this.tourStep === 'login') {
+    } else if (this.tourStep === 'notification') { // Avança da notificação para o login
+      this.tourStep = 'login';
+    } else if (this.tourStep === 'login') { // Avança do login para a instalação (ou finaliza)
       this.tourStep = this.installPrompt ? 'install' : null;
     } else if (this.tourStep === 'install') {
       this.finalizarTour();
@@ -1056,10 +1023,26 @@ export class MapaComponent implements AfterViewInit, OnInit {
     // Se o marcador do usuário ainda não foi criado (ex: pulou o tour),
     // inicializa o fluxo de dados para usar a localização padrão e carregar o mapa.
     if (!this.userMarker) {
-      this.initializeDataFlow();
+      // Garante que o fluxo de dados só comece após a localização (real ou padrão) ser definida.
+      this.location$.pipe(
+        filter((loc): loc is { lat: number; lng: number } => loc !== null),
+        take(1),
+        takeUntil(this.destroy$)
+      ).subscribe((loc) => {
+        this.inicializarMarcadorUsuario(loc.lat, loc.lng);
+        // Após o marcador inicial ser criado, iniciamos o fluxo para carregar estabelecimentos.
+        this.initializeDataFlow();
+      });
     }
     if (userRole === 'lojista') {
       this.router.navigate(['/meus-estabelecimentos']);
     }
+  }
+
+  private disableMapNavigation(): void {
+    if (!this.map) return;
+    this.map.scrollWheelZoom.disable();
+    this.map.touchZoom.disable();
+    this.map.doubleClickZoom.disable();
   }
 }
