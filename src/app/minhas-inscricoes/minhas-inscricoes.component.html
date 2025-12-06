@@ -1,0 +1,75 @@
+<div class="container page-container">
+
+  <div *ngIf="isLoading" class="loading-container">
+    <mat-progress-spinner mode="indeterminate" diameter="40"></mat-progress-spinner>
+    <p>Carregando seus locais...</p>
+  </div>
+
+  <div *ngIf="!isLoading && estabelecimentos.length === 0" class="empty-state">
+    <mat-icon class="empty-icon">notifications_off</mat-icon>
+    <h2>Você ainda não segue nenhum local</h2>
+    <p>Volte ao mapa e clique em "Seguir" nos seus estabelecimentos favoritos para receber alertas.</p>
+    <a mat-flat-button color="primary" routerLink="/">Encontrar outras fornadas</a>
+  </div>
+
+  <div *ngIf="!isLoading && estabelecimentos.length > 0">
+    <div class="info-banner" *ngIf="showBanner">
+      <div class="banner-content">
+        <mat-icon class="info-icon">notifications</mat-icon>
+        <p class="info-text">Aqui estão os locais que você segue. Você receberá uma <strong>notificação</strong> sempre que uma <strong>nova fornada</strong> for anunciada.</p>
+      </div>
+      <button mat-icon-button class="close-button" (click)="dismissBanner()" aria-label="Fechar aviso">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+  
+    <mat-accordion class="establishment-list" multi>
+      <mat-expansion-panel *ngFor="let est of estabelecimentos">
+        <mat-expansion-panel-header>
+          <mat-panel-title class="panel-title-container">
+            <mat-icon matListItemIcon>{{ est.tipo === 'padaria' ? 'bakery_dining' : 'storefront' }}</mat-icon>
+            <div class="panel-text-content">
+              <div class="item-title">{{ est.nome }}</div>
+              <div class="item-line">{{ est.endereco.rua }}, {{ est.endereco.numero }}</div>
+            </div>
+          </mat-panel-title>
+        </mat-expansion-panel-header>
+        <div class="panel-content-wrapper">
+          <div class="details-section">
+            <div class="detail-item">
+              <mat-icon>schedule</mat-icon>
+              <div class="horarios-lista">
+                <span>Horários de Funcionamento: </span>
+                <ul>
+                  <li *ngFor="let dia of diasDaSemana; let i = index">
+                    <b>{{ dia }}:</b>
+                    <span *ngIf="est.horarioAbertura[i]"> {{ est.horarioAbertura[i] }} às {{ est.horarioFechamento[i] }}</span>
+                    <span *ngIf="!est.horarioAbertura[i]" class="horario-fechado"> Fechado</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+            <div class="detail-item">
+              <mat-icon>bakery_dining</mat-icon>
+              <div class="fornadas-list">
+                <span>Próximas fornadas:</span>
+                <mat-chip-set *ngIf="est && est.proximaFornada && est.proximaFornada.length > 0; else noFornadas">
+                  <mat-chip *ngFor="let horario of est.proximaFornada">{{horario}}</mat-chip>
+                </mat-chip-set>
+                <ng-template #noFornadas>
+                  <span>Nenhum horário cadastrado.</span>
+                </ng-template>
+              </div>
+            </div>
+          </div>
+          <div class="actions-section">
+            <button mat-stroked-button color="primary" matTooltip="Deixar de Seguir" (click)="deixarDeSeguir(est, $event)" [disabled]="unsubscribingId === est.id">
+              <mat-icon>notifications_off</mat-icon>
+              <span>{{ unsubscribingId === est.id ? 'Cancelando...' : 'Deixar de Seguir' }}</span>
+            </button>
+          </div>
+        </div>
+      </mat-expansion-panel>
+    </mat-accordion>
+  </div>
+</div>

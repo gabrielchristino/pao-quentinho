@@ -31,10 +31,10 @@ import { MatTooltipModule } from '@angular/material/tooltip';
     MatExpansionModule,
     MatTooltipModule
   ],
-  templateUrl: './meus-estabelecimentos.component.html',
-  styleUrl: './meus-estabelecimentos.component.scss'
+  templateUrl: './minhas-inscricoes.component.html',
+  styleUrl: './minhas-inscricoes.component.scss'
 })
-export class MeusEstabelecimentosComponent implements OnInit {
+export class MinhasInscricoesComponent implements OnInit {
   private estabelecimentosService = inject(EstabelecimentosService);
   private notificationService = inject(NotificationService);
   private snackBar = inject(MatSnackBar);
@@ -43,9 +43,18 @@ export class MeusEstabelecimentosComponent implements OnInit {
   isLoading = true;
   unsubscribingId: number | null = null;
   diasDaSemana = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+  showBanner = false;
+  private readonly BANNER_DISMISSED_KEY = 'infoBannerDismissed';
 
   ngOnInit(): void {
+    // Verifica no localStorage se o banner já foi dispensado antes
+    this.showBanner = localStorage.getItem(this.BANNER_DISMISSED_KEY) !== 'true';
     this.carregarEstabelecimentos();
+  }
+
+  dismissBanner(): void {
+    this.showBanner = false;
+    localStorage.setItem(this.BANNER_DISMISSED_KEY, 'true');
   }
 
   carregarEstabelecimentos(): void {

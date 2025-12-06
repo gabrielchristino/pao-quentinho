@@ -1,3 +1,4 @@
+<<<<<<<< HEAD:src/_shared-styles.scss
 
 // Estilos de contêiner e layout geral
 .container {
@@ -7,10 +8,20 @@
   padding: 24px;
 }
 
+========
+@import '../../_shared-styles.scss';
+
+:host {
+  display: block;
+  box-sizing: border-box;
+}
+
+>>>>>>>> master:src/app/meus-estabelecimentos/meus-estabelecimentos.component.scss
 h1 {
   margin-bottom: 8px;
 }
 
+<<<<<<<< HEAD:src/_shared-styles.scss
 // Classe para descrições de página, pode ser estendida.
 .page-description {
   margin-bottom: 24px;
@@ -122,3 +133,40 @@ h1 {
   padding-top: 8px;
   margin-top: 8px;
 }
+========
+p {
+  @extend .page-description; // Usa a classe do arquivo compartilhado
+}
+
+.form-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-row {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+
+  .cep-field {
+    flex-grow: 1;
+  }
+
+  mat-form-field {
+    flex: 1;
+  }
+}
+
+@media (max-width: 600px) {
+  .form-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+.empty-state .empty-icon {
+  // Estilo específico que sobrou
+  color: #E8A786;
+}
+>>>>>>>> master:src/app/meus-estabelecimentos/meus-estabelecimentos.component.scss

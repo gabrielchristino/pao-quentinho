@@ -13,6 +13,12 @@
   color: #444; // Cor de texto escura para bom contraste
 }
 
+
+// .app-toolbar {
+//   background-color: #fff; // Cor rosa claro, similar ao círculo do mapa
+//   color: #444; // Cor de texto escura para bom contraste
+// }
+
 .header-logo {
   height: 40px;
   width: 40px;
@@ -35,4 +41,19 @@
   // Estilo para o botão de "Entrar" quando o usuário não está logado
   border-color: 444 !important;
   color: #444; // Cor de texto escura para bom contraste
+}
+
+.menu-header {
+  padding: 8px 16px;
+  outline: none;
+
+  .user-name {
+    font-weight: 500;
+    font-size: 0.9rem;
+  }
+
+  .user-email {
+    font-size: 0.8rem;
+    color: rgba(0, 0, 0, 0.54);
+  }
 }

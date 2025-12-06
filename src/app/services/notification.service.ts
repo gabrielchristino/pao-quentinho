@@ -120,7 +120,7 @@ export class NotificationService {
    * mostrando um pré-alerta amigável.
    * @param onGranted Callback a ser executado se a permissão for concedida.
    */
-  solicitarPermissaoDeNotificacao(onGranted: () => void): void {
+  solicitarPermissaoDeNotificacao(onGranted: () => void, onDeniedOrDismissed?: () => void): void {
     if (!('Notification' in window) || !this.swPush.isEnabled) return;
 
     const permission = Notification.permission;
@@ -128,24 +128,18 @@ export class NotificationService {
     if (permission === 'granted') {
       onGranted();
     } else if (permission === 'default') {
-      const dialogRef = this.dialog.open<PermissionDialogComponent, PermissionDialogData, boolean>(PermissionDialogComponent, {
-        data: {
-          icon: 'notifications_active',
-          title: 'Permitir notificações?',
-          content: 'Quer ser avisado quando uma fornada sair? Ative as notificações para sincronizar suas inscrições neste dispositivo.',
-          confirmButton: 'Permitir',
-          cancelButton: 'Agora não'
-        },
-        disableClose: true
-      });
-
-      dialogRef.afterClosed().subscribe(result => {
-        if (result) {
-          Notification.requestPermission().then(p => { if (p === 'granted') onGranted(); });
+      // Removemos o diálogo intermediário e solicitamos a permissão diretamente.
+      // Isso é mais direto para o usuário.
+      Notification.requestPermission().then(p => {
+        if (p === 'granted') {
+          onGranted();
+        } else {
+          onDeniedOrDismissed?.(); // Negado ou dispensado no prompt do navegador
         }
       });
     } else if (permission === 'denied') {
       this.snackBar.open('As notificações estão bloqueadas. Habilite nas configurações do navegador para sincronizar.', 'Ok', { duration: 7000 });
+      onDeniedOrDismissed?.(); // Permissão já negada, avança
     }
   }
 

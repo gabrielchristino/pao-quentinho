@@ -279,7 +279,9 @@ export class CadastroEstabelecimentoComponent {
           'Ok',
           { duration: 3000 }
         );
-        this.router.navigate(['/meus-estabelecimentos']);
+        this.router.navigate(['/meus-estabelecimentos'], {
+          replaceUrl: true,
+        });
       },
       error: (err: any) => {
         console.error(`Erro ao ${this.isEditMode ? 'atualizar' : 'cadastrar'}:`, err);

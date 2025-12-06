@@ -97,7 +97,9 @@ export class GerenciarEstabelecimentosComponent implements OnInit, OnDestroy {
 
   editar(id: number): void {
     // Navega para a rota de edição, passando o ID do estabelecimento
-    this.router.navigate(['/editar-estabelecimento', id]);
+    this.router.navigate(['/editar-estabelecimento', id], {
+      replaceUrl: true,
+    });
   }
 
   apagar(id: number, nome: string): void {
