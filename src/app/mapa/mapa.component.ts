@@ -104,7 +104,6 @@ export class MapaComponent implements AfterViewInit, OnInit {
   private bottomSheetEl: HTMLElement | null = null;
   installPrompt: any = null;
   showInstallBanner = true;
-  private locationWatchId: number | null = null;
   private destroy$ = new Subject<void>();
   tourStep: 'location' | 'notification' | 'install' | 'login' | null = null;
   isLoading = true;
@@ -228,12 +227,7 @@ export class MapaComponent implements AfterViewInit, OnInit {
 
   private getUserLocation(): void {
     if ('geolocation' in navigator) {
-      // Para de monitorar a localização anterior, se houver.
-      if (this.locationWatchId) {
-        navigator.geolocation.clearWatch(this.locationWatchId);
-      }
-
-      this.locationWatchId = navigator.geolocation.watchPosition(
+      navigator.geolocation.getCurrentPosition(
         ({ coords }) => {
           this.location$.next({ lat: coords.latitude, lng: coords.longitude });
         },
@@ -241,11 +235,12 @@ export class MapaComponent implements AfterViewInit, OnInit {
           this.handleLocationError(error);
         },
         {
-          enableHighAccuracy: true, // Tenta obter a localização mais precisa possível
-          timeout: 10000, // Tempo máximo de 10 segundos para obter a localização
-          maximumAge: 60000 // Permite o uso de uma localização em cache de até 1 minuto. Melhora muito a velocidade.
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 60000
         }
       );
+
     } else {
       this.location$.next({ lat: -23.55052, lng: -46.633308 });
     }
@@ -330,9 +325,6 @@ export class MapaComponent implements AfterViewInit, OnInit {
     this.destroy$.next();
     this.destroy$.complete();
     // Remove a classe do body para reabilitar o scroll em outras páginas.
-    if (this.locationWatchId) {
-      navigator.geolocation.clearWatch(this.locationWatchId);
-    }
     this._elementRef.nativeElement.ownerDocument.body.classList.remove('no-scroll');
 
   }
