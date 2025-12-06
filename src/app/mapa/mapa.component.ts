@@ -109,8 +109,6 @@ export class MapaComponent implements AfterViewInit, OnInit {
   hideLoginPassword = true;
   hideRegisterPassword = true;
   private isLocationOverridden = false; // Flag para controlar a centralização
-  private isTourActive = false; // Flag para controlar se o tour completo está ativo
-  private pendingSubscription: Estabelecimento | null = null; // Armazena o estabelecimento a ser seguido após a permissão
   loginForm!: FormGroup;
   registerForm!: FormGroup;
   public loginErrorMessage: string | null = null; // Nova propriedade para mensagem de erro de login
@@ -151,14 +149,11 @@ export class MapaComponent implements AfterViewInit, OnInit {
     this.ouvirMudancasDeAutenticacao();
     this.bottomSheetEl = this._elementRef.nativeElement.querySelector('#bottomSheet');
     this.handleRouteActions();
-    this.handleLoginAction();
   }
   ngOnInit(): void {
     // Lógica para verificar se é a primeira visita do usuário
     const isFirstVisit = !localStorage.getItem('hasVisited');
     if (isFirstVisit) {
-      // Inicia o tour a partir do primeiro passo
-      this.isTourActive = true;
       this.tourStep = 'location';
     } else {
       // Lógica padrão para usuários recorrentes
@@ -244,35 +239,22 @@ export class MapaComponent implements AfterViewInit, OnInit {
   }
 
   private handleRouteActions(): void {
-    this.route.paramMap.pipe(
-      switchMap(params => {
-        const id = params.get('id');
-        if (id) {
-          return this.route.queryParams.pipe(
-            map(queryParams => ({ id: +id, action: queryParams['action'] }))
-          );
+    combineLatest([this.route.paramMap, this.route.queryParams]).pipe(
+      map(([params, queryParams]) => ({
+        id: params.get('id'),
+        action: queryParams['action']
+      })),
+      takeUntil(this.destroy$)
+    ).subscribe(({ id, action }) => {
+      if (action === 'reserve' && id) {
+        this.handleReserveAction(+id);
+      } else if (action === 'login') {
+        // Garante que a ação de login não interfira com o tour de primeira visita
+        if (!localStorage.getItem('hasVisited')) {
+          localStorage.setItem('hasVisited', 'true');
         }
-        return of(null); // Retorna um observable que emite null se não houver id
-      }),
-      filter(data => data !== null && data.action === 'reserve'),
-      takeUntil(this.destroy$)
-    ).subscribe(data => {
-      if (data && data.id) {
-        this.handleReserveAction(data.id);
+        this.tourStep = 'login';
       }
-    });
-  }
-
-  private handleLoginAction(): void {
-    this.route.queryParams.pipe(
-      filter(params => params['action'] === 'login'),
-      takeUntil(this.destroy$)
-    ).subscribe(() => {
-      // Garante que a ação de login não interfira com o tour de primeira visita
-      if (!localStorage.getItem('hasVisited')) {
-        localStorage.setItem('hasVisited', 'true');
-      }
-      this.tourStep = 'login';
     });
   }
 
@@ -314,7 +296,7 @@ export class MapaComponent implements AfterViewInit, OnInit {
           const lat = parseFloat(dadosCoordenadas[0].lat);
           const lng = parseFloat(dadosCoordenadas[0].lon);
           this.map?.flyTo([lat, lng], 15);
-          // Opcional: mover o marcador do usuário para o local pesquisado
+          // Move o marcador do usuário para o local pesquisado
           this.isLocationOverridden = true; // Impede a centralização automática
           this.location$.next({ lat, lng });
         } else {
@@ -433,7 +415,6 @@ export class MapaComponent implements AfterViewInit, OnInit {
   centralizarNoUsuario(): void {
     // Se o usuário pulou a permissão anteriormente, re-exibe o tour de localização.
     if (localStorage.getItem('locationPermissionSkipped') === 'true') {
-      this.isTourActive = false; // Garante que o tour não continue após a permissão
       this.tourStep = 'location';
     } else {
       // Comportamento padrão: busca a localização e centraliza o mapa.
@@ -688,8 +669,7 @@ export class MapaComponent implements AfterViewInit, OnInit {
 
     // Se o usuário pulou a permissão anteriormente, re-exibe o tour de notificação.
     if (localStorage.getItem('notificationPermissionSkipped') === 'true') {
-      this.pendingSubscription = est; // Armazena o estabelecimento que o usuário quer seguir
-      this.isTourActive = false;
+      this.selectedEstabelecimento = est; // Armazena o estabelecimento que o usuário quer seguir
       this.tourStep = 'notification';
     } else {
       // Comportamento padrão: solicita a permissão e se inscreve.
@@ -701,21 +681,20 @@ export class MapaComponent implements AfterViewInit, OnInit {
     }
   }
 
-  async compartilharEstabelecimento(est: Estabelecimento | null, event: MouseEvent): Promise<void> {
+  async compartilharEstabelecimento(event: MouseEvent): Promise<void> {
     event.stopPropagation(); // Impede que o clique feche o card
 
-    if (!est) return;
+    if (!this.selectedEstabelecimento) return;
 
     const shareData = {
-      title: `Pão Quentinho: ${est.nome}`,
-      text: `Confira este lugar que encontrei no Pão Quentinho!\n ${est.nome}`,
-      url: `${environment.frontendUrl}/estabelecimento/${est.id}`
+      title: `Pão Quentinho: ${this.selectedEstabelecimento.nome}`,
+      text: `Confira este lugar que encontrei no Pão Quentinho!\n ${this.selectedEstabelecimento.nome}`,
+      url: `${environment.frontendUrl}/estabelecimento/${this.selectedEstabelecimento.id}`
     };
 
     if (navigator.share) {
       try {
         await navigator.share(shareData);
-        console.log('Conteúdo compartilhado com sucesso!');
       } catch (err) {
         // O erro 'AbortError' é comum se o usuário cancelar o compartilhamento, então não o tratamos como um erro real.
         if ((err as DOMException).name !== 'AbortError') {
@@ -871,45 +850,34 @@ export class MapaComponent implements AfterViewInit, OnInit {
     return 'Horário não informado';
   }
 
-  private async requestPermissionAndProceed(permissionType: 'location' | 'notification', requestAction: () => Promise<any> | void): Promise<void> {
-    localStorage.removeItem(`${permissionType}PermissionSkipped`);
-    if (permissionType === 'location') {
-      this.isLocationOverridden = false;
-    }
-    // A lógica de avanço do tour foi movida para os callbacks (onGranted/onDenied)
-    // para evitar chamadas duplicadas e garantir que o fluxo seja controlado pelo resultado da permissão.
-    // Para a localização, que não usa callbacks, o avanço é feito aqui após a conclusão.
-    await Promise.resolve(requestAction());
-    if (permissionType === 'location') {
-      this.isTourActive ? this.avancarTour() : (this.tourStep = null);
-    }
-  }
-
-  solicitarPermissaoLocalizacao(): void {
-    this.requestPermissionAndProceed('location', () => this.requestUserLocation());
+  async solicitarPermissaoLocalizacao(): Promise<void> {
+    localStorage.removeItem('locationPermissionSkipped');
+    this.isLocationOverridden = false;
+    await this.requestUserLocation();
+    this.avancarTour();
   }
 
   solicitarPermissaoNotificacao(): void {
+    localStorage.removeItem('notificationPermissionSkipped');
+
     const onGranted = () => {
-      if (this.isTourActive) this.avancarTour();
-      else this.tourStep = null;
-      if (this.pendingSubscription) {
-        this.subscribeToNotifications(this.pendingSubscription.id).then(() => {
-          this._snackBar.open(`Inscrição realizada com sucesso para a ${this.pendingSubscription!.nome}!`, 'Ok', { duration: 3000, panelClass: ['pao-quentinho-snackbar'] });
-          this.pendingSubscription = null;
+      this.avancarTour();
+      if (this.selectedEstabelecimento) {
+        this.subscribeToNotifications(this.selectedEstabelecimento.id).then(() => {
+          this._snackBar.open(`Inscrição realizada com sucesso para a ${this.selectedEstabelecimento!.nome}!`, 'Ok', { duration: 3000, panelClass: ['pao-quentinho-snackbar'] });
+          this.selectedEstabelecimento = null; // Limpa a seleção pendente
         });
       }
     };
 
     const onDeniedOrDismissed = () => {
-      this.pendingSubscription = null; // Limpa a inscrição pendente se o usuário negar
-      if (this.isTourActive) this.avancarTour();
-      else this.tourStep = null;
+      this.selectedEstabelecimento = null; // Limpa a inscrição pendente se o usuário negar
+      this.avancarTour();
     };
 
     // O serviço de notificação agora lida com o prompt do navegador
     // e chama o callback apropriado.
-    this.requestPermissionAndProceed('notification', () => this.notificationService.solicitarPermissaoDeNotificacao(onGranted, onDeniedOrDismissed));
+    this.notificationService.solicitarPermissaoDeNotificacao(onGranted, onDeniedOrDismissed);
   }
 
   onLogin(): void {
@@ -1016,7 +984,6 @@ export class MapaComponent implements AfterViewInit, OnInit {
   }
 
   finalizarTour(): void {
-    this.isTourActive = false;
     this.tourStep = null;
     localStorage.setItem('hasVisited', 'true');
     const userRole = this.authService.getUserRole();

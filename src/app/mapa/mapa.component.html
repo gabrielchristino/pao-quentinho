@@ -256,7 +256,7 @@
         <mat-card-title>{{ selectedEstabelecimento.nome }}</mat-card-title>
         <mat-card-subtitle>{{ selectedEstabelecimento.endereco.bairro }} - {{ (selectedEstabelecimento.distanciaKm ?? 0).toFixed(2) }} km</mat-card-subtitle>
       </div>
-      <button mat-icon-button class="header-share-button" (click)="compartilharEstabelecimento(selectedEstabelecimento, $event)" matTooltip="Compartilhar este local">
+      <button mat-icon-button class="header-share-button" (click)="compartilharEstabelecimento($event)" matTooltip="Compartilhar este local">
         <mat-icon>share</mat-icon>
       </button>
     </mat-card-header>
