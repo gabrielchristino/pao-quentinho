@@ -37,7 +37,10 @@
       <p class="tour-description">Para mostrar as padarias e confeitarias próximas, precisamos acessar sua localização.</p>
     </div>
     <div class="tour-actions">
-      <button mat-flat-button color="primary" (click)="solicitarPermissaoLocalizacao()">Permitir localização</button>
+      <button mat-flat-button color="primary" (click)="solicitarPermissaoLocalizacao()" [disabled]="isRequestingLocation" class="auth-button">
+        <span *ngIf="!isRequestingLocation">Permitir localização</span>
+        <mat-spinner *ngIf="isRequestingLocation" diameter="24"></mat-spinner>
+      </button>
       <button mat-button (click)="avancarTour(true)">Pular</button>
     </div>
   </div>
@@ -50,7 +53,10 @@
       <p class="tour-description">Seja o primeiro a saber quando o pão quentinho sair. Ative as notificações para receber nossos alertas.</p>
     </div>
     <div class="tour-actions">
-      <button mat-flat-button color="primary" (click)="solicitarPermissaoNotificacao()">Ativar notificações</button>
+      <button mat-flat-button color="primary" (click)="solicitarPermissaoNotificacao()" [disabled]="isRequestingNotification" class="auth-button">
+        <span *ngIf="!isRequestingNotification">Ativar notificações</span>
+        <mat-spinner *ngIf="isRequestingNotification" diameter="24"></mat-spinner>
+      </button>
       <button mat-button (click)="avancarTour(true)">Agora não</button>
     </div>
   </div>

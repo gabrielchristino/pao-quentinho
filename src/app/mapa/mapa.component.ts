@@ -108,6 +108,8 @@ export class MapaComponent implements AfterViewInit, OnInit {
   isLoggingIn = false;
   isRegistering = false;
   hideLoginPassword = true;
+  isRequestingLocation = false;
+  isRequestingNotification = false;
   hideRegisterPassword = true;
   private isLocationOverridden = false; // Flag para controlar a centralização
   loginForm!: FormGroup;
@@ -855,13 +857,19 @@ export class MapaComponent implements AfterViewInit, OnInit {
   }
 
   async solicitarPermissaoLocalizacao(): Promise<void> {
+    this.isRequestingLocation = true;
     localStorage.removeItem('locationPermissionSkipped');
     this.isLocationOverridden = false;
-    await this.requestUserLocation();
-    this.avancarTour();
+    try {
+      await this.requestUserLocation();
+    } finally {
+      this.isRequestingLocation = false;
+      this.avancarTour();
+    }
   }
 
   solicitarPermissaoNotificacao(): void {
+    this.isRequestingNotification = true;
     localStorage.removeItem('notificationPermissionSkipped');
 
     const onGranted = () => {
@@ -872,11 +880,11 @@ export class MapaComponent implements AfterViewInit, OnInit {
           this.selectedEstabelecimento = null; // Limpa a seleção pendente
         });
       }
+      this.isRequestingNotification = false;
     };
 
     const onDeniedOrDismissed = () => {
       this.selectedEstabelecimento = null; // Limpa a inscrição pendente se o usuário negar
-      this.avancarTour();
     };
 
     // O serviço de notificação agora lida com o prompt do navegador
