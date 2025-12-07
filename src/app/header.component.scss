@@ -57,3 +57,12 @@
     color: rgba(0, 0, 0, 0.54);
   }
 }
+
+.user-account-button {
+    background-color: FFE0B2;
+    border-radius: 50%;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    flex-shrink: 0;
+    width: 48px;
+    height: 48px;
+}

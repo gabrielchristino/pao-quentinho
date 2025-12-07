@@ -16,7 +16,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTabsModule } from '@angular/material/tabs';
-import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatTooltip, MatTooltipModule } from '@angular/material/tooltip';
 import { SwPush } from '@angular/service-worker';
 import L from 'leaflet';
 import 'leaflet-routing-machine';
@@ -85,6 +85,8 @@ const SWIPE_THRESHOLD = 50;
 })
 export class MapaComponent implements AfterViewInit, OnInit {
   @ViewChild('map', { static: true }) mapElementRef!: ElementRef<HTMLDivElement>;
+  @ViewChild('locationTooltip') locationTooltip!: MatTooltip;
+
   location$ = new BehaviorSubject<{ lat: number; lng: number } | null>(null);
   searchControl = new FormControl('');
 
@@ -153,6 +155,7 @@ export class MapaComponent implements AfterViewInit, OnInit {
         this.initializeDataFlow();
       }
       this.ouvirMudancasDeAutenticacao();
+      this.mostrarTooltipDeLocalizacaoSeNecessario({ comDelay: false, comAutohide: true });
     }, 0);
     this.bottomSheetEl = this._elementRef.nativeElement.querySelector('#bottomSheet');
     this.handleRouteActions();
@@ -546,8 +549,15 @@ export class MapaComponent implements AfterViewInit, OnInit {
     this.finalizarTour(); // Finaliza o tour para remover o overlay
   }
 
-  dismissInstallBanner(): void {
+  dismissInstallBanner(event: MouseEvent): void {
+    event.stopPropagation();
+    const isTooltipVisible = this.locationTooltip?._isTooltipVisible();
     this.showInstallBanner = false;
+    if (isTooltipVisible) {
+      setTimeout(() => {
+        this.locationTooltip.show();
+      }, 0);
+    }
   }
 
   fecharDetalhe(recentralizar = true): void {
@@ -1005,6 +1015,8 @@ export class MapaComponent implements AfterViewInit, OnInit {
     // inicializa o fluxo de dados para usar a localização padrão e carregar o mapa.
     if (!this.userMarker) {
       // Garante que o fluxo de dados só comece após a localização (real ou padrão) ser definida.
+      // Mostra o tooltip de localização agora que o tour acabou.
+      this.mostrarTooltipDeLocalizacaoSeNecessario({ comDelay: true });
       this.location$.pipe(
         filter((loc): loc is { lat: number; lng: number } => loc !== null),
         take(1),
@@ -1017,6 +1029,33 @@ export class MapaComponent implements AfterViewInit, OnInit {
     }
     if (userRole === 'lojista') {
       this.router.navigate(['/meus-estabelecimentos']);
+    }
+  }
+
+  /**
+   * Exibe o tooltip de localização se o usuário tiver visitado a página menos de 3 vezes.
+   * @param options Opções para controlar o comportamento do tooltip.
+   * @param options.comDelay Adiciona um delay antes de mostrar o tooltip.
+   * @param options.comAutohide Faz o tooltip desaparecer após 3 segundos.
+   */
+  private mostrarTooltipDeLocalizacaoSeNecessario(options: { comDelay?: boolean, comAutohide?: boolean } = {}): void {
+    if (this.tourStep) return;
+
+    const visitCount = parseInt(localStorage.getItem('visitCount') || '0', 10);
+    if (visitCount >= 3) return;
+
+    const showLogic = () => {
+      if (options.comAutohide) {
+        this.locationTooltip.hideDelay = 3000;
+      }
+      this.locationTooltip.show();
+      localStorage.setItem('visitCount', (visitCount + 1).toString());
+    };
+
+    if (options.comDelay) {
+      setTimeout(showLogic, 500); // Delay para garantir que a UI esteja estável
+    } else {
+      showLogic();
     }
   }
 

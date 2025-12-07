@@ -6,7 +6,7 @@
       <span>Acesse mais rápido, direto da sua tela inicial.</span>
     </div>
     <button mat-flat-button color="primary" (click)="instalarPWA()">Instalar</button>
-    <button mat-icon-button (click)="dismissInstallBanner()" aria-label="Dispensar instalação">
+    <button mat-icon-button (click)="dismissInstallBanner($event)" aria-label="Dispensar instalação">
       <mat-icon>close</mat-icon>
     </button>
   </div>
@@ -159,13 +159,13 @@
     </mat-form-field>
 
     <!-- Botão de Localização -->
-    <button mat-icon-button (click)="centralizarNoUsuario()" matTooltip="Usar minha localização atual" class="location-button" aria-label="Centralizar na sua localização atual">
+    <button mat-icon-button (click)="centralizarNoUsuario()" matTooltip="Usar minha localização atual" #locationTooltip="matTooltip" matTooltipHideDelay="1000000" class="location-button" aria-label="Centralizar na sua localização atual">
       <mat-icon>my_location</mat-icon>
     </button>
 
     <!-- Botão de Conta/Menu -->
-    <button mat-icon-button [matMenuTriggerFor]="userMenu" class="account-button" matTooltip="Minha Conta" aria-label="Abrir menu da conta">
-      <mat-icon>account_circle</mat-icon>
+    <button mat-icon-button [matMenuTriggerFor]="userMenu" class="account-button" aria-label="Abrir menu da conta">
+      <mat-icon>{{ (authService.authState$ | async) ? "face" : "face_retouching_off" }}</mat-icon>
     </button>
   </div>
   
