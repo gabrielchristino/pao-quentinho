@@ -47,5 +47,19 @@ export const routes: Routes = [
     loadComponent: () => import('./banner-estabelecimento/banner-estabelecimento.component').then(m => m.BannerEstabelecimentoComponent),
     canActivate: [lojistaGuard], // Protege esta rota para lojistas
     title: 'Banner do Estabelecimento'
+  },
+
+  // Rota para a página de ajuda
+  {
+    path: 'ajuda',
+    loadComponent: () => import('./ajuda/ajuda.component').then(m => m.AjudaComponent),
+    title: 'Ajuda'
+  },
+
+  // Rota para a página sobre o Pão Quentinho
+  {
+    path: 'sobre',
+    loadComponent: () => import('./sobre/sobre.component').then(m => m.SobreComponent),
+    title: 'Sobre'
   }
 ];

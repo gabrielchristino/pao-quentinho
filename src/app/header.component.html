@@ -8,8 +8,8 @@
 
   <!-- Botão de Login/Conta com Menu -->
   <ng-container *ngIf="authService.authState$ | async; else loginButton">
-    <button mat-icon-button matTooltip="Minha Conta" [matMenuTriggerFor]="userMenu">
-      <mat-icon>person</mat-icon>
+    <button mat-icon-button matTooltip="Minha Conta" [matMenuTriggerFor]="userMenu" class="user-account-button">
+      <mat-icon>face</mat-icon>
     </button>
     <mat-menu #userMenu="matMenu">
       <div class="menu-header" *ngIf="(currentUser$ | async) as user">
@@ -24,12 +24,16 @@
           <span>Meus Estabelecimentos</span>
       </button>
 
-      <button mat-menu-item *ngIf="!isLojista" (click)="navigateTo(['/minhas-inscricoes'])">
+      <button mat-menu-item (click)="navigateTo(['/minhas-inscricoes'])">
           <mat-icon>notifications</mat-icon>
           <span>Minhas inscrições</span>
       </button>
 
-      <button mat-menu-item (click)="abrirLinkDeAjuda()">
+      <button mat-menu-item (click)="navigateTo(['/sobre'])">
+        <mat-icon>info_outline</mat-icon>
+        <span>Sobre o Pão Quentinho</span>
+      </button>
+      <button mat-menu-item (click)="navigateTo(['/ajuda'])">
           <mat-icon>help_outline</mat-icon>
           <span>Preciso de ajuda</span>
       </button>

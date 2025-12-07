@@ -1,5 +1,5 @@
 import { Component, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, FormArray, FormControl, } from '@angular/forms';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -43,6 +43,7 @@ export class CadastroEstabelecimentoComponent {
   private route = inject(ActivatedRoute);
   private authService = inject(AuthService);
   private dialog = inject(MatDialog);
+  private location = inject(Location);
 
   isLoading = false;
   form: FormGroup;
@@ -117,7 +118,7 @@ export class CadastroEstabelecimentoComponent {
       },
       error: () => {
         this.snackBar.open('Erro ao carregar dados do estabelecimento.', 'Fechar', { duration: 3000 });
-        this.router.navigate(['/meus-estabelecimentos']);
+        this.location.back();
       }
     });
   }
@@ -279,9 +280,7 @@ export class CadastroEstabelecimentoComponent {
           'Ok',
           { duration: 3000 }
         );
-        this.router.navigate(['/meus-estabelecimentos'], {
-          replaceUrl: true,
-        });
+        this.location.back();
       },
       error: (err: any) => {
         console.error(`Erro ao ${this.isEditMode ? 'atualizar' : 'cadastrar'}:`, err);

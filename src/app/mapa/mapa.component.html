@@ -6,7 +6,7 @@
       <span>Acesse mais rápido, direto da sua tela inicial.</span>
     </div>
     <button mat-flat-button color="primary" (click)="instalarPWA()">Instalar</button>
-    <button mat-icon-button (click)="dismissInstallBanner()" aria-label="Dispensar instalação">
+    <button mat-icon-button (click)="dismissInstallBanner($event)" aria-label="Dispensar instalação">
       <mat-icon>close</mat-icon>
     </button>
   </div>
@@ -14,6 +14,21 @@
 
 <!-- Tour Guiado para Novos Usuários -->
 <div class="tour-overlay" *ngIf="tourStep">
+  <!-- Passo 0: Boas-vindas -->
+  <div class="tour-step" *ngIf="tourStep === 'welcome'">
+    <div class="tour-content">
+      <mat-icon class="tour-icon">bakery_dining</mat-icon>
+      <h2 class="tour-title">Bem-vindo ao Pão Quentinho!</h2>
+      <div class="welcome-text">
+        <p>Nosso aplicativo conecta você às melhores padarias, confeitarias e mercados da sua região, mostrando <strong>em tempo real onde encontrar pão quentinho</strong> e outras delícias recém-saídas do forno.</p>
+        <p>Com o Pão Quentinho, você pode <strong>seguir seus locais favoritos</strong>, <strong>receber alertas de novas fornadas</strong> e nunca mais perder a chance de saborear produtos frescos.</p>
+        <p>Vamos começar a encontrar as delícias mais próximas de você!</p>
+      </div>
+    </div>
+    <div class="tour-actions">
+      <button mat-flat-button color="primary" (click)="avancarTour()">Começar</button>
+    </div>
+  </div>
   <!-- Passo 1: Permissão de Localização -->
   <div class="tour-step" *ngIf="tourStep === 'location'">
     <div class="tour-content">
@@ -22,8 +37,11 @@
       <p class="tour-description">Para mostrar as padarias e confeitarias próximas, precisamos acessar sua localização.</p>
     </div>
     <div class="tour-actions">
-      <button mat-flat-button color="primary" (click)="solicitarPermissaoLocalizacao()">Permitir localização</button>
-      <button mat-button (click)="avancarTour()">Pular</button>
+      <button mat-flat-button color="primary" (click)="solicitarPermissaoLocalizacao()" [disabled]="isRequestingLocation" class="auth-button">
+        <span *ngIf="!isRequestingLocation">Permitir localização</span>
+        <mat-spinner *ngIf="isRequestingLocation" diameter="24"></mat-spinner>
+      </button>
+      <button mat-button (click)="avancarTour(true)">Pular</button>
     </div>
   </div>
 
@@ -35,25 +53,15 @@
       <p class="tour-description">Seja o primeiro a saber quando o pão quentinho sair. Ative as notificações para receber nossos alertas.</p>
     </div>
     <div class="tour-actions">
-      <button mat-flat-button color="primary" (click)="solicitarPermissaoNotificacao()">Ativar notificações</button>
-      <button mat-button (click)="avancarTour()">Agora não</button>
+      <button mat-flat-button color="primary" (click)="solicitarPermissaoNotificacao()" [disabled]="isRequestingNotification" class="auth-button">
+        <span *ngIf="!isRequestingNotification">Ativar notificações</span>
+        <mat-spinner *ngIf="isRequestingNotification" diameter="24"></mat-spinner>
+      </button>
+      <button mat-button (click)="avancarTour(true)">Agora não</button>
     </div>
   </div>
 
-  <!-- Passo 3: Instalar o App -->
-  <div class="tour-step" *ngIf="tourStep === 'install' && installPrompt">
-    <div class="tour-content">
-      <mat-icon class="tour-icon">add_to_home_screen</mat-icon>
-      <h2 class="tour-title">Instale o Pão Quentinho!</h2>
-      <p class="tour-description">Tenha acesso rápido ao app, direto da sua tela inicial, para uma melhor experiência.</p>
-    </div>
-    <div class="tour-actions">
-      <button mat-flat-button color="primary" (click)="instalarPWA()">Instalar App</button>
-      <button mat-button (click)="avancarTour()">Depois</button>
-    </div>
-  </div>
-
-  <!-- Passo 4: Cadastro/Login -->
+  <!-- Passo 3: Cadastro/Login -->
   <div class="tour-step" *ngIf="tourStep === 'login'">
     <div class="tour-content auth-form-container">
       <mat-icon class="tour-icon">account_circle</mat-icon>
@@ -120,7 +128,20 @@
         <mat-spinner *ngIf="isLoggingIn" diameter="24"></mat-spinner>
       </button>
       
-      <button mat-button (click)="finalizarTour()" class="skip-button">Pular por enquanto</button>
+      <button mat-button (click)="avancarTour()" class="skip-button">Pular por enquanto</button>
+    </div>
+  </div>
+
+  <!-- Passo 4: Instalar o App -->
+  <div class="tour-step" *ngIf="tourStep === 'install' && installPrompt">
+    <div class="tour-content">
+      <mat-icon class="tour-icon">add_to_home_screen</mat-icon>
+      <h2 class="tour-title">Instale o Pão Quentinho!</h2>
+      <p class="tour-description">Tenha acesso rápido ao app, direto da sua tela inicial, para uma melhor experiência.</p>
+    </div>
+    <div class="tour-actions">
+      <button mat-flat-button color="primary" (click)="instalarPWA()">Instalar App</button>
+      <button mat-button (click)="finalizarTour()">Depois</button>
     </div>
   </div>
 </div>
@@ -138,13 +159,13 @@
     </mat-form-field>
 
     <!-- Botão de Localização -->
-    <button mat-icon-button (click)="centralizarNoUsuario()" matTooltip="Usar minha localização atual" class="location-button">
+    <button mat-icon-button (click)="centralizarNoUsuario()" matTooltip="Usar minha localização atual" #locationTooltip="matTooltip" matTooltipHideDelay="1000000" class="location-button" aria-label="Centralizar na sua localização atual">
       <mat-icon>my_location</mat-icon>
     </button>
 
     <!-- Botão de Conta/Menu -->
-    <button mat-icon-button [matMenuTriggerFor]="userMenu" class="account-button" matTooltip="Minha Conta">
-      <mat-icon>account_circle</mat-icon>
+    <button mat-icon-button [matMenuTriggerFor]="userMenu" class="account-button" aria-label="Abrir menu da conta">
+      <mat-icon>{{ (authService.authState$ | async) ? "face" : "face_retouching_off" }}</mat-icon>
     </button>
   </div>
   
@@ -200,7 +221,11 @@
       <mat-icon>notifications</mat-icon>
       <span>Minhas Inscrições</span>
     </button>
-    <button mat-menu-item (click)="abrirLinkDeAjuda()">
+    <button mat-menu-item (click)="navigateTo(['/sobre'])">
+      <mat-icon>info_outline</mat-icon>
+      <span>Sobre</span>
+    </button>
+    <button mat-menu-item (click)="navigateTo(['/ajuda'])">
       <mat-icon>help_outline</mat-icon>
       <span>Preciso de ajuda</span>
     </button>
@@ -256,7 +281,7 @@
         <mat-card-title>{{ selectedEstabelecimento.nome }}</mat-card-title>
         <mat-card-subtitle>{{ selectedEstabelecimento.endereco.bairro }} - {{ (selectedEstabelecimento.distanciaKm ?? 0).toFixed(2) }} km</mat-card-subtitle>
       </div>
-      <button mat-icon-button class="header-share-button" (click)="compartilharEstabelecimento(selectedEstabelecimento, $event)" matTooltip="Compartilhar este local">
+      <button mat-icon-button class="header-share-button" (click)="compartilharEstabelecimento($event)" matTooltip="Compartilhar este local">
         <mat-icon>share</mat-icon>
       </button>
     </mat-card-header>
