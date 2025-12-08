@@ -248,18 +248,20 @@ export class MapaComponent implements AfterViewInit, OnInit {
       const establishmentIdToOpen = params['open_establishment_id'];
       const action = params['action'];
 
-      if (establishmentIdToOpen) {
-        this.mapStateService.selectEstablishment(Number(establishmentIdToOpen));
-        // Limpa o query param da URL após o uso
-        this.router.navigate([], { queryParams: { open_establishment_id: null }, queryParamsHandling: 'merge', replaceUrl: true });
-      }
-
       if (action === 'login') {
         // Garante que a ação de login não interfira com o tour de primeira visita
         if (!localStorage.getItem('hasVisited')) {
           localStorage.setItem('hasVisited', 'true');
         }
         this.tourStep = 'login';
+      } else if (action === 'reserve') {
+        this.handleReserveAction(establishmentIdToOpen);
+      }
+
+      if (establishmentIdToOpen) {
+        this.mapStateService.selectEstablishment(Number(establishmentIdToOpen));
+        // Limpa o query param da URL após o uso
+        this.router.navigate([], { queryParams: { open_establishment_id: null }, queryParamsHandling: 'merge', replaceUrl: true });
       }
     });
   }
