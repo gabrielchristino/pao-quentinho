@@ -599,7 +599,7 @@ export class MapaComponent implements AfterViewInit, OnInit {
       show: false,
       router: (L.Routing as any).osrmv1({
         language: 'pt-BR',
-        textInstructions: new (L.Routing as any).Localization({ 'pt-BR': ptBR })
+        textInstructions: new (L.Routing as any).Localization('pt-BR', ptBR)
       } as any),
       addWaypoints: false,
       fitSelectedRoutes: false,
