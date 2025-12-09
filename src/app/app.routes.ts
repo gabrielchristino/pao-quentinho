@@ -61,5 +61,12 @@ export const routes: Routes = [
     path: 'sobre',
     loadComponent: () => import('./sobre/sobre.component').then(m => m.SobreComponent),
     title: 'Sobre'
+  },
+
+  // Rota para a página de planos de assinatura
+  {
+    path: 'planos',
+    loadComponent: () => import('./planos/plans.component').then(m => m.PlansComponent),
+    title: 'Planos'
   }
 ];

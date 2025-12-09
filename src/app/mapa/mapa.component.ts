@@ -45,6 +45,7 @@ const iconDefault = L.icon({
 L.Marker.prototype.options.icon = iconDefault;
 
 import { environment } from '../../environments/environment';
+import { PermissionDialogComponent } from './permission-diolog.component';
 
 // --- Constantes ---
 const BOTTOM_SHEET_PEEK_HEIGHT = 80;
@@ -831,6 +832,12 @@ export class MapaComponent implements AfterViewInit, OnInit {
   * @param establishmentId O ID do estabelecimento a ser reservado.
   */
   private handleReserveAction(establishmentId: number): void {
+            // Limpa os parâmetros de ação da URL mesmo se o usuário fechar o diálogo.
+            this.router.navigate([], {
+              queryParams: { action: null, open_establishment_id: null },
+              queryParamsHandling: 'merge',
+              replaceUrl: true
+            });
     this.estabelecimentoService.reserveEstablishment(establishmentId).pipe(
       take(1) // Pega apenas uma emissão e completa
     ).subscribe({
@@ -839,12 +846,27 @@ export class MapaComponent implements AfterViewInit, OnInit {
           duration: 5000,
           panelClass: ['pao-quentinho-snackbar']
         });
-        // Remove o parâmetro 'action=reserve' da URL para evitar re-execuções
-        this.router.navigate([], { queryParams: { action: null }, queryParamsHandling: 'merge', replaceUrl: true });
       },
       error: (err) => {
-        console.error('Erro ao enviar solicitação de reserva:', err);
-        this._snackBar.open('Não foi possível enviar sua solicitação de reserva. Tente novamente.', 'Fechar', { duration: 5000, panelClass: ['pao-quentinho-snackbar'] });
+        // Verifica se o erro é de limite de reservas atingido
+        if (err.error?.limitReached === true) {
+          this.dialog.open(PermissionDialogComponent, {
+            data: {
+              icon: 'warning',
+              title: err.error?.title || 'Limite de Reservas Atingido',
+              content: err.error?.message || 'Que bom que você está aproveitando! 🧡 Você atingiu o limite de reservas deste mês no plano gratuito. Que tal dar uma olhada nos nossos planos para reservar pão quentinho sempre que quiser?',
+              confirmButton: 'Ver Planos',
+              cancelButton: 'Agora não'
+            }
+          }).afterClosed().subscribe(result => {
+            if (result === true) {
+              this.router.navigate(['/planos']);
+            }
+          });
+        } else {
+          console.error('Erro ao enviar solicitação de reserva:', err);
+          this._snackBar.open('Não foi possível enviar sua solicitação de reserva. Tente novamente.', 'Fechar', { duration: 5000, panelClass: ['pao-quentinho-snackbar'] });
+        }
       }
     });
   }

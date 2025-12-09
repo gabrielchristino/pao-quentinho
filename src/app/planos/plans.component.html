@@ -1,0 +1,24 @@
+<div class="plans-container">
+  <p>Escolha o plano ideal para você e aproveite ainda mais o Pão Quentinho!</p>
+  <div *ngIf="plans$ | async as plans; else loading" class="plans-list">
+    <mat-card *ngFor="let plan of plans" class="plan-card">
+      <mat-card-header>
+        <mat-card-title>{{ plan.name }}</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <p class="description">{{ plan.description }}</p>
+        <ul class="benefits-list">
+          <li *ngFor="let benefit of plan.benefits">
+            <mat-icon>check_circle</mat-icon> {{ benefit }}
+          </li>
+        </ul>
+      </mat-card-content>
+      <mat-card-actions class="plan-footer">
+        <span class="price">R$ {{ plan.price.replace('.', ',') }}<span class="period">/mês</span></span>
+        <button mat-flat-button color="primary" (click)="assinarPlano(plan)" [disabled]="isLoading">Assinar</button>
+      </mat-card-actions>
+    </mat-card>
+  </div>
+
+  <ng-template #loading><mat-spinner diameter="50"></mat-spinner></ng-template>
+</div>

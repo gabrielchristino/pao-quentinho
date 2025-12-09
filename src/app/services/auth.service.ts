@@ -56,6 +56,16 @@ export class AuthService {
     );
   }
 
+  /**
+   * Busca um novo token no backend para refletir quaisquer atualizações
+   * nos dados do usuário (ex: mudança de plano).
+   */
+  refreshToken(): Observable<{ token: string }> {
+    return this.http.get<{ token: string }>(`${this.apiUrl}/refresh`).pipe(
+      tap(response => this.setToken(response.token))
+    );
+  }
+
   logout(): void {
     localStorage.removeItem(this.TOKEN_KEY);
     // Limpa também as inscrições locais para evitar inconsistências ao logar com outro usuário.
