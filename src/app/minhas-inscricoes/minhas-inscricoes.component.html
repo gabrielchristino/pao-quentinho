@@ -1,4 +1,24 @@
 <div class="container page-container">
+  <ng-container *ngIf="currentUser$ | async as user">
+    <mat-card class="plan-card" *ngIf="user && user.plan">
+      <mat-card-header>
+        <mat-card-title>{{ user.plan.name }}</mat-card-title>
+        <mat-card-subtitle>Seu plano atual</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <p class="description">{{ user.plan.description }}</p>
+        <ul class="benefits-list">
+          <li *ngFor="let benefit of user.plan.benefits">
+            <mat-icon color="primary">check_circle</mat-icon> {{ benefit }}
+          </li>
+        </ul>
+      </mat-card-content>
+      <mat-card-actions class="plan-footer">
+        <span class="price">R$ {{ user.plan.price.replace('.', ',') }}<span class="period">/mês</span></span>
+        <button *ngIf="user.plan.id !== 0" mat-stroked-button color="warn" (click)="cancelarPlano()" [disabled]="isCancelingPlan">Cancelar Plano</button>
+      </mat-card-actions>
+    </mat-card>
+  </ng-container>
 
   <div *ngIf="isLoading" class="loading-container">
     <mat-progress-spinner mode="indeterminate" diameter="40"></mat-progress-spinner>

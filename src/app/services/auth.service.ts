@@ -1,13 +1,22 @@
 import { Injectable, inject } from '@angular/core';
 import { environment } from '../../environments/environment';
 import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable, of, switchMap, tap, map, Subject } from 'rxjs';
+import { BehaviorSubject, Observable, of, switchMap, tap, map, Subject, skip } from 'rxjs';
 import { NotificationService } from './notification.service';
+
+export interface Plan {
+  id: number;
+  name: string;
+  description: string;
+  benefits: string[];
+  price: string;
+}
 
 export interface User {
   name: string;
   email: string;
   role: 'lojista' | 'cliente';
+  plan: Plan | null;
 }
 
 @Injectable({
@@ -25,12 +34,14 @@ export class AuthService {
   private requestLoginSource = new Subject<void>();
   public requestLogin$ = this.requestLoginSource.asObservable();
 
-  public currentUser$: Observable<User | null> = this.authState$.pipe(
-    map(isLoggedIn => {
-      return isLoggedIn ? this.getCurrentUser() : null;
-    })
-  );
+  private currentUserSubject = new BehaviorSubject<User | null>(this.getCurrentUser());
+  public currentUser$ = this.currentUserSubject.asObservable();
 
+  constructor() {
+    // A inscrição no authState$ foi removida.
+    // A inicialização do currentUserSubject com `this.getCurrentUser()` já garante que o usuário seja carregado no início.
+    // Os métodos de login, logout e refreshToken já atualizam o currentUserSubject quando necessário.
+  }
   register(userData: { name: string, email: string, password: string, isLojista?: boolean }): Observable<any> {
     const credentials = { ...userData, role: userData.isLojista ? 'lojista' : 'cliente' };
     return this.http.post(`${this.apiUrl}/register`, { name: credentials.name, email: credentials.email, password: credentials.password, role: credentials.role }).pipe(
@@ -51,26 +62,26 @@ export class AuthService {
       tap(response => {
         this.setToken(response.token);
         this.authState.next(true);
+        this.updateCurrentUser(); // Atualiza o usuário com os dados do novo token.
       }),
-      switchMap(() => this.sync()) // O resultado de sync() será passado para o próximo operador
+      switchMap(() => this.sync())
     );
   }
 
-  /**
-   * Busca um novo token no backend para refletir quaisquer atualizações
-   * nos dados do usuário (ex: mudança de plano).
-   */
   refreshToken(): Observable<{ token: string }> {
     return this.http.get<{ token: string }>(`${this.apiUrl}/refresh`).pipe(
-      tap(response => this.setToken(response.token))
+      tap(response => {
+        this.setToken(response.token);
+        this.updateCurrentUser();
+      })
     );
   }
 
   logout(): void {
     localStorage.removeItem(this.TOKEN_KEY);
-    // Limpa também as inscrições locais para evitar inconsistências ao logar com outro usuário.
     localStorage.removeItem('user-subscriptions');
     this.authState.next(false);
+    this.currentUserSubject.next(null);
   }
 
   getToken(): string | null {
@@ -83,7 +94,11 @@ export class AuthService {
       return null;
     }
     try {
-      return JSON.parse(atob(token.split('.')[1]));
+      const payload = token.split('.')[1];
+      const decodedPayload = decodeURIComponent(atob(payload).split('').map(function(c) {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+      }).join(''));
+      return JSON.parse(decodedPayload);
     } catch (e) {
       console.error('Falha ao decodificar o token:', e);
       return null;
@@ -109,13 +124,16 @@ export class AuthService {
   public getCurrentUser(): User | null {
     const decodedToken = this.decodeToken();
     if (decodedToken) {
-      // Extrai o nome e o email diretamente do payload do token decodificado.
-      return { name: decodedToken.name, email: decodedToken.email, role: decodedToken.role };
+      return { name: decodedToken.name, email: decodedToken.email, role: decodedToken.role, plan: decodedToken.plan };
     }
     return null;
   }
 
   public requestLogin(): void {
     this.requestLoginSource.next();
+  }
+
+  private updateCurrentUser(): void {
+    this.currentUserSubject.next(this.getCurrentUser());
   }
 }

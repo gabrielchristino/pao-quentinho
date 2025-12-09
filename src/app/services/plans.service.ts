@@ -26,4 +26,8 @@ export class PlansService {
   updateUserPlan(planId: number): Observable<{ message: string }> {
     return this.http.put<{ message: string }>(`${this.apiUrl}/users/me/plan`, { planId });
   }
+  
+  cancelUserPlan(): Observable<any> {
+    return this.http.put<any>(`${this.apiUrl}/users/me/plan`, { planId: 0 });
+  }
 }
