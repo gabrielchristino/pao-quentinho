@@ -87,6 +87,27 @@ const SWIPE_THRESHOLD = 50;
 export class MapaComponent implements AfterViewInit, OnInit {
   @ViewChild('map', { static: true }) mapElementRef!: ElementRef<HTMLDivElement>;
   @ViewChild('locationTooltip') locationTooltip!: MatTooltip;
+  @ViewChild('avatarVideo')
+  set videoRef(element: ElementRef<HTMLVideoElement> | undefined) {
+    this._videoElement = element;
+
+    if (element?.nativeElement) {
+      // Assim que o vídeo nasce, iniciamos o 'idle'
+      this.playAction('idle');
+    }
+  }
+
+  private _videoElement: ElementRef<HTMLVideoElement> | undefined;
+
+
+  private actions = {
+    idle: { start: 0, end: 1.2, loop: true, speed: 0.6 },
+    olharBaixo: { start: 1.2, end: 4, loop: false, speed: 1.5 },
+    cobrirOlhos: { start: 4, end: 7, loop: false, speed: 1.5 }
+  };
+
+  private animationFrameId: number | null = null;
+  private currentAction: any = null;
 
   location$ = new BehaviorSubject<{ lat: number; lng: number } | null>(null);
   searchControl = new FormControl('');
@@ -272,6 +293,9 @@ export class MapaComponent implements AfterViewInit, OnInit {
     this.destroy$.complete();
     // Remove a classe do body para reabilitar o scroll em outras páginas.
     this._elementRef.nativeElement.ownerDocument.body.classList.remove('no-scroll');
+    if (this.animationFrameId) {
+      cancelAnimationFrame(this.animationFrameId);
+    }
 
   }
 
@@ -832,12 +856,12 @@ export class MapaComponent implements AfterViewInit, OnInit {
   * @param establishmentId O ID do estabelecimento a ser reservado.
   */
   private handleReserveAction(establishmentId: number): void {
-            // Limpa os parâmetros de ação da URL mesmo se o usuário fechar o diálogo.
-            this.router.navigate([], {
-              queryParams: { action: null, open_establishment_id: null },
-              queryParamsHandling: 'merge',
-              replaceUrl: true
-            });
+    // Limpa os parâmetros de ação da URL mesmo se o usuário fechar o diálogo.
+    this.router.navigate([], {
+      queryParams: { action: null, open_establishment_id: null },
+      queryParamsHandling: 'merge',
+      replaceUrl: true
+    });
     this.estabelecimentoService.reserveEstablishment(establishmentId).pipe(
       take(1) // Pega apenas uma emissão e completa
     ).subscribe({
@@ -1088,5 +1112,58 @@ export class MapaComponent implements AfterViewInit, OnInit {
     this.map.scrollWheelZoom.disable();
     this.map.touchZoom.disable();
     this.map.doubleClickZoom.disable();
+  }
+  get videoRef() {
+    return this._videoElement;
+  }
+  playAction(actionName: 'idle' | 'olharBaixo' | 'cobrirOlhos') {
+    if (!this.videoRef?.nativeElement) return;
+    const video = this.videoRef.nativeElement;
+
+    // ... verificação de segurança da action ...
+    const action = this.actions[actionName];
+    this.currentAction = action;
+
+    // 1. Aplica a velocidade definida (ou 1.0 se não tiver nada)
+    video.playbackRate = action.speed || 1.0;
+
+    // 2. Pula para o início se necessário
+    if (Math.abs(video.currentTime - action.start) > 0.1) {
+      video.currentTime = action.start;
+    }
+
+    video.play().catch(e => console.log("Erro ao tocar:", e));
+    this.monitorPlayback();
+  }
+
+  monitorPlayback() {
+    // Proteção extra: garante que temos o elemento nativo
+    const video = this.videoRef?.nativeElement;
+    if (!video) return;
+
+    // Cancela loop anterior
+    if (this.animationFrameId) cancelAnimationFrame(this.animationFrameId);
+
+    const checkTime = () => {
+      // Se o vídeo sumiu da tela (ex: usuário voltou o passo), paramos o loop
+      if (!this.videoRef?.nativeElement) return;
+
+      if (video.currentTime >= this.currentAction.end) {
+        if (this.currentAction.loop) {
+          // Loop: volta pro início da ação
+          video.currentTime = this.currentAction.start;
+          video.play();
+        } else {
+          // Não-loop: congela no final
+          video.pause();
+          video.currentTime = this.currentAction.end;
+          return; // Encerra o monitoramento
+        }
+      }
+
+      this.animationFrameId = requestAnimationFrame(checkTime);
+    };
+
+    this.animationFrameId = requestAnimationFrame(checkTime);
   }
 }

@@ -1,3 +1,7 @@
+/* =========================================
+   ESTILOS DO MAPA E INTERFACE BASE
+   ========================================= */
+
 :host {
   .map-container,
   #map {
@@ -23,11 +27,10 @@
   .search-input {
     flex-grow: 1;
     background-color: white;
-    border-radius: 28px; // Deixa o campo de busca mais arredondado
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3); // Sombra para dar profundidade
-    overflow: hidden; // Garante que o contorno não vaze
+    border-radius: 28px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
     
-    // ::ng-deep permite que o estilo alcance os elementos internos do mat-form-field
     ::ng-deep .mdc-notched-outline .mdc-notched-outline__leading,
     ::ng-deep .mdc-notched-outline .mdc-notched-outline__notch,
     ::ng-deep .mdc-notched-outline .mdc-notched-outline__trailing {
@@ -39,12 +42,11 @@
     background-color: white;
     border-radius: 50%;
     box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-    flex-shrink: 0; // Impede que os botões encolham
+    flex-shrink: 0;
     width: 48px;
     height: 48px;
   }
 
-  // Ajuste fino para o ícone dentro do botão de conta
   .account-button mat-icon {
     transform: scale(1.2);
   }
@@ -97,17 +99,10 @@
     display: flex;
     flex-direction: column;
 
-    strong {
-      font-weight: 500;
-    }
-
-    span {
-      font-size: 0.9em;
-      color: rgba(0,0,0,0.7);
-    }
+    strong { font-weight: 500; }
+    span { font-size: 0.9em; color: rgba(0,0,0,0.7); }
   }
 }
-
 
 .radius-filter {
   position: absolute;
@@ -119,39 +114,31 @@
   border-radius: 8px;
 }
 
-.recenter-button {
-  position: absolute;
-  bottom: 150px;
-  right: 16px;
-  z-index: 1001;
-}
-
 /* Nova UI de Navegação */
 .navigation-ui-container {
-  // Este container ocupa toda a tela para posicionar seus filhos
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  pointer-events: none; // Permite cliques no mapa através do container
-  z-index: 1001; // Acima do mapa, mas abaixo de outros modais
+  pointer-events: none;
+  z-index: 1001;
 
   .route-card {
     position: absolute;
     bottom: 16px;
     left: 16px;
     right: 16px;
-    pointer-events: all; // Habilita interação com o card
-    max-width: 450px; // Limita a largura em telas grandes
-    margin: 0 auto; // Centraliza o card
+    pointer-events: all;
+    max-width: 450px;
+    margin: 0 auto;
     animation: slide-up 0.3s ease-out;
 
     mat-card-content {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 12px 16px !important; // Sobrescreve padding padrão
+      padding: 12px 16px !important;
       gap: 16px;
     }
 
@@ -163,22 +150,16 @@
       font-size: 1rem;
     }
 
-    .back-button-card {
-      color: rgba(0,0,0,0.54);
-    }
-
+    .back-button-card { color: rgba(0,0,0,0.54); }
     .gps-button {
-      // Estilo de destaque para o botão principal
-      background-color: #f59e0b; // Amarelo/Laranja
+      background-color: #f59e0b;
       color: white;
-      flex-shrink: 0; // Impede que o botão encolha
+      flex-shrink: 0;
     }
   }
 }
 
-.list-item-spacer {
-  flex: 1 1 auto;
-}
+.list-item-spacer { flex: 1 1 auto; }
 
 #bottomSheet {
   position: absolute;
@@ -186,7 +167,7 @@
   left: 0;
   right: 0;
   max-height: calc(100vh - 100px);
-  transform: translateY(calc(100% - 60px)); /* Altura visível quando fechado */
+  transform: translateY(calc(100% - 60px));
   transition: transform 0.3s ease-in-out;
   background: white;
   z-index: 1000;
@@ -196,13 +177,8 @@
   display: flex;
   flex-direction: column;
 
-  &.open {
-    transform: translateY(0);
-  }
-
-  &.dragging {
-    transition: none !important;
-  }
+  &.open { transform: translateY(0); }
+  &.dragging { transition: none !important; }
 
   .handle {
     padding: 8px;
@@ -234,9 +210,7 @@
     flex-grow: 1;
   }
 
-  mat-nav-list {
-    padding-top: 0;
-  }
+  mat-nav-list { padding-top: 0; }
 
   .establishment-list-item {
     margin-bottom: 8px;
@@ -261,16 +235,12 @@
       margin-right: 16px;
     }
 
-    .list-item-title {
-      font-weight: 500;
-    }
-
+    .list-item-title { font-weight: 500; }
     .list-item-line {
       text-transform: capitalize;
       font-size: 0.9em;
       color: rgba(0,0,0,0.6);
     }
-
     .distancia-meta {
       font-weight: 500;
       color: #333;
@@ -303,13 +273,8 @@
       justify-content: space-between;
       align-items: center;
 
-      .header-text-content {
-        flex-grow: 1;
-      }
-
-      .header-share-button {
-        flex-shrink: 0;
-      }
+      .header-text-content { flex-grow: 1; }
+      .header-share-button { flex-shrink: 0; }
     }
 
     mat-card-content {
@@ -338,9 +303,7 @@
       border-radius: 12px;
       padding: 12px;
       font-size: 1rem;
-      .horario-icon {
-        color: rgba(0,0,0,0.5);
-      }
+      .horario-icon { color: rgba(0,0,0,0.5); }
     }
 
     .info-text {
@@ -360,7 +323,7 @@
       border-radius: 12px;
       padding: 12px;
       cursor: pointer;
-      transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+      transition: background-color 0.2s ease-in-out;
       position: relative;
 
       &:hover {
@@ -373,26 +336,15 @@
         align-items: flex-start;
         gap: 12px;
       }
-
       .location-icon {
         color: rgba(0,0,0,0.5);
         margin-top: 2px;
       }
-
       .address-text {
-        p {
-          font-weight: 500;
-          margin: 0;
-        }
-        small {
-          color: #4f46e5;
-          font-weight: 500;
-        }
+        p { font-weight: 500; margin: 0; }
+        small { color: #4f46e5; font-weight: 500; }
       }
-
-      mat-icon:last-of-type {
-        color: rgba(0,0,0,0.4);
-      }
+      mat-icon:last-of-type { color: rgba(0,0,0,0.4); }
     }
 
     .card-actions-wrapper {
@@ -401,54 +353,40 @@
       flex-wrap: wrap;
       gap: 8px;
 
-      .follow-button {
-        flex-grow: 1;
-      }
-
-      .close-button {
-        margin-left: auto; // Empurra o botão "Fechar" para a direita
-      }
-
-      button {
-        padding: 8px 16px;
-        border-radius: 12px;
-      }
+      .follow-button { flex-grow: 1; }
+      .close-button { margin-left: auto; }
+      button { padding: 8px 16px; border-radius: 12px; }
     }
   }
 }
 
-@keyframes slide-up {
-  from {
-    transform: translateY(100%);
-  }
-  to {
-    transform: translateY(0);
-  }
+.menu-header {
+  padding: 8px 16px;
+  outline: none;
+  .user-name { font-weight: 500; font-size: 0.9rem; }
+  .user-email { font-size: 0.8rem; color: rgba(0, 0, 0, 0.54); }
 }
 
-@keyframes slide-down {
-  from {
-    transform: translateY(-100%);
-  }
-  to {
-    transform: translateY(0);
-  }
-}
+@keyframes slide-up { from { transform: translateY(100%); } to { transform: translateY(0); } }
+@keyframes slide-down { from { transform: translateY(-100%); } to { transform: translateY(0); } }
 
-/* Estilos do Tour Guiado */
+
+/* =========================================
+   ESTILOS DO TOUR GUIADO (MODERNIZADO + SCROLL FIX)
+   ========================================= */
+
 .tour-overlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.7);
+  background-color: rgba(255, 255, 255, 1); /* Fundo branco sólido */
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1100; /* Acima do mapa e outros elementos */
-  padding: 16px;
-  box-sizing: border-box;
+  z-index: 1100;
+  padding: 0; 
 }
 
 .tour-step {
@@ -457,129 +395,209 @@
   height: 100%;
   display: flex;
   flex-direction: column;
-  justify-content: space-between; /* Empurra conteúdo e ações para as extremidades */
   align-items: center;
   text-align: center;
-  animation: fadeIn 0.3s ease-in-out;
-  padding: 24px;
+  animation: fadeIn 0.4s ease-out;
+  
+  /* SCROLL FIX: Trava a rolagem principal */
+  overflow: hidden; 
+  /* Ajuste de padding reduzido para caber melhor na tela */
+  padding: 16px; 
   box-sizing: border-box;
 }
 
+/* Container do Conteúdo (Vídeo + Textos) */
 .tour-content {
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: center; 
   align-items: center;
-  flex-grow: 1; /* Ocupa o espaço disponível, centralizando verticalmente */
+  flex-grow: 1;
   width: 100%;
-  max-width: 450px; /* Limita a largura do conteúdo de texto */
+  max-width: 400px;
+  /* SCROLL FIX: Evita scroll interno indesejado */
+  min-height: 0; 
+  overflow: hidden; 
 }
 
+/* Área de Ações (Botões) */
 .tour-actions {
   width: 100%;
-  max-width: 450px; /* Mesma largura do conteúdo para alinhamento */
+  max-width: 400px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding-bottom: 16px; /* Espaçamento seguro na parte inferior */
+  gap: 12px;
+  margin-top: 16px;
+  flex-shrink: 0; 
 }
 
-.tour-icon {
-  font-size: 48px;
-  width: 48px;
-  height: 48px;
-  color: var(--primary-color, #d96c2c); /* Cor primária do app */
-  margin-bottom: 16px;
-}
+/* --- Títulos e Textos --- */
 
 .tour-title {
-  font-size: 1.5rem;
-  font-weight: 500;
-  margin-top: 0;
-  margin-bottom: 8px;
+  font-size: 1.75rem; 
+  font-weight: 700; 
+  color: #1a1a1a;
+  margin: 16px 0 8px 0;
+  letter-spacing: -0.5px;
 }
 
 .tour-description {
   font-size: 1rem;
   color: #666;
   margin-bottom: 24px;
-  line-height: 1.5;
+  line-height: 1.6;
+  max-width: 320px; 
 }
 
-.tour-step button[mat-button],
-.skip-button {
-  color: #888;
-  font-weight: 500;
-  margin-top: 16px;
+.welcome-text {
+  font-size: 1rem;
+  color: #555;
+  line-height: 1.6;
+  margin-bottom: 24px;
+  max-width: 360px;
+  text-align: center;
+  
+  p { margin: 0 0 12px 0; }
+  strong { color: #d96c2c; font-weight: 600; }
+}
+
+.tour-icon {
+  font-size: 48px;
+  width: 48px;
+  height: 48px;
+  color: #d96c2c;
+  margin-bottom: 16px;
+}
+
+/* --- Vídeo e Avatar --- */
+
+.welcome-video {
+  /* Mix blend para remover fundo cinza */
+  mix-blend-mode: multiply;
+  filter: contrast(1.05) brightness(1.05);
+  width: 100%;
+  max-width: 280px; 
+  height: auto;
+  margin-bottom: 0;
+  /* Float animation removida conforme solicitado */
+}
+
+/* --- Formulários e Tabs --- */
+
+.auth-form-container {
+  justify-content: flex-start; 
+  padding-top: 2vh; 
 }
 
 .auth-tabs {
-  margin-top: 16px;
   width: 100%;
+  margin-top: 8px;
 }
 
 .auth-form {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding-top: 24px;
-}
-
-.tour-actions button[mat-flat-button] {
+  gap: 12px; /* Gap reduzido para economizar espaço vertical */
+  padding-top: 16px;
   width: 100%;
-  padding: 12px 0;
-  font-size: 1rem;
 }
 
-.auth-button {
-  position: relative;
-  min-height: 48px; // Garante altura mínima para o botão
-
-  mat-spinner {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-  }
+/* SCROLL FIX: Remove scroll nativo do corpo da tab do Material */
+::ng-deep .mat-mdc-tab-body-content {
+  overflow: hidden !important; 
 }
 
-.lojista-checkbox {
-  margin-top: 16px; // Adiciona um espaçamento extra acima para evitar sobreposição com mensagens de erro
+/* === ESTILIZAÇÃO DOS INPUTS (MATERIAL DESIGN OVERRIDE) === */
+
+::ng-deep .mat-mdc-form-field-subscript-wrapper {
+  height: auto; 
+  position: relative; 
   margin-bottom: 8px;
 }
 
+/* Arredondamento dos Inputs Outlined */
+::ng-deep .mdc-text-field--outlined .mdc-notched-outline .mdc-notched-outline__leading {
+  border-top-left-radius: 12px !important;
+  border-bottom-left-radius: 12px !important;
+  width: 12px !important;
+}
+
+::ng-deep .mdc-text-field--outlined .mdc-notched-outline .mdc-notched-outline__trailing {
+  border-top-right-radius: 12px !important;
+  border-bottom-right-radius: 12px !important;
+}
+
+::ng-deep .mdc-text-field--outlined .mdc-notched-outline .mdc-notched-outline__notch {
+  max-width: calc(100% - 24px) !important;
+}
+
+/* Cor do foco */
+::ng-deep .mdc-text-field--focused .mdc-notched-outline__leading,
+::ng-deep .mdc-text-field--focused .mdc-notched-outline__notch,
+::ng-deep .mdc-text-field--focused .mdc-notched-outline__trailing {
+  border-width: 2px !important;
+  border-color: #d96c2c !important; 
+}
+
+
+/* --- Botões --- */
+
+.auth-button {
+  border-radius: 50px !important; 
+  padding: 24px 0 !important; 
+  font-size: 1.1rem !important;
+  font-weight: 600 !important;
+  box-shadow: 0 4px 14px rgba(217, 108, 44, 0.3); 
+  transition: transform 0.2s, box-shadow 0.2s;
+  position: relative;
+}
+
+.auth-button:active {
+  transform: scale(0.98);
+  box-shadow: 0 2px 8px rgba(217, 108, 44, 0.2);
+}
+
+.auth-button mat-spinner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.skip-button {
+  color: #999;
+  font-weight: 500;
+  font-size: 0.9rem;
+  margin-top: 8px;
+  border-radius: 50px !important;
+}
+
+/* --- Checkbox e Erros --- */
+
+.lojista-checkbox {
+  margin-top: 8px;
+  font-size: 0.9rem;
+  color: #555;
+  display: flex;
+  justify-content: center;
+}
+
 .error-message {
-  color: #b91c1c; // Um vermelho mais escuro para melhor contraste
-  background-color: #fee2e2; // Fundo avermelhado bem claro
-  border: 1px solid #fecaca; // Borda avermelhada clara
-  border-radius: 8px; // Bordas arredondadas
-  padding: 10px 12px; // Espaçamento interno
-  font-size: 0.875rem; // Um pouco maior
-  font-weight: 500; // Semi-bold
-  margin-top: 16px; // Mais espaço acima
-  text-align: center;
-  display: flex; // Para alinhar ícone e texto
+  background-color: #fef2f2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+  border-radius: 12px;
+  padding: 12px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px; // Espaço entre ícone e texto
+  gap: 8px;
+  animation: slide-up 0.3s ease-out;
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
-}
-
-.menu-header {
-  padding: 8px 16px;
-  outline: none;
-
-  .user-name {
-    font-weight: 500;
-    font-size: 0.9rem;
-  }
-
-  .user-email {
-    font-size: 0.8rem;
-    color: rgba(0, 0, 0, 0.54);
-  }
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
