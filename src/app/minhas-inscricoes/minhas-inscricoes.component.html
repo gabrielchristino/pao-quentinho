@@ -1,48 +1,34 @@
 <div class="container page-container">
-  <ng-container *ngIf="currentUser$ | async as user">
-    <mat-card class="plan-card" *ngIf="user && user.plan">
-      <mat-card-header>
-        <mat-card-title>{{ user.plan.name }}</mat-card-title>
-        <mat-card-subtitle>Seu plano atual</mat-card-subtitle>
-      </mat-card-header>
-      <mat-card-content>
-        <p class="description">{{ user.plan.description }}</p>
-        <ul class="benefits-list">
-          <li *ngFor="let benefit of user.plan.benefits">
-            <mat-icon color="primary">check_circle</mat-icon> {{ benefit }}
-          </li>
-        </ul>
-      </mat-card-content>
-      <mat-card-actions class="plan-footer">
-        <span class="price">R$ {{ user.plan.price.replace('.', ',') }}<span class="period">/mês</span></span>
-        <button *ngIf="user.plan.id !== 0" mat-stroked-button color="warn" (click)="cancelarPlano()" [disabled]="isCancelingPlan">Cancelar Plano</button>
-      </mat-card-actions>
-    </mat-card>
-  </ng-container>
-
   <div *ngIf="isLoading" class="loading-container">
     <mat-progress-spinner mode="indeterminate" diameter="40"></mat-progress-spinner>
     <p>Carregando seus locais...</p>
   </div>
 
   <div *ngIf="!isLoading && estabelecimentos.length === 0" class="empty-state">
-    <mat-icon class="empty-icon">notifications_off</mat-icon>
+    <video #videoPlayer autoplay loop [muted]="true" playsinline class="welcome-video estabelecimento-video" width="100%">
+      <source src="assets/videos/estabelecimento.mp4" type="video/mp4">
+      Seu navegador não suporta a tag de vídeo.
+    </video>
     <h2>Você ainda não segue nenhum local</h2>
     <p>Volte ao mapa e clique em "Seguir" nos seus estabelecimentos favoritos para receber alertas.</p>
-    <a mat-flat-button color="primary" routerLink="/">Encontrar outras fornadas</a>
   </div>
 
   <div *ngIf="!isLoading && estabelecimentos.length > 0">
     <div class="info-banner" *ngIf="showBanner">
       <div class="banner-content">
-        <mat-icon class="info-icon">notifications</mat-icon>
-        <p class="info-text">Aqui estão os locais que você segue. Você receberá uma <strong>notificação</strong> sempre que uma <strong>nova fornada</strong> for anunciada.</p>
+        <video #videoPlayer autoplay loop [muted]="true" playsinline class="welcome-video estabelecimento-video"
+          width="90%">
+          <source src="assets/videos/estabelecimento.mp4" type="video/mp4">
+          Seu navegador não suporta a tag de vídeo.
+        </video>
+        <p class="info-text">Aqui estão os locais que você segue. Você receberá uma <strong>notificação</strong> sempre
+          que uma <strong>nova fornada</strong> for anunciada.</p>
       </div>
       <button mat-icon-button class="close-button" (click)="dismissBanner()" aria-label="Fechar aviso">
         <mat-icon>close</mat-icon>
       </button>
     </div>
-  
+
     <mat-accordion class="establishment-list" multi>
       <mat-expansion-panel *ngFor="let est of estabelecimentos">
         <mat-expansion-panel-header>
@@ -63,7 +49,8 @@
                 <ul>
                   <li *ngFor="let dia of diasDaSemana; let i = index">
                     <b>{{ dia }}:</b>
-                    <span *ngIf="est.horarioAbertura[i]"> {{ est.horarioAbertura[i] }} às {{ est.horarioFechamento[i] }}</span>
+                    <span *ngIf="est.horarioAbertura[i]"> {{ est.horarioAbertura[i] }} às {{ est.horarioFechamento[i]
+                      }}</span>
                     <span *ngIf="!est.horarioAbertura[i]" class="horario-fechado"> Fechado</span>
                   </li>
                 </ul>
@@ -83,7 +70,8 @@
             </div>
           </div>
           <div class="actions-section">
-            <button mat-stroked-button color="primary" matTooltip="Deixar de Seguir" (click)="deixarDeSeguir(est, $event)" [disabled]="unsubscribingId === est.id">
+            <button mat-stroked-button color="primary" matTooltip="Deixar de Seguir"
+              (click)="deixarDeSeguir(est, $event)" [disabled]="unsubscribingId === est.id">
               <mat-icon>notifications_off</mat-icon>
               <span>{{ unsubscribingId === est.id ? 'Cancelando...' : 'Deixar de Seguir' }}</span>
             </button>
@@ -92,4 +80,10 @@
       </mat-expansion-panel>
     </mat-accordion>
   </div>
+</div>
+
+<div class="footer-action">
+  <a mat-raised-button color="primary" routerLink="/">
+    Encontrar fornadas
+  </a>
 </div>

@@ -2,9 +2,13 @@
   <div *ngIf="isLoading">Carregando seus estabelecimentos...</div>
 
   <div *ngIf="!isLoading && meusEstabelecimentos.length === 0" class="empty-state">
-    <mat-icon class="empty-icon">storefront</mat-icon>
+    <video #videoPlayer autoplay loop [muted]="true" playsinline class="welcome-video estabelecimento-video"
+      width="100%">
+      <source src="assets/videos/estabelecimento.mp4" type="video/mp4">
+      Seu navegador não suporta a tag de vídeo.
+    </video>
     <h2>Você ainda não cadastrou nenhum estabelecimento.</h2>
-    <p>Clique no botão acima para começar!</p>
+    <p>Clique no botão abaixo para começar!</p>
   </div>
 
   <mat-accordion class="establishment-list" multi *ngIf="!isLoading && meusEstabelecimentos.length > 0">
@@ -15,7 +19,17 @@
           <div class="panel-text-content">
             <div class="item-title">{{ est.nome }}</div>
             <div class="item-line">{{ est.endereco.rua }}, {{ est.endereco.numero }}</div>
+
           </div>
+          <div class="icon-actions">
+            <button mat-icon-button (click)="editar(est.id)" matTooltip="Editar dados do estabelecimento">
+              <mat-icon>edit</mat-icon>
+            </button>
+            <button mat-icon-button color="warn" (click)="apagar(est.id, est.nome)" matTooltip="Apagar estabelecimento">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </div>
+
         </mat-panel-title>
       </mat-expansion-panel-header>
       <div class="panel-content-wrapper">
@@ -31,7 +45,8 @@
               <ul>
                 <li *ngFor="let dia of diasDaSemana; let i = index">
                   <b>{{ dia }}:</b>
-                  <span *ngIf="est.horarioAbertura && est.horarioAbertura[i]">{{ est.horarioAbertura[i] }} às {{ est.horarioFechamento[i] }}</span>
+                  <span *ngIf="est.horarioAbertura && est.horarioAbertura[i]">{{ est.horarioAbertura[i] }} às {{
+                    est.horarioFechamento[i] }}</span>
                   <span *ngIf="!est.horarioAbertura || !est.horarioAbertura[i]" class="horario-fechado">Fechado</span>
                 </li>
               </ul>
@@ -49,33 +64,18 @@
               </ng-template>
             </div>
           </div>
-          <div class="detail-item">
-            <mat-icon>qr_code</mat-icon>
-            <div class="fornadas-list">
-              <button mat-stroked-button color="primary" (click)="abrirBanner(est.id, est.nome)"
-                matTooltip="Notificar seguidores sobre uma nova fornada">
-                <mat-icon>download</mat-icon>
-                <span>abrir banner com QRCode</span>
-              </button>
-            </div>
-          </div>
         </div>
         <div class="actions-section">
-          <!-- Botão de notificar à esquerda -->
-          <button mat-stroked-button color="primary" (click)="notificar(est.id, est.nome)"
+          <button mat-stroked-button color="primary" (click)="abrirBanner(est.id, est.nome)"
+            matTooltip="Notificar seguidores sobre uma nova fornada">
+            <mat-icon>qr_code</mat-icon>
+            <span>abrir banner com QRCode</span>
+          </button>
+          <button mat-raised-button color="primary" (click)="notificar(est.id, est.nome)"
             matTooltip="Notificar seguidores sobre uma nova fornada">
             <mat-icon>notifications</mat-icon>
             <span>Notificar Fornada</span>
           </button>
-          <!-- Grupo de ícones à direita -->
-          <div class="icon-actions">
-            <button mat-icon-button (click)="editar(est.id)" matTooltip="Editar dados do estabelecimento">
-              <mat-icon>edit</mat-icon>
-            </button>
-            <button mat-icon-button color="warn" (click)="apagar(est.id, est.nome)" matTooltip="Apagar estabelecimento">
-              <mat-icon>delete</mat-icon>
-            </button>
-          </div>
         </div>
       </div>
     </mat-expansion-panel>

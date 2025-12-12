@@ -25,14 +25,20 @@
       </button>
 
       <button mat-menu-item (click)="navigateTo(['/minhas-inscricoes'])">
-          <mat-icon>notifications</mat-icon>
-          <span>Minhas inscrições</span>
+          <mat-icon>subscriptions</mat-icon>
+          <span>Padarias que sigo</span>
+      </button>
+
+      <button mat-menu-item (click)="navigateTo(['/planos'])">
+          <mat-icon>card_membership</mat-icon>
+          <span>Meus Planos</span>
       </button>
 
       <button mat-menu-item (click)="navigateTo(['/sobre'])">
         <mat-icon>info_outline</mat-icon>
         <span>Sobre o Pão Quentinho</span>
       </button>
+
       <button mat-menu-item (click)="navigateTo(['/ajuda'])">
           <mat-icon>help_outline</mat-icon>
           <span>Preciso de ajuda</span>

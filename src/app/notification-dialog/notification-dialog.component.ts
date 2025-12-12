@@ -45,7 +45,7 @@ export interface NotificationDialogResult {
       <button mat-flat-button color="primary" (click)="onSend()" [disabled]="form.invalid">Enviar</button>
     </mat-dialog-actions>
   `,
-  styles: ['.full-width { width: 100%; }']
+  styles: [`.full-width { width: 100%; }`]
 })
 export class NotificationDialogComponent {
   form: FormGroup;

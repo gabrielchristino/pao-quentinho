@@ -70,3 +70,80 @@ body.no-scroll {
     color: mat.get-color-from-palette($pao-quentinho-primary, 1000) !important;
   }
 }
+
+// Sobrescreve o estilo padrão dos botões primários do Material Design
+// Isso se aplica a todos os tipos de botões do Material (mat-button, mat-raised-button, etc.)
+// que possuem a propriedade color="primary".
+:where(.mat-mdc-raised-button.mat-primary),
+:where(.mat-mdc-unelevated-button.mat-primary),
+:is([class*='mat-mdc-fab-'], [class*='mat-mdc-mini-fab-']).mat-primary {
+  border-radius: 50px !important;
+  padding: 18px 24px !important;
+  font-size: 1.1rem !important;
+  font-weight: 600 !important;
+  box-shadow: 0 4px 14px rgba(217, 108, 44, 0.3);
+  transition: transform 0.2s, box-shadow 0.2s;
+  position: relative;
+
+  &:active {
+    transform: scale(0.98);
+    box-shadow: 0 2px 8px rgba(217, 108, 44, 0.2);
+  }
+
+  .mat-mdc-spinner {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+}
+
+// Estilo para o botão "Pular" (skip-button)
+// Este estilo é aplicado a uma classe customizada, pois não é um botão primário padrão.
+.skip-button {
+  color: #999;
+  font-weight: 500;
+  font-size: 0.9rem;
+  margin-top: 8px;
+  border-radius: 50px !important;
+}
+
+/* ==========================================================================
+   ESTILIZAÇÃO DOS INPUTS E TABS (MATERIAL DESIGN OVERRIDE)
+   ========================================================================== */
+
+/* Remove o scroll nativo do corpo da tab do Material */
+.mat-mdc-tab-body-content {
+  overflow: hidden !important;
+}
+
+/* Ajusta o espaçamento inferior do helper/error do form-field */
+.mat-mdc-form-field-subscript-wrapper {
+  height: auto;
+  position: relative;
+  margin-bottom: 8px;
+}
+
+/* Arredondamento dos Inputs Outlined */
+.mdc-text-field--outlined .mdc-notched-outline .mdc-notched-outline__leading {
+  border-top-left-radius: 12px !important;
+  border-bottom-left-radius: 12px !important;
+  width: 12px !important;
+}
+
+.mdc-text-field--outlined .mdc-notched-outline .mdc-notched-outline__trailing {
+  border-top-right-radius: 12px !important;
+  border-bottom-right-radius: 12px !important;
+}
+
+.mdc-text-field--outlined .mdc-notched-outline .mdc-notched-outline__notch {
+  max-width: calc(100% - 24px) !important;
+}
+
+/* Cor do foco para os inputs */
+.mdc-text-field--focused .mdc-notched-outline__leading,
+.mdc-text-field--focused .mdc-notched-outline__notch,
+.mdc-text-field--focused .mdc-notched-outline__trailing {
+  border-width: 2px !important;
+  border-color: #d96c2c !important;
+}

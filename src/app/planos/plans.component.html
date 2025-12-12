@@ -1,24 +1,50 @@
 <div class="plans-container">
-  <p>Escolha o plano ideal para você e aproveite ainda mais o Pão Quentinho!</p>
-  <div *ngIf="plans$ | async as plans; else loading" class="plans-list">
-    <mat-card *ngFor="let plan of plans" class="plan-card">
+  <ng-container *ngIf="currentUser$ | async as user; else loading">
+    <ng-container *ngIf="user && user.plan; else showPlanList">
+      <mat-card class="plan-card">
       <mat-card-header>
-        <mat-card-title>{{ plan.name }}</mat-card-title>
+        <mat-card-title>{{ user.plan.name }}</mat-card-title>
+        <mat-card-subtitle>Seu plano atual</mat-card-subtitle>
       </mat-card-header>
       <mat-card-content>
-        <p class="description">{{ plan.description }}</p>
+        <p class="description">{{ user.plan.description }}</p>
         <ul class="benefits-list">
-          <li *ngFor="let benefit of plan.benefits">
+          <li *ngFor="let benefit of user.plan.benefits">
             <mat-icon color="primary">check_circle</mat-icon> {{ benefit }}
           </li>
         </ul>
       </mat-card-content>
       <mat-card-actions class="plan-footer">
-        <span class="price">R$ {{ plan.price.replace('.', ',') }}<span class="period">/mês</span></span>
-        <button mat-flat-button color="primary" (click)="assinarPlano(plan)" [disabled]="isLoading">Assinar</button>
+        <span class="price">R$ {{ user.plan.price.replace('.', ',') }}<span class="period">/mês</span></span>
+        <button *ngIf="user.plan.id !== 0" mat-stroked-button color="warn" (click)="cancelarPlano()"
+          [disabled]="isCancelingPlan">Cancelar Plano</button>
       </mat-card-actions>
-    </mat-card>
-  </div>
+      </mat-card>
+    </ng-container>
+
+    <ng-template #showPlanList>
+      <p>Escolha o plano ideal para você e aproveite ainda mais o Pão Quentinho!</p>
+      <div *ngIf="plans$ | async as plans; else loading" class="plans-list">
+        <mat-card *ngFor="let plan of plans" class="plan-card">
+          <mat-card-header>
+            <mat-card-title>{{ plan.name }}</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <p class="description">{{ plan.description }}</p>
+            <ul class="benefits-list">
+              <li *ngFor="let benefit of plan.benefits">
+                <mat-icon color="primary">check_circle</mat-icon> {{ benefit }}
+              </li>
+            </ul>
+          </mat-card-content>
+          <mat-card-actions class="plan-footer">
+            <span class="price">R$ {{ plan.price.replace('.', ',') }}<span class="period">/mês</span></span>
+            <button mat-flat-button color="primary" (click)="assinarPlano(plan)" [disabled]="isLoading">Assinar</button>
+          </mat-card-actions>
+        </mat-card>
+      </div>
+    </ng-template>
+  </ng-container>
 
   <ng-template #loading><mat-spinner diameter="50"></mat-spinner></ng-template>
 </div>

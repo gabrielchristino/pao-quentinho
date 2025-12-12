@@ -44,17 +44,13 @@ export class MinhasInscricoesComponent implements OnInit {
   private notificationService = inject(NotificationService);
   private snackBar = inject(MatSnackBar);
   private authService = inject(AuthService);
-  private plansService = inject(PlansService);
-  private dialog = inject(MatDialog);
 
   estabelecimentos: Estabelecimento[] = [];
   isLoading = true;
-  isCancelingPlan = false;
   unsubscribingId: number | null = null;
   diasDaSemana = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
   showBanner = false;
   private readonly BANNER_DISMISSED_KEY = 'infoBannerDismissed';
-  currentUser$: Observable<User | null>;
 
   ngOnInit(): void {
     this.showBanner = localStorage.getItem(this.BANNER_DISMISSED_KEY) !== 'true';
@@ -62,7 +58,6 @@ export class MinhasInscricoesComponent implements OnInit {
     this.carregarEstabelecimentos();
   }
 
-  constructor() { this.currentUser$ = this.authService.currentUser$; }
   dismissBanner(): void {
     this.showBanner = false;
     localStorage.setItem(this.BANNER_DISMISSED_KEY, 'true');
@@ -100,36 +95,6 @@ export class MinhasInscricoesComponent implements OnInit {
           ? 'Inscrição não encontrada para este dispositivo.'
           : 'Erro ao cancelar a inscrição. Tente novamente.';
         this.snackBar.open(errorMessage, 'Fechar', { duration: 5000 });
-      }
-    });
-  }
-
-  cancelarPlano(): void {
-    const dialogRef = this.dialog.open(PermissionDialogComponent, {
-      data: {
-        icon: 'warning',
-        title: 'Cancelar Assinatura',
-        content: 'Você tem certeza que deseja cancelar seu plano? Você perderá o acesso aos benefícios ao final do ciclo de faturamento atual.',
-        confirmButton: 'Sim, cancelar',
-        cancelButton: 'Não'
-      }
-    });
-
-    dialogRef.afterClosed().subscribe(result => {
-      if (result === true) {
-        this.isCancelingPlan = true;
-        this.plansService.cancelUserPlan().pipe(
-          switchMap(() => this.authService.refreshToken()),
-          finalize(() => this.isCancelingPlan = false)
-        ).subscribe({
-          next: () => {
-            this.snackBar.open('Seu plano foi cancelado com sucesso.', 'Ok', { duration: 5000 });
-          },
-          error: (err) => {
-            console.error('Erro ao cancelar plano:', err);
-            this.snackBar.open('Ops! Não foi possível cancelar o plano. Tente novamente.', 'Fechar', { duration: 5000 });
-          }
-        });
       }
     });
   }
