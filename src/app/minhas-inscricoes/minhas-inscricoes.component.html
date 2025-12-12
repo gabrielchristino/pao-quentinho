@@ -16,11 +16,7 @@
   <div *ngIf="!isLoading && estabelecimentos.length > 0">
     <div class="info-banner" *ngIf="showBanner">
       <div class="banner-content">
-        <video #videoPlayer autoplay loop [muted]="true" playsinline class="welcome-video estabelecimento-video"
-          width="90%">
-          <source src="assets/videos/estabelecimento.mp4" type="video/mp4">
-          Seu navegador não suporta a tag de vídeo.
-        </video>
+        <mat-icon class="info-icon">notifications_active</mat-icon>
         <p class="info-text">Aqui estão os locais que você segue. Você receberá uma <strong>notificação</strong> sempre
           que uma <strong>nova fornada</strong> for anunciada.</p>
       </div>
