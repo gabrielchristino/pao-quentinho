@@ -15,7 +15,7 @@
 <div class="tour-overlay" *ngIf="tourStep">
   <div class="tour-step" *ngIf="tourStep === 'welcome'">
     <div class="tour-content">
-      <video #videoPlayer autoplay [muted]="true" playsinline width="90%" class="welcome-video">
+      <video preload="auto" #videoPlayer autoplay [muted]="true" playsinline width="90%" class="welcome-video">
         <source src="assets/videos/inicio.mp4" type="video/mp4">
         Seu navegador não suporta a tag de vídeo.
       </video>
@@ -33,7 +33,7 @@
 
   <div class="tour-step" *ngIf="tourStep === 'location'">
     <div class="tour-content">
-      <video #videoPlayer autoplay loop [muted]="true" playsinline width="90%" class="welcome-video location-video">
+      <video preload="auto" #videoPlayer autoplay loop [muted]="true" playsinline width="90%" class="welcome-video location-video">
         <source src="assets/videos/location.mp4" type="video/mp4">
         Seu navegador não suporta a tag de vídeo.
       </video>
@@ -53,7 +53,7 @@
 
   <div class="tour-step" *ngIf="tourStep === 'notification'">
     <div class="tour-content">
-      <video #videoPlayer autoplay loop [muted]="true" playsinline class="welcome-video notification-video" width="90%">
+      <video preload="auto" #videoPlayer autoplay loop [muted]="true" playsinline class="welcome-video notification-video" width="90%">
         <source src="assets/videos/notification.mp4" type="video/mp4">
         Seu navegador não suporta a tag de vídeo.
       </video>
@@ -73,7 +73,7 @@
 
   <div class="tour-step" *ngIf="tourStep === 'login'">
     <div class="tour-content auth-form-container">
-      <video #avatarVideo [muted]="true" playsinline preload="auto" width="90%" class="welcome-video login-video">
+      <video preload="auto" #avatarVideo [muted]="true" playsinline preload="auto" width="90%" class="welcome-video login-video">
         <source src="assets/videos/login.mp4" type="video/mp4">
         Seu navegador não suporta a tag de vídeo.
       </video>

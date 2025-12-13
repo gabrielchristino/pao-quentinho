@@ -2,7 +2,7 @@
   <div *ngIf="isLoading">Carregando seus estabelecimentos...</div>
 
   <div *ngIf="!isLoading && meusEstabelecimentos.length === 0" class="empty-state">
-    <video #videoPlayer autoplay loop [muted]="true" playsinline class="welcome-video estabelecimento-video"
+    <video preload="auto" #videoPlayer autoplay loop [muted]="true" playsinline class="welcome-video estabelecimento-video"
       width="100%">
       <source src="assets/videos/estabelecimento.mp4" type="video/mp4">
       Seu navegador não suporta a tag de vídeo.
