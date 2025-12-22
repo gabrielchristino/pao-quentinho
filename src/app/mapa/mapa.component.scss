@@ -30,7 +30,7 @@
     border-radius: 28px;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
     overflow: hidden;
-    
+
     ::ng-deep .mdc-notched-outline .mdc-notched-outline__leading,
     ::ng-deep .mdc-notched-outline .mdc-notched-outline__notch,
     ::ng-deep .mdc-notched-outline .mdc-notched-outline__trailing {
@@ -38,10 +38,11 @@
     }
   }
 
-  .location-button, .account-button {
+  .location-button,
+  .account-button {
     background-color: white;
     border-radius: 50%;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
     flex-shrink: 0;
     width: 48px;
     height: 48px;
@@ -83,7 +84,7 @@
   z-index: 1001;
   background-color: #fff;
   padding: 12px 16px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   animation: slide-down 0.4s ease-out;
 
   .install-banner-content {
@@ -99,8 +100,14 @@
     display: flex;
     flex-direction: column;
 
-    strong { font-weight: 500; }
-    span { font-size: 0.9em; color: rgba(0,0,0,0.7); }
+    strong {
+      font-weight: 500;
+    }
+
+    span {
+      font-size: 0.9em;
+      color: rgba(0, 0, 0, 0.7);
+    }
   }
 }
 
@@ -109,7 +116,7 @@
   bottom: 150px;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 1001;
+  z-index: 1000;
   background-color: white;
   border-radius: 8px;
 }
@@ -150,7 +157,10 @@
       font-size: 1rem;
     }
 
-    .back-button-card { color: rgba(0,0,0,0.54); }
+    .back-button-card {
+      color: rgba(0, 0, 0, 0.54);
+    }
+
     .gps-button {
       background-color: #f59e0b;
       color: white;
@@ -158,8 +168,6 @@
     }
   }
 }
-
-.list-item-spacer { flex: 1 1 auto; }
 
 #bottomSheet {
   position: absolute;
@@ -177,8 +185,13 @@
   display: flex;
   flex-direction: column;
 
-  &.open { transform: translateY(0); }
-  &.dragging { transition: none !important; }
+  &.open {
+    transform: translateY(0);
+  }
+
+  &.dragging {
+    transition: none !important;
+  }
 
   .handle {
     padding: 8px;
@@ -210,7 +223,15 @@
     flex-grow: 1;
   }
 
-  mat-nav-list { padding-top: 0; }
+  mat-nav-list {
+    padding-top: 0;
+  }
+
+  .bottom-sheet-icon {
+    width: 25px;
+    height: 25px;
+    object-fit: contain;
+  }
 
   .establishment-list-item {
     margin-bottom: 8px;
@@ -235,12 +256,16 @@
       margin-right: 16px;
     }
 
-    .list-item-title { font-weight: 500; }
+    .list-item-title {
+      font-weight: 500;
+    }
+
     .list-item-line {
       text-transform: capitalize;
       font-size: 0.9em;
-      color: rgba(0,0,0,0.6);
+      color: rgba(0, 0, 0, 0.6);
     }
+
     .distancia-meta {
       font-weight: 500;
       color: #333;
@@ -249,144 +274,25 @@
   }
 }
 
-.establishment-details-container {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  z-index: 1002;
-  display: flex;
-  justify-content: center;
-  align-items: flex-end;
-  padding: 16px;
-  background: rgba(0, 0, 0, 0.2);
-
-  .establishment-card {
-    width: 100%;
-    max-width: 400px;
-    animation: slide-up 0.3s ease-out;
-
-    mat-card-header {
-      padding: 16px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-
-      .header-text-content { flex-grow: 1; }
-      .header-share-button { flex-shrink: 0; }
-    }
-
-    mat-card-content {
-      padding: 8px 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
-
-    .fornada-highlight {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      background-color: #fffbeb;
-      border: 1px solid #fde68a;
-      border-radius: 12px;
-      padding: 12px;
-      font-size: 1rem;
-      color: #78350f;
-    }
-
-    .horario-highlight {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      border-radius: 12px;
-      padding: 12px;
-      font-size: 1rem;
-      .horario-icon { color: rgba(0,0,0,0.5); }
-    }
-
-    .info-text {
-      color: rgba(0,0,0,0.7);
-      margin: 0;
-      line-height: 1.5;
-    }
-
-    .address-container {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      text-decoration: none;
-      color: inherit;
-      background-color: #f9fafb;
-      border: 1px solid #e5e7eb;
-      border-radius: 12px;
-      padding: 12px;
-      cursor: pointer;
-      transition: background-color 0.2s ease-in-out;
-      position: relative;
-
-      &:hover {
-        background-color: #f3f4f6;
-        border-color: #d1d5db;
-      }
-
-      .address-content {
-        display: flex;
-        align-items: flex-start;
-        gap: 12px;
-      }
-      .location-icon {
-        color: rgba(0,0,0,0.5);
-        margin-top: 2px;
-      }
-      .address-text {
-        p { font-weight: 500; margin: 0; }
-        small { color: #4f46e5; font-weight: 500; }
-      }
-      mat-icon:last-of-type { color: rgba(0,0,0,0.4); }
-    }
-
-    .card-actions-wrapper {
-      padding: 8px 16px 16px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-
-      .follow-button { flex-grow: 1; }
-      .close-button { margin-left: auto; }
-      button { padding: 8px 16px; border-radius: 12px; }
-    }
-  }
-}
-
-.menu-header {
-  padding: 8px 16px;
-  outline: none;
-  .user-name { font-weight: 500; font-size: 0.9rem; }
-  .user-email { font-size: 0.8rem; color: rgba(0, 0, 0, 0.54); }
-}
-
-@keyframes slide-up { from { transform: translateY(100%); } to { transform: translateY(0); } }
-@keyframes slide-down { from { transform: translateY(-100%); } to { transform: translateY(0); } }
-
-
 /* =========================================
-   ESTILOS DO TOUR GUIADO (MODERNIZADO + SCROLL FIX)
+   ESTILOS DO TOUR GUIADO (WELCOME, LOCATION, ETC)
    ========================================= */
 
 .tour-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(255, 255, 255, 1); /* Fundo branco sólido */
+  top: 0; left: 0; width: 100%; height: 100%;
+  background-color: white; // Fundo padrão para Welcome/Login
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 1100;
-  padding: 0; 
+  z-index: 2000;
+  transition: background-color 0.3s ease; // Transição suave para a transparência
+
+  /* NOVA CLASSE: Quando esta classe for aplicada, o fundo branco some */
+  &.transparent-overlay {
+    background-color: transparent !important;
+    pointer-events: none; // Permite que cliques passem para os botões do mapa se necessário
+  }
 }
 
 .tour-step {
@@ -398,29 +304,23 @@
   align-items: center;
   text-align: center;
   animation: fadeIn 0.4s ease-out;
-  
-  /* SCROLL FIX: Trava a rolagem principal */
-  overflow: hidden; 
-  /* Ajuste de padding reduzido para caber melhor na tela */
-  padding: 16px; 
+  overflow: hidden;
+  padding: 16px;
   box-sizing: border-box;
 }
 
-/* Container do Conteúdo (Vídeo + Textos) */
 .tour-content {
   display: flex;
   flex-direction: column;
-  justify-content: center; 
+  justify-content: center;
   align-items: center;
   flex-grow: 1;
   width: 100%;
   max-width: 400px;
-  /* SCROLL FIX: Evita scroll interno indesejado */
-  min-height: 0; 
-  overflow: hidden; 
+  min-height: 0;
+  overflow: hidden;
 }
 
-/* Área de Ações (Botões) */
 .tour-actions {
   width: 100%;
   max-width: 400px;
@@ -428,14 +328,12 @@
   flex-direction: column;
   gap: 12px;
   margin-top: 16px;
-  flex-shrink: 0; 
+  flex-shrink: 0;
 }
 
-/* --- Títulos e Textos --- */
-
 .tour-title {
-  font-size: 1.75rem; 
-  font-weight: 700; 
+  font-size: 1.75rem;
+  font-weight: 700;
   color: #1a1a1a;
   margin: 16px 0 8px 0;
   letter-spacing: -0.5px;
@@ -446,7 +344,7 @@
   color: #666;
   margin-bottom: 24px;
   line-height: 1.6;
-  max-width: 320px; 
+  max-width: 320px;
 }
 
 .welcome-text {
@@ -456,9 +354,15 @@
   margin-bottom: 24px;
   max-width: 360px;
   text-align: center;
-  
-  p { margin: 0 0 12px 0; }
-  strong { color: #d96c2c; font-weight: 600; }
+
+  p {
+    margin: 0 0 12px 0;
+  }
+
+  strong {
+    color: #d96c2c;
+    font-weight: 600;
+  }
 }
 
 .tour-icon {
@@ -469,24 +373,19 @@
   margin-bottom: 16px;
 }
 
-/* --- Vídeo e Avatar --- */
-
 .welcome-video {
-  /* Mix blend para remover fundo cinza */
   mix-blend-mode: multiply;
   filter: contrast(1.05) brightness(1.05);
   width: 100%;
-  max-width: 280px; 
+  max-width: 280px;
   height: auto;
-  margin-bottom: 0;
-  /* Float animation removida conforme solicitado */
 }
 
 /* --- Formulários e Tabs --- */
 
 .auth-form-container {
-  justify-content: flex-start; 
-  padding-top: 2vh; 
+  justify-content: flex-start;
+  padding-top: 2vh;
 }
 
 .auth-tabs {
@@ -497,71 +396,31 @@
 .auth-form {
   display: flex;
   flex-direction: column;
-  gap: 12px; /* Gap reduzido para economizar espaço vertical */
+  gap: 12px;
   padding-top: 16px;
   width: 100%;
 }
 
-/* SCROLL FIX: Remove scroll nativo do corpo da tab do Material */
 ::ng-deep .mat-mdc-tab-body-content {
-  overflow: hidden !important; 
+  overflow: hidden !important;
 }
 
-/* === ESTILIZAÇÃO DOS INPUTS (MATERIAL DESIGN OVERRIDE) === */
-
 ::ng-deep .mat-mdc-form-field-subscript-wrapper {
-  height: auto; 
-  position: relative; 
+  height: auto;
+  position: relative;
   margin-bottom: 8px;
 }
 
-/* Arredondamento dos Inputs Outlined */
-::ng-deep .mdc-text-field--outlined .mdc-notched-outline .mdc-notched-outline__leading {
-  border-top-left-radius: 12px !important;
-  border-bottom-left-radius: 12px !important;
-  width: 12px !important;
-}
-
-::ng-deep .mdc-text-field--outlined .mdc-notched-outline .mdc-notched-outline__trailing {
-  border-top-right-radius: 12px !important;
-  border-bottom-right-radius: 12px !important;
-}
-
-::ng-deep .mdc-text-field--outlined .mdc-notched-outline .mdc-notched-outline__notch {
-  max-width: calc(100% - 24px) !important;
-}
-
-/* Cor do foco */
-::ng-deep .mdc-text-field--focused .mdc-notched-outline__leading,
-::ng-deep .mdc-text-field--focused .mdc-notched-outline__notch,
-::ng-deep .mdc-text-field--focused .mdc-notched-outline__trailing {
-  border-width: 2px !important;
-  border-color: #d96c2c !important; 
-}
-
-
-/* --- Botões --- */
+/* --- Botões do Tour --- */
 
 .auth-button {
-  border-radius: 50px !important; 
-  padding: 24px 0 !important; 
+  border-radius: 50px !important;
+  padding: 24px 0 !important;
   font-size: 1.1rem !important;
   font-weight: 600 !important;
-  box-shadow: 0 4px 14px rgba(217, 108, 44, 0.3); 
+  box-shadow: 0 4px 14px rgba(217, 108, 44, 0.3);
   transition: transform 0.2s, box-shadow 0.2s;
   position: relative;
-}
-
-.auth-button:active {
-  transform: scale(0.98);
-  box-shadow: 0 2px 8px rgba(217, 108, 44, 0.2);
-}
-
-.auth-button mat-spinner {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
 }
 
 .skip-button {
@@ -572,14 +431,141 @@
   border-radius: 50px !important;
 }
 
-/* --- Checkbox e Erros --- */
+/* =========================================
+   TOUR DE INTERFACE - EFEITO SPOTLIGHT
+   ========================================= */
 
-.lojista-checkbox {
-  margin-top: 8px;
-  font-size: 0.9rem;
-  color: #555;
+// Container transparente que cobre o mapa durante o tour de interface
+.interface-tour-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1500;
+  pointer-events: none; // Não bloqueia cliques fora do balão
+}
+
+// O SEGREDO DO "BURACO": Fundo escuro gerado pelo elemento real em destaque
+.highlight-ui {
+  position: relative !important;
+  z-index: 1400 !important; // Acima do mapa, abaixo do balão
+  pointer-events: none !important; // Evita clicar no botão real durante o tour
+  background-color: white !important;
+  border-radius: 28px !important;
+  
+  // Sombra massiva que escurece tudo menos o item destacado
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.7), 0 0 15px rgba(255, 255, 255, 0.8) !important;
+}
+
+// O SEGREDO DO "BURACO": Fundo escuro gerado pelo elemento real em destaque
+.highlight-ui-radius-filter {
+  z-index: 1400 !important; // Acima do mapa, abaixo do balão
+  pointer-events: none !important; // Evita clicar no botão real durante o tour
+  background-color: white !important;
+  
+  // Sombra massiva que escurece tudo menos o item destacado
+  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.7), 0 0 15px rgba(255, 255, 255, 0.8) !important;
+}
+
+// Balão de guia flutuante
+.guide-balloon {
+  position: absolute;
+  pointer-events: all;
+  background: white;
+  width: 270px;
+  padding: 18px;
+  border-radius: 16px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  z-index: 1600;
+
+  &::after {
+    content: '';
+    position: absolute;
+    border: 10px solid transparent;
+  }
+
+  &.step-1 { 
+    top: 105px; left: 16px; 
+    &::after { border-bottom-color: white; top: -20px; left: 20px; }
+  }
+
+  &.step-2 { 
+    top: 105px; right: 16px; 
+    &::after { border-bottom-color: white; top: -20px; right: 70px; }
+  }
+
+  &.step-3 { 
+    top: 105px; right: 16px; 
+    &::after { border-bottom-color: white; top: -20px; right: 15px; }
+  }
+
+  &.step-4 { 
+    bottom: 220px; left: 50%; transform: translateX(-50%);
+    &::after { border-bottom-color: white; bottom: -20px; right: 50%; rotate: 180deg; }
+  }
+
+  &.step-5 { 
+    bottom: 120px; left: 50%; transform: translateX(-50%);
+  }
+
+  .balloon-title {
+    color: #d96c2c;
+    margin: 0 0 8px 0;
+    font-size: 1.15rem;
+    font-weight: 700;
+  }
+
+  p {
+    font-size: 0.95rem;
+    color: #444;
+    margin: 0;
+    line-height: 1.5;
+  }
+}
+
+.legend-mini-grid {
+  display: grid;
+  row-gap: 10px;
+  grid-template-columns: repeat(3, 1fr);
+  justify-content: space-around;
+  margin-top: 15px;
+  padding: 10px;
+  background: #fff5ed;
+  border-radius: 10px;
+
+  .legend-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 0.75rem;
+    gap: 4px;
+    img { width: 24px; height: 24px; }
+  }
+}
+
+.balloon-actions {
+  margin-top: 15px;
   display: flex;
-  justify-content: center;
+  justify-content: flex-end;
+}
+
+/* =========================================
+   ESTILOS ADICIONAIS E ANIMAÇÕES
+   ========================================= */
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+// Classes gerais que você já tinha
+.establishment-details-container {
+  /* Mantido conforme seu original */
+  position: absolute; top: 0; bottom: 0; left: 0; right: 0;
+  z-index: 1002; display: flex; justify-content: center;
+  align-items: flex-end; padding: 16px; background: rgba(0, 0, 0, 0.2);
 }
 
 .error-message {
@@ -594,10 +580,4 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  animation: slide-up 0.3s ease-out;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
 }

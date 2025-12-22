@@ -127,8 +127,9 @@ export class MapaComponent implements AfterViewInit, OnInit {
   installPrompt: any = null;
   showInstallBanner = true;
   private destroy$ = new Subject<void>();
-  tourStep: 'welcome' | 'location' | 'notification' | 'install' | 'login' | null = null;
-  isLoading = true;
+  tourStep: 'welcome' | 'location' | 'notification' | 'install' | 'interface-tour' | 'login' | null = null;
+  interfaceTourSubStep: number = 0;
+  isLoading = false;
   isLoggingIn = false;
   isRegistering = false;
   hideLoginPassword = true;
@@ -177,7 +178,6 @@ export class MapaComponent implements AfterViewInit, OnInit {
         this.initializeDataFlow();
       }
       this.ouvirMudancasDeAutenticacao();
-      this.mostrarTooltipDeLocalizacaoSeNecessario({ comDelay: false, comAutohide: true });
     }, 0);
     this.bottomSheetEl = this._elementRef.nativeElement.querySelector('#bottomSheet');
     this.handleRouteActions();
@@ -1032,25 +1032,41 @@ export class MapaComponent implements AfterViewInit, OnInit {
   avancarTour(skipped = false): void {
     if (this.tourStep === 'welcome') {
       this.tourStep = 'location';
-    } else if (this.tourStep === 'location' && skipped) {
-      // Se o usuário pular a etapa de localização, define uma localização padrão (São Paulo).
-      localStorage.setItem('locationPermissionSkipped', 'true');
-      this.location$.next({ lat: -23.55052, lng: -46.633308 });
+    }
+    else if (this.tourStep === 'location') {
+      if (skipped) {
+        localStorage.setItem('locationPermissionSkipped', 'true');
+        this.location$.next({ lat: -23.55052, lng: -46.633308 });
+      }
+      this.requestUserLocation();
       this.tourStep = 'notification';
-    } else if (this.tourStep === 'location') { // Se não pulou, apenas avança
-      this.tourStep = 'notification';
-    } else if (this.tourStep === 'notification' && skipped) {
-      localStorage.setItem('notificationPermissionSkipped', 'true'); // Marca como pulado
+    } else if (this.tourStep === 'notification') {
+      if (skipped) localStorage.setItem('notificationPermissionSkipped', 'true');
       this.tourStep = 'login';
-    } else if (this.tourStep === 'notification') { // Avança da notificação para o login
-      this.tourStep = 'login';
-    } else if (this.tourStep === 'login' && skipped) {
-      this.finalizarTour();
-    } else if (this.tourStep === 'login') { // Avança do login para a instalação (ou finaliza)
-      this.tourStep = this.installPrompt ? 'install' : null;
-    } else if (this.tourStep === 'install') {
-      this.finalizarTour();
-    } else {
+    } else if (this.tourStep === 'login') {
+      this.tourStep = 'interface-tour';
+      this.interfaceTourSubStep = 1;
+    } else if (this.tourStep === 'interface-tour') {
+      if (this.interfaceTourSubStep < 5) {
+        this.interfaceTourSubStep++;
+        if (this.interfaceTourSubStep === 5) {
+          if (!this.userMarker) {
+            this.location$.pipe(filter(l => !!l), take(1)).subscribe(loc => {
+              this.inicializarMarcadorUsuario(loc!.lat, loc!.lng);
+              this.initializeDataFlow();
+            });
+          }
+        }
+      } else {
+        // Acabou a interface, checa PWA
+        if (this.installPrompt) {
+          this.tourStep = 'install';
+        } else {
+          this.finalizarTour();
+        }
+      }
+    }
+    else if (this.tourStep === 'install') {
       this.finalizarTour();
     }
   }
@@ -1063,8 +1079,6 @@ export class MapaComponent implements AfterViewInit, OnInit {
     // inicializa o fluxo de dados para usar a localização padrão e carregar o mapa.
     if (!this.userMarker) {
       // Garante que o fluxo de dados só comece após a localização (real ou padrão) ser definida.
-      // Mostra o tooltip de localização agora que o tour acabou.
-      this.mostrarTooltipDeLocalizacaoSeNecessario({ comDelay: true });
       this.location$.pipe(
         filter((loc): loc is { lat: number; lng: number } => loc !== null),
         take(1),
@@ -1077,33 +1091,6 @@ export class MapaComponent implements AfterViewInit, OnInit {
     }
     if (userRole === 'lojista') {
       this.router.navigate(['/meus-estabelecimentos']);
-    }
-  }
-
-  /**
-   * Exibe o tooltip de localização se o usuário tiver visitado a página menos de 3 vezes.
-   * @param options Opções para controlar o comportamento do tooltip.
-   * @param options.comDelay Adiciona um delay antes de mostrar o tooltip.
-   * @param options.comAutohide Faz o tooltip desaparecer após 3 segundos.
-   */
-  private mostrarTooltipDeLocalizacaoSeNecessario(options: { comDelay?: boolean, comAutohide?: boolean } = {}): void {
-    if (this.tourStep) return;
-
-    const visitCount = parseInt(localStorage.getItem('visitCount') || '0', 10);
-    if (visitCount >= 3) return;
-
-    const showLogic = () => {
-      if (options.comAutohide) {
-        this.locationTooltip.hideDelay = 3000;
-      }
-      this.locationTooltip.show();
-      localStorage.setItem('visitCount', (visitCount + 1).toString());
-    };
-
-    if (options.comDelay) {
-      setTimeout(showLogic, 500); // Delay para garantir que a UI esteja estável
-    } else {
-      showLogic();
     }
   }
 
