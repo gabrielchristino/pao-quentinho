@@ -1047,7 +1047,7 @@ export class MapaComponent implements AfterViewInit, OnInit {
       this.tourStep = 'interface-tour';
       this.interfaceTourSubStep = 1;
     } else if (this.tourStep === 'interface-tour') {
-      if (this.interfaceTourSubStep < 5) {
+      if (this.interfaceTourSubStep < 6) {
         this.interfaceTourSubStep++;
         if (this.interfaceTourSubStep === 5) {
           if (!this.userMarker) {
@@ -1056,8 +1056,31 @@ export class MapaComponent implements AfterViewInit, OnInit {
               this.initializeDataFlow();
             });
           }
+        } else if (this.interfaceTourSubStep === 6) {
+          // vamos incluir um mock em selectedEstabelecimento para mostrar o detalhe
+          this.selectedEstabelecimento = {
+            id: 0,
+            nome: 'Padaria Pão Quentinho',
+            tipo: 'padaria',
+            latitude: this.location$.value!.lat + 0.001,
+            longitude: this.location$.value!.lng + 0.001,
+            distanciaKm: 0.15,
+            info: 'Padaria especializada em pães artesanais e confeitaria.',
+            proximaFornada: ['07:00', '10:00', '13:00', '16:00', '19:00'],
+            horarioAbertura: '06:00',
+            horarioFechamento: '20:00',
+            endereco: {
+              rua: 'Rua das Flores',
+              numero: '123',
+              bairro: 'Centro',
+              cidade: 'São Paulo',
+              estado: 'SP',
+              cep: '12345-678'
+            },
+          };
         }
       } else {
+        this.selectedEstabelecimento = null;
         // Acabou a interface, checa PWA
         if (this.installPrompt) {
           this.tourStep = 'install';

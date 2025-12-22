@@ -159,7 +159,8 @@
           {{ interfaceTourSubStep === 1 ? 'Busca por Endereço' : 
              interfaceTourSubStep === 2 ? 'Sua Localização' :
              interfaceTourSubStep === 3 ? 'Seu Perfil' :
-             interfaceTourSubStep === 4 ? 'Alcance' : 'Legenda do Mapa' }}
+             interfaceTourSubStep === 4 ? 'Alcance' : 
+             interfaceTourSubStep === 5 ? 'Legenda do Mapa' : 'Detalhes do estabelecimento' }}
         </h3>
         <p *ngIf="interfaceTourSubStep === 1">Pesquise por nome, rua ou CEP para mudar a região.</p>
         <p *ngIf="interfaceTourSubStep === 2">Clique aqui para voltar o mapa para sua posição atual.</p>
@@ -173,6 +174,7 @@
           <div class="legend-item"><img src="assets/icons/casaDeBolos.png"><span>Casa de bolos</span></div>
           <div class="legend-item"><img src="assets/icons/outros.png"><span>Outros lugares</span></div>
         </div>
+        <p *ngIf="interfaceTourSubStep === 6">Aqui você consegue ver os detalhes do estabelecimento</p>
       </div>
       <div class="balloon-actions">
         <button mat-flat-button color="primary" (click)="avancarTour()">{{ interfaceTourSubStep < 5 ? 'Próximo' : 'Entendi!' }}</button>
@@ -293,7 +295,7 @@
 </div>
 
 <div class="establishment-details-container" *ngIf="selectedEstabelecimento && !routingControl"
-  (click)="fecharDetalhe()">
+  (click)="fecharDetalhe()" [class.highlight-ui-detalhes]="tourStep === 'interface-tour' && interfaceTourSubStep === 6">
   <mat-card class="establishment-card" (click)="$event.stopPropagation()">
     <mat-card-header>
       <div class="header-text-content">

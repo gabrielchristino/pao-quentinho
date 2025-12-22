@@ -468,6 +468,11 @@
   box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.7), 0 0 15px rgba(255, 255, 255, 0.8) !important;
 }
 
+// O SEGREDO DO "BURACO": Fundo escuro gerado pelo elemento real em destaque
+.highlight-ui-detalhes {
+  pointer-events: none !important; // Evita clicar no botão real durante o tour
+}
+
 // Balão de guia flutuante
 .guide-balloon {
   position: absolute;
@@ -508,6 +513,10 @@
 
   &.step-5 { 
     bottom: 120px; left: 50%; transform: translateX(-50%);
+  }
+
+  &.step-6 { 
+    top: 120px; left: 50%; transform: translateX(-50%);
   }
 
   .balloon-title {
