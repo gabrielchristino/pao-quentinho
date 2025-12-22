@@ -9,13 +9,26 @@ import { ActivatedRouteSnapshot, CanActivateFn, Router } from '@angular/router';
 export const notificationRedirectGuard: CanActivateFn = (route: ActivatedRouteSnapshot) => {
   const router = inject(Router);
   const establishmentId = route.paramMap.get('id');
+  const fornadaId = route.paramMap.get('fornadaId');
+  const time = route.paramMap.get('time');
 
   if (establishmentId) {
-    // Redireciona para a raiz, passando o ID como query param e preservando outros parâmetros (action, time, etc).
-    return router.createUrlTree(['/'], { queryParams: { 
+    const queryParams: any = {
       ...route.queryParams,
       open_establishment_id: establishmentId 
-    } });
+    };
+
+    // Se vieram parâmetros de rota (Path Params) de reserva, converte para Query Params
+    if (fornadaId) {
+      queryParams['action'] = 'reserve';
+      queryParams['fornadaId'] = fornadaId;
+    } else if (time) {
+      queryParams['action'] = 'reserve';
+      queryParams['time'] = time;
+    }
+
+    // Redireciona para a raiz (Mapa) com os parâmetros normalizados
+    return router.createUrlTree(['/'], { queryParams });
   }
   // Se não houver ID, apenas redireciona para a raiz.
   return router.createUrlTree(['/'], { queryParams: route.queryParams });
