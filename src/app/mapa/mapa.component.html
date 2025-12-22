@@ -266,6 +266,12 @@
       <mat-icon>card_membership</mat-icon>
       <span>Meus Planos</span>
     </button> -->
+    <button mat-menu-item (click)="navigateTo(['/sobre'])">
+      <mat-icon>info_outline</mat-icon><span>Sobre</span>
+    </button>
+    <button mat-menu-item (click)="navigateTo(['/ajuda'])">
+      <mat-icon>help_outline</mat-icon><span>Preciso de ajuda</span>
+    </button>
     <button mat-menu-item (click)="authService.logout()">
       <mat-icon>logout</mat-icon>Sair
     </button>
