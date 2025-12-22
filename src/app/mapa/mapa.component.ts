@@ -277,10 +277,14 @@ export class MapaComponent implements AfterViewInit, OnInit {
   }
 
   private handleRouteActions(): void {
-    this.route.queryParams.pipe(
+    combineLatest([
+      this.route.queryParams,
+      this.route.paramMap
+    ]).pipe(
       takeUntil(this.destroy$)
-    ).subscribe(params => {
-      const establishmentIdToOpen = params['open_establishment_id'];
+    ).subscribe(([params, paramMap]) => {
+      // Tenta pegar o ID do query param OU do parâmetro da rota (ex: /estabelecimento/:id)
+      const establishmentIdToOpen = params['open_establishment_id'] || paramMap.get('id');
       const action = params['action'];
       const time = params['time'];
       const fornadaId = params['fornadaId'];
@@ -294,15 +298,20 @@ export class MapaComponent implements AfterViewInit, OnInit {
         }
         this.tourStep = 'login';
       } else if (action === 'reserve') {
-        this.handleReserveAction(Number(establishmentIdToOpen), time, fornadaId);
-        paramsToRemove.push('action');
-        paramsToRemove.push('time');
-        paramsToRemove.push('fornadaId');
+        if (establishmentIdToOpen) {
+          this.handleReserveAction(Number(establishmentIdToOpen), time, fornadaId);
+          paramsToRemove.push('action');
+          paramsToRemove.push('time');
+          paramsToRemove.push('fornadaId');
+        }
       }
 
       if (establishmentIdToOpen) {
         this.mapStateService.selectEstablishment(Number(establishmentIdToOpen));
-        paramsToRemove.push('open_establishment_id');
+        // Só remove o parâmetro se ele veio da query string
+        if (params['open_establishment_id']) {
+          paramsToRemove.push('open_establishment_id');
+        }
       }
 
       if (paramsToRemove.length > 0) {

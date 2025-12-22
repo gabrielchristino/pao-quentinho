@@ -11,9 +11,12 @@ export const notificationRedirectGuard: CanActivateFn = (route: ActivatedRouteSn
   const establishmentId = route.paramMap.get('id');
 
   if (establishmentId) {
-    // Redireciona para a raiz, passando o ID como query param.
-    return router.createUrlTree(['/'], { queryParams: { open_establishment_id: establishmentId } });
+    // Redireciona para a raiz, passando o ID como query param e preservando outros parâmetros (action, time, etc).
+    return router.createUrlTree(['/'], { queryParams: { 
+      ...route.queryParams,
+      open_establishment_id: establishmentId 
+    } });
   }
   // Se não houver ID, apenas redireciona para a raiz.
-  return router.createUrlTree(['/']);
+  return router.createUrlTree(['/'], { queryParams: route.queryParams });
 };
