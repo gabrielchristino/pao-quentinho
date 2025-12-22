@@ -9,7 +9,21 @@ self.addEventListener('notificationclick', (event) => {
   event.notification.close();
 
   // Obtém a URL dos dados da notificação (enviada pelo backend).
-  const urlToOpen = event.notification.data?.url;
+  const data = event.notification.data;
+  const action = event.action;
+  let urlToOpen;
+
+  // Suporte para a estrutura onActionClick (Angular PWA / Novo Backend)
+  if (data?.onActionClick) {
+    if (action && data.onActionClick[action]) {
+      urlToOpen = data.onActionClick[action].url;
+    } else if (data.onActionClick['default']) {
+      urlToOpen = data.onActionClick['default'].url;
+    }
+  } else {
+    // Fallback para estrutura antiga
+    urlToOpen = data?.url;
+  }
 
   if (!urlToOpen) {
     console.error('Nenhuma URL encontrada nos dados da notificação.');
