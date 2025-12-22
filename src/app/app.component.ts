@@ -37,12 +37,30 @@ export class AppComponent {
     // Este código só é executado se o app já estiver aberto.
     this.swPush.notificationClicks.subscribe(event => {
       console.log('Notificação clicada com o app aberto:', event);
-      const url = event.notification.data?.url;
+      
+      // Lógica robusta para extrair a URL da estrutura onActionClick
+      const action = event.action;
+      const data = event.notification.data;
+      let url: string | undefined;
+
+      if (data?.onActionClick) {
+        // 1. Tenta pegar a URL da ação específica (ex: 'reserve')
+        if (action && data.onActionClick[action]) {
+          url = data.onActionClick[action].url;
+        } 
+        // 2. Se não, pega a URL padrão (clique no corpo)
+        else if (data.onActionClick['default']) {
+          url = data.onActionClick['default'].url;
+        }
+      }
+
       if (url) {
-        // Extrai o ID do estabelecimento da URL e navega para a raiz com o query param.
-        const path = new URL(url).pathname;
-        const establishmentId = path.split('/').pop();
-        this.router.navigate(['/'], { queryParams: { open_establishment_id: establishmentId } });
+        // O navigateByUrl lida bem com rotas absolutas e query params (ex: /?id=1)
+        // Garante que a URL comece com / para ser tratada como absoluta pelo Router
+        if (!url.startsWith('/')) {
+          url = '/' + url;
+        }
+        this.router.navigateByUrl(url);
       }
     });
   }
