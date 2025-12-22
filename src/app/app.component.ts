@@ -27,7 +27,8 @@ export class AppComponent {
       filter((event): event is NavigationEnd => event instanceof NavigationEnd)
     ).subscribe((event: NavigationEnd) => {
       // Esconde o header na rota do mapa ('/' ou '/estabelecimento/:id')
-      this.showHeader = !(event.urlAfterRedirects === '/' || event.urlAfterRedirects.startsWith('/estabelecimento/'));
+      const urlWithoutParams = event.urlAfterRedirects.split('?')[0];
+      this.showHeader = !(urlWithoutParams === '/' || urlWithoutParams.startsWith('/estabelecimento/'));
     });
   }
 
