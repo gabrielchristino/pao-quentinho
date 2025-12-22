@@ -275,7 +275,7 @@
       Cadastrar</button></ng-template>
 </mat-menu>
 
-<div id="bottomSheet" [class.open]="isListOpen" *ngIf="!routingControl && !isLoading"
+<div id="bottomSheet" [class.open]="isListOpen" *ngIf="!routingControl && !isLoading && !tourStep"
      (touchstart)="onTouchStart($event)" (touchmove)="onTouchMove($event)" (touchend)="onTouchEnd($event)">
   <div class="handle" (click)="alternarLista()">
     <div class="handle-bar"></div>
