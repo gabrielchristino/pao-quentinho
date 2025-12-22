@@ -277,14 +277,10 @@ export class MapaComponent implements AfterViewInit, OnInit {
   }
 
   private handleRouteActions(): void {
-    combineLatest([
-      this.route.queryParams,
-      this.route.paramMap
-    ]).pipe(
+    this.route.queryParams.pipe(
       takeUntil(this.destroy$)
-    ).subscribe(([params, paramMap]) => {
-      // Tenta pegar o ID do query param OU do parâmetro da rota (ex: /estabelecimento/:id)
-      const establishmentIdToOpen = params['open_establishment_id'] || paramMap.get('id');
+    ).subscribe(params => {
+      const establishmentIdToOpen = params['open_establishment_id'];
       const action = params['action'];
       const time = params['time'];
       const fornadaId = params['fornadaId'];
@@ -309,9 +305,7 @@ export class MapaComponent implements AfterViewInit, OnInit {
       if (establishmentIdToOpen) {
         this.mapStateService.selectEstablishment(Number(establishmentIdToOpen));
         // Só remove o parâmetro se ele veio da query string
-        if (params['open_establishment_id']) {
-          paramsToRemove.push('open_establishment_id');
-        }
+        paramsToRemove.push('open_establishment_id');
       }
 
       if (paramsToRemove.length > 0) {
