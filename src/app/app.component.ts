@@ -26,9 +26,10 @@ export class AppComponent {
     this.router.events.pipe(
       filter((event): event is NavigationEnd => event instanceof NavigationEnd)
     ).subscribe((event: NavigationEnd) => {
-      // Esconde o header na rota do mapa ('/' ou '/estabelecimento/:id')
+      // Esconde o header apenas na rota raiz (Mapa).
+      // A rota '/estabelecimento/:id' redireciona para '/', então também cairá aqui.
       const urlWithoutParams = event.urlAfterRedirects.split('?')[0];
-      this.showHeader = !(urlWithoutParams === '/' || urlWithoutParams.startsWith('/estabelecimento/'));
+      this.showHeader = urlWithoutParams !== '/';
     });
   }
 

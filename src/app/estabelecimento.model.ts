@@ -1,3 +1,9 @@
+export interface Fornada {
+  id?: string;
+  time: string;
+  description?: string;
+}
+
 export interface Estabelecimento {
   id: number;
   nome: string;
@@ -6,9 +12,9 @@ export interface Estabelecimento {
   longitude: number;
   distanciaKm?: number;
   info: string;
-  proximaFornada: string[]; // Garante que seja sempre um array
-  horarioAbertura: string;
-  horarioFechamento: string;
+  proximaFornada: (string | Fornada)[]; // Suporta string antiga ou objeto novo
+  horarioAbertura: string | string[];
+  horarioFechamento: string | string[];
   endereco: {
     rua: string;
     numero: string;

@@ -99,7 +99,7 @@ export class EstabelecimentosService {
    * @param establishmentId O ID do estabelecimento a ser reservado.
    * @returns Um Observable com a resposta da API.
    */
-  reserveEstablishment(establishmentId: number): Observable<any> { 
-    return this.http.post(`${this.apiUrl}/reserve`, { establishmentId });
+  reserveEstablishment(establishmentId: number, options?: { time?: string, fornadaId?: string }): Observable<any> { 
+    return this.http.post(`${this.apiUrl}/reserve`, { establishmentId, reservationTime: options?.time, fornadaId: options?.fornadaId });
   }
 }

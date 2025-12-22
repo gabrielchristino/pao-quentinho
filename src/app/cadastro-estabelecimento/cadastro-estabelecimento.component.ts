@@ -13,9 +13,10 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { EstabelecimentosService } from '../services/estabelecimentos.service';
 import { MatDialog } from '@angular/material/dialog';
 import { AuthService } from '../services/auth.service';
-import { Estabelecimento } from '../estabelecimento.model';
+import { Estabelecimento, Fornada } from '../estabelecimento.model';
 import { AuthDialogComponent } from '../auth-dialog/auth-dialog.component';
 import { CepMaskDirective } from '../shared/cep-mask.directive';
+import { ConfirmDialogComponent } from '../confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-cadastro-estabelecimento',
@@ -48,6 +49,7 @@ export class CadastroEstabelecimentoComponent {
   isLoading = false;
   form: FormGroup;
   fornadaControl = new FormControl('', [Validators.required]);
+  fornadaDescricaoControl = new FormControl('');
   private latitude: number | null = null; // Coordenadas
   private longitude: number | null = null;
 
@@ -109,8 +111,16 @@ export class CadastroEstabelecimentoComponent {
         });
 
         if (est.proximaFornada && est.proximaFornada.length > 0) {
-          est.proximaFornada.forEach((horario: string) => {
-            this.horariosFornada.push(this.fb.control(horario));
+          est.proximaFornada.forEach((item: string | Fornada) => {
+            const time = typeof item === 'string' ? item : item.time;
+            const description = typeof item === 'string' ? '' : item.description;
+            const id = typeof item === 'string' ? this.generateId() : (item.id || this.generateId());
+
+            this.horariosFornada.push(this.fb.group({
+              id: [id],
+              time: [time],
+              description: [description]
+            }));
           });
         }
         this.latitude = est.latitude;
@@ -133,15 +143,23 @@ export class CadastroEstabelecimentoComponent {
       return;
     }
 
-    const novoHorario = this.fornadaControl.value;
+    const time = this.fornadaControl.value;
+    const description = this.fornadaDescricaoControl.value;
 
-    if (this.horariosFornada.value.includes(novoHorario)) {
+    const exists = this.horariosFornada.controls.some(control => control.value.time === time);
+
+    if (exists) {
       this.snackBar.open('Este horário já foi adicionado.', 'Fechar', { duration: 3000 });
       return;
     }
 
-    this.horariosFornada.push(this.fb.control(novoHorario));
+    this.horariosFornada.push(this.fb.group({
+      id: [this.generateId()],
+      time: [time],
+      description: [description]
+    }));
     this.fornadaControl.reset();
+    this.fornadaDescricaoControl.reset();
   }
 
   removeHorario(index: number): void {
@@ -294,6 +312,51 @@ export class CadastroEstabelecimentoComponent {
     const meusIds = JSON.parse(localStorage.getItem('meus-estabelecimentos') || '[]');
     if (!meusIds.includes(id)) {
       meusIds.push(id);
+      localStorage.setItem('meus-estabelecimentos', JSON.stringify(meusIds));
+    }
+  }
+
+  private generateId(): string {
+    return Math.random().toString(36).substring(2, 9);
+  }
+
+  apagar(): void {
+    if (!this.estabelecimentoId) return;
+    
+    const nome = this.form.get('nome')?.value || 'Estabelecimento';
+
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        title: 'Confirmar Exclusão',
+        message: `Tem certeza que deseja apagar o estabelecimento "${nome}"? Esta ação não pode ser desfeita.`
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.isLoading = true;
+        this.estabelecimentosService.deleteEstabelecimento(this.estabelecimentoId!).pipe(
+          finalize(() => this.isLoading = false)
+        ).subscribe({
+          next: () => {
+            this.snackBar.open('Estabelecimento apagado com sucesso!', 'Ok', { duration: 3000 });
+            this.removerIdLocalmente(this.estabelecimentoId!);
+            this.location.back();
+          },
+          error: (err) => {
+            const message = err.error?.message || 'Erro ao apagar o estabelecimento.';
+            this.snackBar.open(message, 'Fechar', { duration: 4000 });
+          }
+        });
+      }
+    });
+  }
+
+  private removerIdLocalmente(id: number): void {
+    const meusIds = JSON.parse(localStorage.getItem('meus-estabelecimentos') || '[]');
+    const index = meusIds.indexOf(id);
+    if (index > -1) {
+      meusIds.splice(index, 1);
       localStorage.setItem('meus-estabelecimentos', JSON.stringify(meusIds));
     }
   }

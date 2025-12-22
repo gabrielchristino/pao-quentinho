@@ -56,8 +56,12 @@
       <h2>Horários das Fornadas</h2>
       <div class="form-row">
         <mat-form-field appearance="outline" class="horario-fornada-field">
-          <mat-label>Horário da Fornada</mat-label>
+          <mat-label>Horário</mat-label>
           <input matInput type="time" [formControl]="fornadaControl" required>
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="descricao-fornada-field">
+          <mat-label>Descrição (opcional)</mat-label>
+          <input matInput [formControl]="fornadaDescricaoControl" placeholder="Ex: Pão Francês">
         </mat-form-field>
         <button mat-stroked-button type="button" (click)="adicionarHorarioFornada()"
           [disabled]="fornadaControl.invalid">Adicionar</button>
@@ -65,7 +69,7 @@
 
       <mat-chip-set *ngIf="horariosFornada.controls.length > 0" aria-label="Horários das fornadas">
         <mat-chip-row *ngFor="let horario of horariosFornada.controls; let i = index" (removed)="removeHorario(i)">
-          {{horario.value}}
+          {{ horario.value.time }} {{ horario.value.description ? '(' + horario.value.description + ')' : '' }}
           <button matChipRemove>
             <mat-icon>cancel</mat-icon>
           </button>
@@ -105,6 +109,10 @@
 
       <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid || isLoading" class="submit-button">
         {{ isLoading ? 'Salvando...' : (isEditMode ? 'Salvar Alterações' : 'Cadastrar Estabelecimento') }}
+      </button>
+
+      <button *ngIf="isEditMode" mat-stroked-button color="warn" type="button" (click)="apagar()" [disabled]="isLoading" class="delete-button" style="width: 100%; margin-top: 16px;">
+        <mat-icon>delete</mat-icon> Apagar Estabelecimento
       </button>
 
       

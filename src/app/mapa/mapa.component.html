@@ -329,8 +329,12 @@
       </div>
       <ng-container *ngIf="getHorarioHoje(selectedEstabelecimento) as horarioHoje">
         <div class="fornada-highlight" *ngIf="!horarioHoje.toLowerCase().includes('fechado')">
-          <mat-icon>bakery_dining</mat-icon><span>Próxima fornada quentinha às <b>{{
-              getNextFornada(selectedEstabelecimento.proximaFornada) }}</b></span>
+          <mat-icon>bakery_dining</mat-icon>
+          <span *ngIf="getNextFornada(selectedEstabelecimento.proximaFornada) as next">
+            Próxima fornada: <b>{{ next.time }}</b>
+            <span *ngIf="next.description"> - {{ next.description }}</span>
+          </span>
+          <span *ngIf="!getNextFornada(selectedEstabelecimento.proximaFornada)">Nenhuma fornada prevista.</span>
         </div>
       </ng-container>
       <a class="address-container" (click)="iniciarNavegacao(selectedEstabelecimento, $event)" mat-ripple>

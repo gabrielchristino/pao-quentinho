@@ -22,7 +22,7 @@ import L from 'leaflet';
 import 'leaflet-routing-machine';
 import ptBR from '../../../node_modules/osrm-text-instructions/languages/translations/pt-BR.json';
 import { BehaviorSubject, combineLatest, debounceTime, filter, finalize, firstValueFrom, map, of, Subject, switchMap, take, takeUntil, tap } from 'rxjs';
-import { Estabelecimento } from '../estabelecimento.model';
+import { Estabelecimento, Fornada } from '../estabelecimento.model';
 import { EstabelecimentosService } from '../services/estabelecimentos.service';
 import { NotificationService } from '../services/notification.service';
 
@@ -175,7 +175,10 @@ export class MapaComponent implements AfterViewInit, OnInit {
     setTimeout(() => {
       this.inicializarMapa(-14.235, -51.925, 4);
       if (!this.tourStep) { // Só solicita permissões se o tour não estiver ativo
-        this.requestUserLocation();
+        this.isLoading = true;
+        this.requestUserLocation().then(() => {
+          if (this.tourStep) this.isLoading = false;
+        });
         this.initializeDataFlow();
       }
       this.ouvirMudancasDeAutenticacao();
@@ -279,6 +282,9 @@ export class MapaComponent implements AfterViewInit, OnInit {
     ).subscribe(params => {
       const establishmentIdToOpen = params['open_establishment_id'];
       const action = params['action'];
+      const time = params['time'];
+      const fornadaId = params['fornadaId'];
+      const paramsToRemove: string[] = [];
 
       if (action === 'login') {
         // Garante que a ação de login não interfira com o tour de primeira visita
@@ -288,13 +294,19 @@ export class MapaComponent implements AfterViewInit, OnInit {
         }
         this.tourStep = 'login';
       } else if (action === 'reserve') {
-        this.handleReserveAction(establishmentIdToOpen);
+        this.handleReserveAction(Number(establishmentIdToOpen), time, fornadaId);
+        paramsToRemove.push('action');
+        paramsToRemove.push('time');
+        paramsToRemove.push('fornadaId');
       }
 
       if (establishmentIdToOpen) {
         this.mapStateService.selectEstablishment(Number(establishmentIdToOpen));
-        // Limpa o query param da URL após o uso
-        this.removeUrlParams(['open_establishment_id']);
+        paramsToRemove.push('open_establishment_id');
+      }
+
+      if (paramsToRemove.length > 0) {
+        this.removeUrlParams(paramsToRemove);
       }
     });
   }
@@ -461,11 +473,15 @@ export class MapaComponent implements AfterViewInit, OnInit {
       this.tourStep = 'location';
     } else {
       // Comportamento padrão: busca a localização e centraliza o mapa.
-      this.requestUserLocation();
+      this.isLoading = true;
+      this.requestUserLocation().then(() => {
+        if (this.tourStep) this.isLoading = false;
+      });
       this.location$.pipe(
         filter((loc): loc is { lat: number; lng: number } => loc !== null),
         take(1) // Pega apenas a próxima localização emitida para evitar recentralizações indesejadas
       ).subscribe(loc => {
+        this.isLoading = false;
         if (this.map && !this.selectedEstabelecimento) this.map.flyTo([loc.lat, loc.lng], this.calculateZoomLevel(this.raio));
         this.isLocationOverridden = false; // Permite que a localização volte a ser atualizada
       });
@@ -847,29 +863,32 @@ export class MapaComponent implements AfterViewInit, OnInit {
     return zoomLevels[radiusInMeters as keyof typeof zoomLevels] || 12;
   }
 
-  getNextFornada(horarios: string[]): string {
+  getNextFornada(horarios: (string | Fornada)[]): { time: string, description?: string } | null {
     if (!horarios || horarios.length === 0) {
-      return 'N/A';
+      return null;
     }
 
     const now = new Date();
     const currentMinutes = now.getHours() * 60 + now.getMinutes();
 
-    const proximoHorario = horarios
-      .map(h => ({ str: h, mins: parseInt(h.split(':')[0]) * 60 + parseInt(h.split(':')[1]) }))
+    // Normaliza para garantir que temos objetos, mesmo se vier strings do backend antigo
+    const normalized = horarios.map(h => typeof h === 'string' ? { time: h } : h as Fornada);
+
+    const proximoHorario = normalized
+      .map(h => ({ ...h, mins: parseInt(h.time.split(':')[0]) * 60 + parseInt(h.time.split(':')[1]) }))
       .find(h => h.mins > currentMinutes);
 
-    return proximoHorario ? proximoHorario.str : horarios[0]; // Se todos já passaram, mostra o primeiro do dia seguinte
+    return proximoHorario || normalized[0]; // Se todos já passaram, mostra o primeiro do dia seguinte
   }
 
   /**
   * Lida com a ação de reserva de um estabelecimento, chamando o backend.
   * @param establishmentId O ID do estabelecimento a ser reservado.
+  * @param time O horário da fornada que está sendo reservada (opcional).
+  * @param fornadaId O ID da fornada (opcional, preferencial).
   */
-  private handleReserveAction(establishmentId: number): void {
-    // Limpa os parâmetros de ação da URL mesmo se o usuário fechar o diálogo.
-    this.removeUrlParams(['action', 'open_establishment_id']);
-    this.estabelecimentoService.reserveEstablishment(establishmentId).pipe(
+  private handleReserveAction(establishmentId: number, time?: string, fornadaId?: string): void {
+    this.estabelecimentoService.reserveEstablishment(establishmentId, { time, fornadaId }).pipe(
       take(1) // Pega apenas uma emissão e completa
     ).subscribe({
       next: () => {
@@ -1096,7 +1115,7 @@ export class MapaComponent implements AfterViewInit, OnInit {
             longitude: this.location$.value!.lng + 0.001,
             distanciaKm: 0.15,
             info: 'Padaria especializada em pães artesanais e confeitaria.',
-            proximaFornada: ['07:00', '10:00', '13:00', '16:00', '19:00'],
+            proximaFornada: [{ time: '07:00', description: 'Pão Francês' }, { time: '10:00', description: 'Sonho' }, { time: '16:00', description: 'Baguete' }],
             horarioAbertura: '06:00',
             horarioFechamento: '20:00',
             endereco: {
