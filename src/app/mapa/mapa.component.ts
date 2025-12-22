@@ -45,6 +45,7 @@ const iconDefault = L.icon({
 L.Marker.prototype.options.icon = iconDefault;
 
 import { environment } from '../../environments/environment';
+import { PermissionDialogComponent } from './permission-diolog.component';
 
 // --- Constantes ---
 const BOTTOM_SHEET_PEEK_HEIGHT = 80;
@@ -86,6 +87,27 @@ const SWIPE_THRESHOLD = 50;
 export class MapaComponent implements AfterViewInit, OnInit {
   @ViewChild('map', { static: true }) mapElementRef!: ElementRef<HTMLDivElement>;
   @ViewChild('locationTooltip') locationTooltip!: MatTooltip;
+  @ViewChild('avatarVideo')
+  set videoRef(element: ElementRef<HTMLVideoElement> | undefined) {
+    this._videoElement = element;
+
+    if (element?.nativeElement) {
+      // Assim que o vídeo nasce, iniciamos o 'idle'
+      this.playAction('idle');
+    }
+  }
+
+  private _videoElement: ElementRef<HTMLVideoElement> | undefined;
+
+
+  private actions = {
+    idle: { start: 0, end: 1.2, loop: true, speed: 0.6 },
+    olharBaixo: { start: 1.2, end: 4, loop: false, speed: 1.5 },
+    cobrirOlhos: { start: 4, end: 7, loop: false, speed: 1.5 }
+  };
+
+  private animationFrameId: number | null = null;
+  private currentAction: any = null;
 
   location$ = new BehaviorSubject<{ lat: number; lng: number } | null>(null);
   searchControl = new FormControl('');
@@ -105,8 +127,9 @@ export class MapaComponent implements AfterViewInit, OnInit {
   installPrompt: any = null;
   showInstallBanner = true;
   private destroy$ = new Subject<void>();
-  tourStep: 'welcome' | 'location' | 'notification' | 'install' | 'login' | null = null;
-  isLoading = true;
+  tourStep: 'welcome' | 'location' | 'notification' | 'install' | 'interface-tour' | 'login' | null = null;
+  interfaceTourSubStep: number = 0;
+  isLoading = false;
   isLoggingIn = false;
   isRegistering = false;
   hideLoginPassword = true;
@@ -155,7 +178,6 @@ export class MapaComponent implements AfterViewInit, OnInit {
         this.initializeDataFlow();
       }
       this.ouvirMudancasDeAutenticacao();
-      this.mostrarTooltipDeLocalizacaoSeNecessario({ comDelay: false, comAutohide: true });
     }, 0);
     this.bottomSheetEl = this._elementRef.nativeElement.querySelector('#bottomSheet');
     this.handleRouteActions();
@@ -248,18 +270,20 @@ export class MapaComponent implements AfterViewInit, OnInit {
       const establishmentIdToOpen = params['open_establishment_id'];
       const action = params['action'];
 
-      if (establishmentIdToOpen) {
-        this.mapStateService.selectEstablishment(Number(establishmentIdToOpen));
-        // Limpa o query param da URL após o uso
-        this.router.navigate([], { queryParams: { open_establishment_id: null }, queryParamsHandling: 'merge', replaceUrl: true });
-      }
-
       if (action === 'login') {
         // Garante que a ação de login não interfira com o tour de primeira visita
         if (!localStorage.getItem('hasVisited')) {
           localStorage.setItem('hasVisited', 'true');
         }
         this.tourStep = 'login';
+      } else if (action === 'reserve') {
+        this.handleReserveAction(establishmentIdToOpen);
+      }
+
+      if (establishmentIdToOpen) {
+        this.mapStateService.selectEstablishment(Number(establishmentIdToOpen));
+        // Limpa o query param da URL após o uso
+        this.router.navigate([], { queryParams: { open_establishment_id: null }, queryParamsHandling: 'merge', replaceUrl: true });
       }
     });
   }
@@ -269,6 +293,9 @@ export class MapaComponent implements AfterViewInit, OnInit {
     this.destroy$.complete();
     // Remove a classe do body para reabilitar o scroll em outras páginas.
     this._elementRef.nativeElement.ownerDocument.body.classList.remove('no-scroll');
+    if (this.animationFrameId) {
+      cancelAnimationFrame(this.animationFrameId);
+    }
 
   }
 
@@ -829,6 +856,12 @@ export class MapaComponent implements AfterViewInit, OnInit {
   * @param establishmentId O ID do estabelecimento a ser reservado.
   */
   private handleReserveAction(establishmentId: number): void {
+    // Limpa os parâmetros de ação da URL mesmo se o usuário fechar o diálogo.
+    this.router.navigate([], {
+      queryParams: { action: null, open_establishment_id: null },
+      queryParamsHandling: 'merge',
+      replaceUrl: true
+    });
     this.estabelecimentoService.reserveEstablishment(establishmentId).pipe(
       take(1) // Pega apenas uma emissão e completa
     ).subscribe({
@@ -837,12 +870,27 @@ export class MapaComponent implements AfterViewInit, OnInit {
           duration: 5000,
           panelClass: ['pao-quentinho-snackbar']
         });
-        // Remove o parâmetro 'action=reserve' da URL para evitar re-execuções
-        this.router.navigate([], { queryParams: { action: null }, queryParamsHandling: 'merge', replaceUrl: true });
       },
       error: (err) => {
-        console.error('Erro ao enviar solicitação de reserva:', err);
-        this._snackBar.open('Não foi possível enviar sua solicitação de reserva. Tente novamente.', 'Fechar', { duration: 5000, panelClass: ['pao-quentinho-snackbar'] });
+        // Verifica se o erro é de limite de reservas atingido
+        if (err.error?.limitReached === true) {
+          this.dialog.open(PermissionDialogComponent, {
+            data: {
+              icon: 'warning',
+              title: err.error?.title || 'Limite de Reservas Atingido',
+              content: err.error?.message || 'Que bom que você está aproveitando! 🧡 Você atingiu o limite de reservas deste mês no plano gratuito. Que tal dar uma olhada nos nossos planos para reservar pão quentinho sempre que quiser?',
+              confirmButton: 'Ver Planos',
+              cancelButton: 'Agora não'
+            }
+          }).afterClosed().subscribe(result => {
+            if (result === true) {
+              this.router.navigate(['/planos']);
+            }
+          });
+        } else {
+          console.error('Erro ao enviar solicitação de reserva:', err);
+          this._snackBar.open('Não foi possível enviar sua solicitação de reserva. Tente novamente.', 'Fechar', { duration: 5000, panelClass: ['pao-quentinho-snackbar'] });
+        }
       }
     });
   }
@@ -984,25 +1032,64 @@ export class MapaComponent implements AfterViewInit, OnInit {
   avancarTour(skipped = false): void {
     if (this.tourStep === 'welcome') {
       this.tourStep = 'location';
-    } else if (this.tourStep === 'location' && skipped) {
-      // Se o usuário pular a etapa de localização, define uma localização padrão (São Paulo).
-      localStorage.setItem('locationPermissionSkipped', 'true');
-      this.location$.next({ lat: -23.55052, lng: -46.633308 });
+    }
+    else if (this.tourStep === 'location') {
+      if (skipped) {
+        localStorage.setItem('locationPermissionSkipped', 'true');
+        this.location$.next({ lat: -23.55052, lng: -46.633308 });
+      }
+      this.requestUserLocation();
       this.tourStep = 'notification';
-    } else if (this.tourStep === 'location') { // Se não pulou, apenas avança
-      this.tourStep = 'notification';
-    } else if (this.tourStep === 'notification' && skipped) {
-      localStorage.setItem('notificationPermissionSkipped', 'true'); // Marca como pulado
+    } else if (this.tourStep === 'notification') {
+      if (skipped) localStorage.setItem('notificationPermissionSkipped', 'true');
       this.tourStep = 'login';
-    } else if (this.tourStep === 'notification') { // Avança da notificação para o login
-      this.tourStep = 'login';
-    } else if (this.tourStep === 'login' && skipped) {
-      this.finalizarTour();
-    } else if (this.tourStep === 'login') { // Avança do login para a instalação (ou finaliza)
-      this.tourStep = this.installPrompt ? 'install' : null;
-    } else if (this.tourStep === 'install') {
-      this.finalizarTour();
-    } else {
+    } else if (this.tourStep === 'login') {
+      this.tourStep = 'interface-tour';
+      this.interfaceTourSubStep = 1;
+    } else if (this.tourStep === 'interface-tour') {
+      if (this.interfaceTourSubStep < 6) {
+        this.interfaceTourSubStep++;
+        if (this.interfaceTourSubStep === 5) {
+          if (!this.userMarker) {
+            this.location$.pipe(filter(l => !!l), take(1)).subscribe(loc => {
+              this.inicializarMarcadorUsuario(loc!.lat, loc!.lng);
+              this.initializeDataFlow();
+            });
+          }
+        } else if (this.interfaceTourSubStep === 6) {
+          // vamos incluir um mock em selectedEstabelecimento para mostrar o detalhe
+          this.selectedEstabelecimento = {
+            id: 0,
+            nome: 'Padaria Pão Quentinho',
+            tipo: 'padaria',
+            latitude: this.location$.value!.lat + 0.001,
+            longitude: this.location$.value!.lng + 0.001,
+            distanciaKm: 0.15,
+            info: 'Padaria especializada em pães artesanais e confeitaria.',
+            proximaFornada: ['07:00', '10:00', '13:00', '16:00', '19:00'],
+            horarioAbertura: '06:00',
+            horarioFechamento: '20:00',
+            endereco: {
+              rua: 'Rua das Flores',
+              numero: '123',
+              bairro: 'Centro',
+              cidade: 'São Paulo',
+              estado: 'SP',
+              cep: '12345-678'
+            },
+          };
+        }
+      } else {
+        this.selectedEstabelecimento = null;
+        // Acabou a interface, checa PWA
+        if (this.installPrompt) {
+          this.tourStep = 'install';
+        } else {
+          this.finalizarTour();
+        }
+      }
+    }
+    else if (this.tourStep === 'install') {
       this.finalizarTour();
     }
   }
@@ -1015,8 +1102,6 @@ export class MapaComponent implements AfterViewInit, OnInit {
     // inicializa o fluxo de dados para usar a localização padrão e carregar o mapa.
     if (!this.userMarker) {
       // Garante que o fluxo de dados só comece após a localização (real ou padrão) ser definida.
-      // Mostra o tooltip de localização agora que o tour acabou.
-      this.mostrarTooltipDeLocalizacaoSeNecessario({ comDelay: true });
       this.location$.pipe(
         filter((loc): loc is { lat: number; lng: number } => loc !== null),
         take(1),
@@ -1032,37 +1117,63 @@ export class MapaComponent implements AfterViewInit, OnInit {
     }
   }
 
-  /**
-   * Exibe o tooltip de localização se o usuário tiver visitado a página menos de 3 vezes.
-   * @param options Opções para controlar o comportamento do tooltip.
-   * @param options.comDelay Adiciona um delay antes de mostrar o tooltip.
-   * @param options.comAutohide Faz o tooltip desaparecer após 3 segundos.
-   */
-  private mostrarTooltipDeLocalizacaoSeNecessario(options: { comDelay?: boolean, comAutohide?: boolean } = {}): void {
-    if (this.tourStep) return;
-
-    const visitCount = parseInt(localStorage.getItem('visitCount') || '0', 10);
-    if (visitCount >= 3) return;
-
-    const showLogic = () => {
-      if (options.comAutohide) {
-        this.locationTooltip.hideDelay = 3000;
-      }
-      this.locationTooltip.show();
-      localStorage.setItem('visitCount', (visitCount + 1).toString());
-    };
-
-    if (options.comDelay) {
-      setTimeout(showLogic, 500); // Delay para garantir que a UI esteja estável
-    } else {
-      showLogic();
-    }
-  }
-
   private disableMapNavigation(): void {
     if (!this.map) return;
     this.map.scrollWheelZoom.disable();
     this.map.touchZoom.disable();
     this.map.doubleClickZoom.disable();
+  }
+  get videoRef() {
+    return this._videoElement;
+  }
+  playAction(actionName: 'idle' | 'olharBaixo' | 'cobrirOlhos') {
+    if (!this.videoRef?.nativeElement) return;
+    const video = this.videoRef.nativeElement;
+
+    // ... verificação de segurança da action ...
+    const action = this.actions[actionName];
+    this.currentAction = action;
+
+    // 1. Aplica a velocidade definida (ou 1.0 se não tiver nada)
+    video.playbackRate = action.speed || 1.0;
+
+    // 2. Pula para o início se necessário
+    if (Math.abs(video.currentTime - action.start) > 0.1) {
+      video.currentTime = action.start;
+    }
+
+    video.play().catch(e => console.log("Erro ao tocar:", e));
+    this.monitorPlayback();
+  }
+
+  monitorPlayback() {
+    // Proteção extra: garante que temos o elemento nativo
+    const video = this.videoRef?.nativeElement;
+    if (!video) return;
+
+    // Cancela loop anterior
+    if (this.animationFrameId) cancelAnimationFrame(this.animationFrameId);
+
+    const checkTime = () => {
+      // Se o vídeo sumiu da tela (ex: usuário voltou o passo), paramos o loop
+      if (!this.videoRef?.nativeElement) return;
+
+      if (video.currentTime >= this.currentAction.end) {
+        if (this.currentAction.loop) {
+          // Loop: volta pro início da ação
+          video.currentTime = this.currentAction.start;
+          video.play();
+        } else {
+          // Não-loop: congela no final
+          video.pause();
+          video.currentTime = this.currentAction.end;
+          return; // Encerra o monitoramento
+        }
+      }
+
+      this.animationFrameId = requestAnimationFrame(checkTime);
+    };
+
+    this.animationFrameId = requestAnimationFrame(checkTime);
   }
 }

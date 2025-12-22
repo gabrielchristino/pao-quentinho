@@ -38,7 +38,7 @@ export const routes: Routes = [
   {
     path: 'minhas-inscricoes',
     loadComponent: () => import('./minhas-inscricoes/minhas-inscricoes.component').then(m => m.MinhasInscricoesComponent),
-    title: 'Minhas Inscrições'
+    title: 'Padarias que sigo'
   },
 
   // Rota para o banner com QR Code do estabelecimento
@@ -61,5 +61,12 @@ export const routes: Routes = [
     path: 'sobre',
     loadComponent: () => import('./sobre/sobre.component').then(m => m.SobreComponent),
     title: 'Sobre'
+  },
+
+  // Rota para a página de planos de assinatura
+  {
+    path: 'planos',
+    loadComponent: () => import('./planos/plans.component').then(m => m.PlansComponent),
+    title: 'Meus planos'
   }
 ];

@@ -1,4 +1,4 @@
-<div class="install-banner" *ngIf="installPrompt && showInstallBanner">
+<div class="install-banner" *ngIf="installPrompt && showInstallBanner && !tourStep">
   <div class="install-banner-content">
     <mat-icon>add_to_home_screen</mat-icon>
     <div class="install-banner-text">
@@ -12,100 +12,118 @@
   </div>
 </div>
 
-<!-- Tour Guiado para Novos Usuários -->
-<div class="tour-overlay" *ngIf="tourStep">
-  <!-- Passo 0: Boas-vindas -->
+<div class="tour-overlay" [class.transparent-overlay]="tourStep === 'interface-tour'" *ngIf="tourStep">
   <div class="tour-step" *ngIf="tourStep === 'welcome'">
     <div class="tour-content">
-      <mat-icon class="tour-icon">bakery_dining</mat-icon>
+      <video preload="auto" autoplay [muted]="true" playsinline width="90%" class="welcome-video">
+        <source src="assets/videos/inicio.mp4" type="video/mp4">
+      </video>
       <h2 class="tour-title">Bem-vindo ao Pão Quentinho!</h2>
       <div class="welcome-text">
-        <p>Nosso aplicativo conecta você às melhores padarias, confeitarias e mercados da sua região, mostrando <strong>em tempo real onde encontrar pão quentinho</strong> e outras delícias recém-saídas do forno.</p>
-        <p>Com o Pão Quentinho, você pode <strong>seguir seus locais favoritos</strong>, <strong>receber alertas de novas fornadas</strong> e nunca mais perder a chance de saborear produtos frescos.</p>
-        <p>Vamos começar a encontrar as delícias mais próximas de você!</p>
+        <p>Nosso aplicativo conecta você às melhores padarias, confeitarias e mercados da sua região.</p>
+        <p>Encontre <strong>em tempo real pão quentinho</strong> e outras delícias recém-saídas do forno.</p>
+        <p>Siga seus locais favoritos e <strong>receba alertas de novas fornadas</strong>.</p>
       </div>
     </div>
     <div class="tour-actions">
-      <button mat-flat-button color="primary" (click)="avancarTour()">Começar</button>
+      <button mat-flat-button color="primary" (click)="avancarTour()" class="auth-button">Começar</button>
     </div>
   </div>
-  <!-- Passo 1: Permissão de Localização -->
+
   <div class="tour-step" *ngIf="tourStep === 'location'">
     <div class="tour-content">
-      <mat-icon class="tour-icon">location_on</mat-icon>
-      <h2 class="tour-title">Encontre pão quentinho perto de você</h2>
-      <p class="tour-description">Para mostrar as padarias e confeitarias próximas, precisamos acessar sua localização.</p>
+      <video preload="auto" autoplay loop [muted]="true" playsinline width="90%" class="welcome-video location-video">
+        <source src="assets/videos/location.mp4" type="video/mp4">
+      </video>
+      <h2 class="tour-title">Encontre pão perto de você</h2>
+      <p class="tour-description">Para mostrar as padarias e confeitarias próximas, precisamos acessar sua localização.
+        </p>
     </div>
     <div class="tour-actions">
-      <button mat-flat-button color="primary" (click)="solicitarPermissaoLocalizacao()" [disabled]="isRequestingLocation" class="auth-button">
+      <button mat-flat-button color="primary" (click)="solicitarPermissaoLocalizacao()"
+      [disabled]="isRequestingLocation" class="auth-button">
         <span *ngIf="!isRequestingLocation">Permitir localização</span>
         <mat-spinner *ngIf="isRequestingLocation" diameter="24"></mat-spinner>
       </button>
-      <button mat-button (click)="avancarTour(true)">Pular</button>
+      <button mat-button (click)="avancarTour(true)" class="skip-button">Pular</button>
     </div>
   </div>
 
-  <!-- Passo 2: Permissão de Notificação -->
   <div class="tour-step" *ngIf="tourStep === 'notification'">
     <div class="tour-content">
-      <mat-icon class="tour-icon">notifications_active</mat-icon>
+      <video preload="auto" autoplay loop [muted]="true" playsinline class="welcome-video" width="90%">
+        <source src="assets/videos/notification.mp4" type="video/mp4">
+      </video>
       <h2 class="tour-title">Receba alertas de fornadas!</h2>
-      <p class="tour-description">Seja o primeiro a saber quando o pão quentinho sair. Ative as notificações para receber nossos alertas.</p>
+      <p class="tour-description">Seja o primeiro a saber quando o pão quentinho sair. Ative as notificações para
+        receber nossos alertas.</p>
     </div>
     <div class="tour-actions">
-      <button mat-flat-button color="primary" (click)="solicitarPermissaoNotificacao()" [disabled]="isRequestingNotification" class="auth-button">
+      <button mat-flat-button color="primary" (click)="solicitarPermissaoNotificacao()"
+      [disabled]="isRequestingNotification" class="auth-button">
         <span *ngIf="!isRequestingNotification">Ativar notificações</span>
         <mat-spinner *ngIf="isRequestingNotification" diameter="24"></mat-spinner>
       </button>
-      <button mat-button (click)="avancarTour(true)">Agora não</button>
+      <button mat-button (click)="avancarTour(true)" class="skip-button">Agora não</button>
     </div>
   </div>
 
-  <!-- Passo 3: Cadastro/Login -->
   <div class="tour-step" *ngIf="tourStep === 'login'">
     <div class="tour-content auth-form-container">
-      <mat-icon class="tour-icon">account_circle</mat-icon>
-      <h2 class="tour-title">Crie sua conta ou entre</h2>
-      <p class="tour-description">Salve seus locais favoritos e receba alertas personalizados de fornadas.</p>
+      <video preload="auto" #avatarVideo [muted]="true" playsinline preload="auto" width="90%" class="welcome-video login-video">
+        <source src="assets/videos/login.mp4" type="video/mp4">
+      </video>
+      <h2 class="tour-title">Crie sua conta ou faça login</h2>
+      <mat-tab-group #tabGroup mat-stretch-tabs="false" animationDuration="0ms" class="auth-tabs"
+      (selectedIndexChange)="activeTabIndex = $event">
 
-      <mat-tab-group #tabGroup mat-stretch-tabs="false" animationDuration="0ms" class="auth-tabs" (selectedIndexChange)="activeTabIndex = $event">
         <mat-tab label="Cadastrar">
           <form [formGroup]="registerForm" (ngSubmit)="onRegister()" class="auth-form" id="registerForm">
             <mat-form-field appearance="outline">
               <mat-label>Nome</mat-label>
-              <input matInput formControlName="name" required>
-            </mat-form-field>
+              <input matInput formControlName="name" required (focus)="playAction('olharBaixo')"
+                (blur)="playAction('idle')">
+              </mat-form-field>
             <mat-form-field appearance="outline">
               <mat-label>Email</mat-label>
-              <input matInput formControlName="email" type="email" required>
+              <input matInput formControlName="email" type="email" required (focus)="playAction('olharBaixo')"
+                (blur)="playAction('idle')">
             </mat-form-field>
-            <mat-form-field appearance="outline">
+                        <mat-form-field appearance="outline">
               <mat-label>Senha</mat-label>
-              <input matInput formControlName="password" [type]="hideRegisterPassword ? 'password' : 'text'" required>
-              <button mat-icon-button matSuffix (click)="hideRegisterPassword = !hideRegisterPassword" type="button" [attr.aria-label]="'Esconder senha'" [attr.aria-pressed]="hideRegisterPassword">
+              <input matInput formControlName="password" [type]="hideRegisterPassword ? 'password' : 'text'" required
+                (focus)="playAction('cobrirOlhos')" (blur)="playAction('idle')">
+               <button mat-icon-button matSuffix (click)="hideRegisterPassword = !hideRegisterPassword" type="button"
+                [attr.aria-label]="'Esconder senha'" [attr.aria-pressed]="hideRegisterPassword">
                 <mat-icon>{{hideRegisterPassword ? 'visibility_off' : 'visibility'}}</mat-icon>
               </button>
               <mat-error *ngIf="registerForm.get('password')?.hasError('required')">A senha é obrigatória.</mat-error>
-              <mat-error *ngIf="registerForm.get('password')?.hasError('minlength')">A senha deve ter no mínimo 8 caracteres.</mat-error>
-              <mat-error *ngIf="registerForm.get('password')?.hasError('pattern')">A senha deve conter letras e números.</mat-error>
+              <mat-error *ngIf="registerForm.get('password')?.hasError('minlength')">Mínimo 8 caracteres.</mat-error>
+              <mat-error *ngIf="registerForm.get('password')?.hasError('pattern')">Letras e números.</mat-error>
             </mat-form-field>
-            <mat-checkbox formControlName="isLojista" class="lojista-checkbox">Sou lojista e quero cadastrar meu estabelecimento</mat-checkbox>
+
+            <mat-checkbox formControlName="isLojista" class="lojista-checkbox">Sou lojista</mat-checkbox>
+
             <div *ngIf="registerErrorMessage" class="error-message">
               <mat-icon>error_outline</mat-icon>
               <span>{{ registerErrorMessage }}</span>
             </div>
-          </form>
+            </form>
         </mat-tab>
+
         <mat-tab label="Entrar">
           <form [formGroup]="loginForm" (ngSubmit)="onLogin()" class="auth-form" id="loginForm">
             <mat-form-field appearance="outline">
               <mat-label>Email</mat-label>
-              <input matInput formControlName="email" type="email" required>
+              <input matInput formControlName="email" type="email" required (focus)="playAction('olharBaixo')"
+                (blur)="playAction('idle')">
             </mat-form-field>
-            <mat-form-field appearance="outline">
+                        <mat-form-field appearance="outline">
               <mat-label>Senha</mat-label>
-              <input matInput formControlName="password" [type]="hideLoginPassword ? 'password' : 'text'" required>
-              <button mat-icon-button matSuffix (click)="hideLoginPassword = !hideLoginPassword" type="button" [attr.aria-label]="'Esconder senha'" [attr.aria-pressed]="hideLoginPassword">
+              <input matInput formControlName="password" [type]="hideLoginPassword ? 'password' : 'text'" required
+                (focus)="playAction('cobrirOlhos')" (blur)="playAction('idle')">
+              <button mat-icon-button matSuffix (click)="hideLoginPassword = !hideLoginPassword" type="button"
+                [attr.aria-label]="'Esconder senha'" [attr.aria-pressed]="hideLoginPassword">
                 <mat-icon>{{hideLoginPassword ? 'visibility_off' : 'visibility'}}</mat-icon>
               </button>
             </mat-form-field>
@@ -117,83 +135,107 @@
         </mat-tab>
       </mat-tab-group>
     </div>
+
     <div class="tour-actions">
-      <!-- Botões de submit para os formulários -->
-      <button mat-flat-button color="primary" type="submit" form="registerForm" [disabled]="isRegistering || registerForm.invalid" *ngIf="activeTabIndex === 0" class="auth-button">
+      <button mat-flat-button color="primary" type="submit" form="registerForm"
+        [disabled]="isRegistering || registerForm.invalid" *ngIf="activeTabIndex === 0" class="auth-button">
         <span *ngIf="!isRegistering">Cadastrar</span>
         <mat-spinner *ngIf="isRegistering" diameter="24"></mat-spinner>
       </button>
-      <button mat-flat-button color="primary" type="submit" form="loginForm" [disabled]="isLoggingIn || loginForm.invalid" *ngIf="activeTabIndex === 1" class="auth-button">
+      <button mat-flat-button color="primary" type="submit" form="loginForm"
+        [disabled]="isLoggingIn || loginForm.invalid" *ngIf="activeTabIndex === 1" class="auth-button">
         <span *ngIf="!isLoggingIn">Entrar</span>
         <mat-spinner *ngIf="isLoggingIn" diameter="24"></mat-spinner>
       </button>
-      
+
       <button mat-button (click)="avancarTour()" class="skip-button">Pular por enquanto</button>
     </div>
   </div>
 
-  <!-- Passo 4: Instalar o App -->
+  <div class="interface-tour-container" *ngIf="tourStep === 'interface-tour'">
+    <div class="guide-balloon" [ngClass]="'step-' + interfaceTourSubStep">
+      <div class="balloon-content">
+        <h3 class="balloon-title">
+          {{ interfaceTourSubStep === 1 ? 'Busca por Endereço' : 
+             interfaceTourSubStep === 2 ? 'Sua Localização' :
+             interfaceTourSubStep === 3 ? 'Seu Perfil' :
+             interfaceTourSubStep === 4 ? 'Alcance' : 
+             interfaceTourSubStep === 5 ? 'Legenda do Mapa' : 'Detalhes do estabelecimento' }}
+        </h3>
+        <p *ngIf="interfaceTourSubStep === 1">Pesquise por nome, rua ou CEP para mudar a região.</p>
+        <p *ngIf="interfaceTourSubStep === 2">Clique aqui para voltar o mapa para sua posição atual.</p>
+        <p *ngIf="interfaceTourSubStep === 3">Acesse suas configurações e estabelecimentos salvos.</p>
+        <p *ngIf="interfaceTourSubStep === 4">Mude o alcance do mapa.</p>
+        <div *ngIf="interfaceTourSubStep === 5" class="legend-mini-grid">
+          <div class="legend-item"><img src="assets/icons/current-location.png"><span>Você</span></div>
+          <div class="legend-item"><img src="assets/icons/padaria.png"><span>Padaria</span></div>
+          <div class="legend-item"><img src="assets/icons/mercado.png"><span>Mercado</span></div>
+          <div class="legend-item"><img src="assets/icons/doceria.png"><span>Doceria</span></div>
+          <div class="legend-item"><img src="assets/icons/casaDeBolos.png"><span>Casa de bolos</span></div>
+          <div class="legend-item"><img src="assets/icons/outros.png"><span>Outros lugares</span></div>
+        </div>
+        <p *ngIf="interfaceTourSubStep === 6">Aqui você consegue ver os detalhes do estabelecimento</p>
+      </div>
+      <div class="balloon-actions">
+        <button mat-flat-button color="primary" (click)="avancarTour()">{{ interfaceTourSubStep < 5 ? 'Próximo' : 'Entendi!' }}</button>
+      </div>
+    </div>
+  </div>
+
   <div class="tour-step" *ngIf="tourStep === 'install' && installPrompt">
     <div class="tour-content">
       <mat-icon class="tour-icon">add_to_home_screen</mat-icon>
       <h2 class="tour-title">Instale o Pão Quentinho!</h2>
-      <p class="tour-description">Tenha acesso rápido ao app, direto da sua tela inicial, para uma melhor experiência.</p>
+      <p class="tour-description">Tenha acesso rápido ao app, direto da sua tela inicial, para uma melhor experiência.
+      </p>
     </div>
     <div class="tour-actions">
-      <button mat-flat-button color="primary" (click)="instalarPWA()">Instalar App</button>
-      <button mat-button (click)="finalizarTour()">Depois</button>
+      <button mat-flat-button color="primary" (click)="instalarPWA()" class="auth-button">Instalar App</button>
+      <button mat-button (click)="finalizarTour()" class="skip-button">Depois</button>
     </div>
   </div>
 </div>
 
-
 <div class="map-container">
-  <!-- Cabeçalho Flutuante -->
   <div class="floating-header">
-    <!-- Caixa de Busca -->
-    <mat-form-field appearance="outline" class="search-input" subscriptSizing="dynamic">
-      <input matInput [formControl]="searchControl" (keyup.enter)="buscarEndereco()" placeholder="Buscar por Endereço ou CEP">
+    <mat-form-field appearance="outline" class="search-input" subscriptSizing="dynamic"
+      [class.highlight-ui]="tourStep === 'interface-tour' && interfaceTourSubStep === 1">
+      <input matInput [formControl]="searchControl" (keyup.enter)="buscarEndereco()"
+      placeholder="Buscar por Endereço ou CEP">
       <button mat-icon-button matSuffix (click)="buscarEndereco()" aria-label="Buscar">
         <mat-icon>search</mat-icon>
       </button>
     </mat-form-field>
 
-    <!-- Botão de Localização -->
-    <button mat-icon-button (click)="centralizarNoUsuario()" matTooltip="Usar minha localização atual" #locationTooltip="matTooltip" matTooltipHideDelay="1000000" class="location-button" aria-label="Centralizar na sua localização atual">
+    <button mat-icon-button (click)="centralizarNoUsuario()" class="location-button" 
+      [class.highlight-ui]="tourStep === 'interface-tour' && interfaceTourSubStep === 2"
+       aria-label="Centralizar na sua localização atual">
       <mat-icon>my_location</mat-icon>
     </button>
 
-    <!-- Botão de Conta/Menu -->
-    <button mat-icon-button [matMenuTriggerFor]="userMenu" class="account-button" aria-label="Abrir menu da conta">
+    <button mat-icon-button [matMenuTriggerFor]="userMenu" class="account-button" aria-label="Abrir menu da conta"
+      [class.highlight-ui]="tourStep === 'interface-tour' && interfaceTourSubStep === 3">
       <mat-icon>{{ (authService.authState$ | async) ? "face" : "face_retouching_off" }}</mat-icon>
     </button>
   </div>
-  
-  <!-- Overlay de Carregamento -->
-  <div class="loading-overlay" *ngIf="isLoading">
-    <mat-progress-spinner mode="indeterminate" diameter="50" aria-label="Carregando"></mat-progress-spinner>
-    <p class="loading-text">Localizando você e buscando os melhores pães...</p>
-  </div>
-
 
   <div #map id="map"></div>
 
-  <mat-button-toggle-group class="radius-filter" [value]="raio" (change)="definirRaio($event.value)" *ngIf="!routingControl">
+  <mat-button-toggle-group class="radius-filter" [value]="raio" (change)="definirRaio($event.value)"
+  *ngIf="!routingControl || interfaceTourSubStep === 4" [class.highlight-ui-radius-filter]="tourStep === 'interface-tour' && interfaceTourSubStep === 4">
     <mat-button-toggle [value]="500">500m</mat-button-toggle>
     <mat-button-toggle [value]="1000">1km</mat-button-toggle>
     <mat-button-toggle [value]="5000">5km</mat-button-toggle>
   </mat-button-toggle-group>
 
-  <!-- Nova UI de Navegação -->
   <div class="navigation-ui-container" *ngIf="routingControl">
-    <!-- Card de Rota no Rodapé -->
     <mat-card class="route-card">
       <mat-card-content>
         <button mat-icon-button class="back-button-card" (click)="fecharDetalhe()" matTooltip="Sair da rota">
           <mat-icon>close</mat-icon>
         </button>
         <div class="route-info">
-          <span>Rota para <b>{{ selectedEstabelecimento?.nome }}</b></span>
+          <span>Rota para <br> <b>{{ selectedEstabelecimento?.nome }}</b></span>
         </div>
         <button mat-flat-button color="primary" class="gps-button" (click)="abrirNoGPS()">
           Abrir no GPS
@@ -201,10 +243,8 @@
       </mat-card-content>
     </mat-card>
   </div>
-
 </div>
 
-<!-- Menu do Usuário -->
 <mat-menu #userMenu="matMenu">
   <ng-container *ngIf="authService.authState$ | async; else loggedOutMenu">
     <div class="menu-header" *ngIf="(authService.currentUser$ | async) as user">
@@ -212,98 +252,76 @@
       <div class="user-email">{{ user.email }}</div>
     </div>
     <mat-divider *ngIf="authService.authState$ | async"></mat-divider>
-
     <button mat-menu-item (click)="navigateTo(['/meus-estabelecimentos'])" *ngIf="isLojista">
-      <mat-icon>storefront</mat-icon>
-      <span>Meus Estabelecimentos</span>
+      <mat-icon>storefront</mat-icon><span>Meus Estabelecimentos</span>
     </button>
-    <button mat-menu-item (click)="navigateTo(['/minhas-inscricoes'])" *ngIf="!isLojista">
-      <mat-icon>notifications</mat-icon>
-      <span>Minhas Inscrições</span>
+    <button mat-menu-item (click)="navigateTo(['/minhas-inscricoes'])">
+      <mat-icon>subscriptions</mat-icon>
+      <span>Padarias que sigo</span>
     </button>
+    <!-- <button mat-menu-item (click)="navigateTo(['/planos'])">
+      <mat-icon>card_membership</mat-icon>
+      <span>Meus Planos</span>
+    </button> -->
     <button mat-menu-item (click)="navigateTo(['/sobre'])">
-      <mat-icon>info_outline</mat-icon>
-      <span>Sobre</span>
+      <mat-icon>info_outline</mat-icon><span>Sobre</span>
     </button>
     <button mat-menu-item (click)="navigateTo(['/ajuda'])">
-      <mat-icon>help_outline</mat-icon>
-      <span>Preciso de ajuda</span>
+      <mat-icon>help_outline</mat-icon><span>Preciso de ajuda</span>
     </button>
     <button mat-menu-item (click)="authService.logout()">
       <mat-icon>logout</mat-icon>Sair
     </button>
   </ng-container>
-  <ng-template #loggedOutMenu><button mat-menu-item (click)="authService.requestLogin()">Entrar / Cadastrar</button></ng-template>
+  <ng-template #loggedOutMenu><button mat-menu-item (click)="authService.requestLogin()">Entrar /
+      Cadastrar</button></ng-template>
 </mat-menu>
-<!-- Bottom Sheet customizado -->
-<div
-  id="bottomSheet"
-  [class.open]="isListOpen"
-  *ngIf="!routingControl && !isLoading"
-  (touchstart)="onTouchStart($event)"
-  (touchmove)="onTouchMove($event)"
-  (touchend)="onTouchEnd($event)"
->
+
+<div id="bottomSheet" [class.open]="isListOpen" *ngIf="!routingControl && !isLoading && !tourStep"
+     (touchstart)="onTouchStart($event)" (touchmove)="onTouchMove($event)" (touchend)="onTouchEnd($event)">
   <div class="handle" (click)="alternarLista()">
     <div class="handle-bar"></div>
   </div>
   <div class="sheet-content">
-    <h4 class="sheet-title" *ngIf="estabelecimentosVisiveis.length > 0; else noResults">
-      Exibindo {{ estabelecimentosVisiveis.length }} de {{ todosEstabelecimentos.length }} locais
-    </h4>
-    <ng-template #noResults>
-      <h4 class="sheet-title">Nenhum local encontrado neste raio.</h4>
-    </ng-template>
+    <h4 class="sheet-title">Estabelecimentos Próximos</h4>
     <mat-nav-list>
-      <a mat-list-item *ngFor="let est of estabelecimentosVisiveis" (click)="selecionarEstabelecimento(est)" class="establishment-list-item">
-        <mat-icon matListItemIcon class="list-item-icon">
-          @switch (est.tipo) {
-            @case ('padaria') { bakery_dining }
-            @case ('confeitaria') { cake }
-            @case ('doceria') { icecream }
-            @default { storefront }
-          }
-        </mat-icon>
-        <div matListItemTitle class="list-item-title">{{ est.nome }}</div>
-        <div matListItemLine class="list-item-line">{{ est.tipo }}</div>
-        <span class="list-item-spacer"></span>
-        <div matListItemMeta class="distancia-meta">{{ (est.distanciaKm ?? 0).toFixed(2) }} km</div>
+      <a mat-list-item *ngFor="let est of estabelecimentosVisiveis" (click)="selecionarEstabelecimento(est)">
+        <img matListItemIcon class="bottom-sheet-icon" [src]="'assets/icons/' + est.tipo + '.png'" [alt]="est.nome">
+        <span matListItemTitle>{{ est.nome }}</span>
+        <div matListItemMeta>{{ est.distanciaKm?.toFixed(2) }} km</div>
       </a>
     </mat-nav-list>
   </div>
 </div>
 
-<!-- Card de Detalhes do Estabelecimento -->
-<div class="establishment-details-container" *ngIf="selectedEstabelecimento && !routingControl" (click)="fecharDetalhe()">
+<div class="establishment-details-container" *ngIf="selectedEstabelecimento && !routingControl"
+  (click)="fecharDetalhe()" [class.highlight-ui-detalhes]="tourStep === 'interface-tour' && interfaceTourSubStep === 6">
   <mat-card class="establishment-card" (click)="$event.stopPropagation()">
     <mat-card-header>
       <div class="header-text-content">
         <mat-card-title>{{ selectedEstabelecimento.nome }}</mat-card-title>
-        <mat-card-subtitle>{{ selectedEstabelecimento.endereco.bairro }} - {{ (selectedEstabelecimento.distanciaKm ?? 0).toFixed(2) }} km</mat-card-subtitle>
+        <mat-card-subtitle>{{ selectedEstabelecimento.endereco.bairro }} - {{ (selectedEstabelecimento.distanciaKm ??
+          0).toFixed(2) }} km</mat-card-subtitle>
       </div>
-      <button mat-icon-button class="header-share-button" (click)="compartilharEstabelecimento($event)" matTooltip="Compartilhar este local">
+      <button mat-icon-button class="header-share-button" (click)="compartilharEstabelecimento($event)"
+        matTooltip="Compartilhar este local">
         <mat-icon>share</mat-icon>
+      </button>
+      <button mat-icon-button class="header-share-button" (click)="fecharDetalhe()" matTooltip="fechar">
+        <mat-icon>close</mat-icon>
       </button>
     </mat-card-header>
     <mat-card-content>
-
-      <!-- Informações -->
       <p class="info-text">{{ selectedEstabelecimento.info }}</p>
-       <!-- Horário de Funcionamento -->
       <div class="horario-highlight" *ngIf="getHorarioHoje(selectedEstabelecimento) as horarioHoje">
-        <mat-icon class="horario-icon">schedule</mat-icon>
-        <span>{{ horarioHoje }}</span>
+        <mat-icon class="horario-icon">schedule</mat-icon><span>{{ horarioHoje }}</span>
       </div>
-
-      <!-- Destaque da Próxima Fornada -->
       <ng-container *ngIf="getHorarioHoje(selectedEstabelecimento) as horarioHoje">
         <div class="fornada-highlight" *ngIf="!horarioHoje.toLowerCase().includes('fechado')">
-          <mat-icon>bakery_dining</mat-icon>
-          <span>Próxima fornada quentinha às <b>{{ getNextFornada(selectedEstabelecimento.proximaFornada) }}</b></span>
+          <mat-icon>bakery_dining</mat-icon><span>Próxima fornada quentinha às <b>{{
+              getNextFornada(selectedEstabelecimento.proximaFornada) }}</b></span>
         </div>
       </ng-container>
-      
-      <!-- Endereço Clicável -->
       <a class="address-container" (click)="iniciarNavegacao(selectedEstabelecimento, $event)" mat-ripple>
         <div class="address-content">
           <mat-icon class="location-icon">location_on</mat-icon>
@@ -314,14 +332,21 @@
         </div>
         <mat-icon>chevron_right</mat-icon>
       </a>
-
     </mat-card-content>
     <mat-card-actions class="card-actions-wrapper">
-      <button mat-flat-button color="primary" class="follow-button" (click)="seguirEstabelecimento(selectedEstabelecimento, $event)">
-        <mat-icon>notifications</mat-icon>
-        Seguir e receber alertas
+      <button mat-flat-button color="primary" class="follow-button"
+        (click)="seguirEstabelecimento(selectedEstabelecimento, $event)">
+        <mat-icon>notifications</mat-icon> Seguir e receber alertas
       </button>
-      <button mat-button class="close-button" (click)="fecharDetalhe()">Fechar</button>
+      <!-- <button mat-button class="close-button" (click)="fecharDetalhe()">Fechar</button> -->
     </mat-card-actions>
   </mat-card>
+</div>
+
+<mat-menu #userMenu="matMenu">
+  <button mat-menu-item (click)="authService.logout()">Sair</button>
+</mat-menu>
+
+<div class="loading-overlay" *ngIf="isLoading">
+  <mat-progress-spinner mode="indeterminate" diameter="50"></mat-progress-spinner>
 </div>

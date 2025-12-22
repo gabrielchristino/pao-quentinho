@@ -8,6 +8,13 @@
   padding-bottom: 96px;
 }
 
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  box-sizing: border-box;
+  padding: 24px 12px;
+}
+
 .footer-action {
   position: fixed;
   bottom: 0;
@@ -25,4 +32,51 @@
   padding-top: 12px;
   padding-bottom: 12px;
   font-size: 1rem;
+}
+
+.icon-actions {
+  display: flex;
+}
+
+// Estilos para painéis de expansão (Expansion Panel)
+.mat-expansion-panel-header {
+  padding: 24px !important;
+}
+
+.panel-title-container {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+
+  .panel-text-content {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .item-line {
+    font-size: 0.9em;
+    color: rgba(0,0,0,0.6);
+  }
+}
+
+.panel-content-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.mat-icon {
+  min-width: 24px;
+}
+
+.actions-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  justify-content: space-between;
+  button {
+    width: 100%;
+  }
 }
