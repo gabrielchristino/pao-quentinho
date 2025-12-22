@@ -19,3 +19,17 @@
   font-size: 1rem;
 }
 }
+
+.section-divider {
+  margin: 32px 0;
+}
+
+.advanced-options-card {
+  border: 1px solid rgba(244, 67, 54, 0.3); // Borda avermelhada sutil
+  background-color: #fffafa;
+
+  .mat-mdc-card-avatar {
+    color: #f44336; // Ícone vermelho
+    margin-top: 8px; // Ajuste fino de alinhamento
+  }
+}

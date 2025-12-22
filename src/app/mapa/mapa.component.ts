@@ -131,6 +131,7 @@ export class MapaComponent implements AfterViewInit, OnInit {
   interfaceTourSubStep: number = 0;
   isLoading = false;
   isLoggingIn = false;
+  isActionLogin = false;
   isRegistering = false;
   hideLoginPassword = true;
   isRequestingLocation = false;
@@ -217,11 +218,20 @@ export class MapaComponent implements AfterViewInit, OnInit {
       return;
     }
 
-    if (navigator.permissions?.query) {
-      const permissionStatus = await navigator.permissions.query({ name: 'geolocation' });
-      if (permissionStatus.state === 'prompt' && !this.tourStep) {
-        this.tourStep = 'location';
-        return;
+    // Tenta verificar a permissão até 3 vezes para evitar falhas intermitentes
+    for (let i = 0; i < 3; i++) {
+      try {
+        if (navigator.permissions?.query) {
+          const permissionStatus = await navigator.permissions.query({ name: 'geolocation' });
+          if (permissionStatus.state === 'prompt' && !this.tourStep) {
+            this.tourStep = 'location';
+            return;
+          }
+        }
+        break; // Se funcionou (ou API não existe), sai do loop
+      } catch (error) {
+        // Se der erro, espera 300ms antes de tentar de novo (exceto na última tentativa)
+        if (i < 2) await new Promise(resolve => setTimeout(resolve, 300));
       }
     }
 
@@ -272,6 +282,7 @@ export class MapaComponent implements AfterViewInit, OnInit {
 
       if (action === 'login') {
         // Garante que a ação de login não interfira com o tour de primeira visita
+        this.isActionLogin = true;
         if (!localStorage.getItem('hasVisited')) {
           localStorage.setItem('hasVisited', 'true');
         }
@@ -283,7 +294,7 @@ export class MapaComponent implements AfterViewInit, OnInit {
       if (establishmentIdToOpen) {
         this.mapStateService.selectEstablishment(Number(establishmentIdToOpen));
         // Limpa o query param da URL após o uso
-        this.router.navigate([], { queryParams: { open_establishment_id: null }, queryParamsHandling: 'merge', replaceUrl: true });
+        this.removeUrlParams(['open_establishment_id']);
       }
     });
   }
@@ -857,11 +868,7 @@ export class MapaComponent implements AfterViewInit, OnInit {
   */
   private handleReserveAction(establishmentId: number): void {
     // Limpa os parâmetros de ação da URL mesmo se o usuário fechar o diálogo.
-    this.router.navigate([], {
-      queryParams: { action: null, open_establishment_id: null },
-      queryParamsHandling: 'merge',
-      replaceUrl: true
-    });
+    this.removeUrlParams(['action', 'open_establishment_id']);
     this.estabelecimentoService.reserveEstablishment(establishmentId).pipe(
       take(1) // Pega apenas uma emissão e completa
     ).subscribe({
@@ -950,6 +957,16 @@ export class MapaComponent implements AfterViewInit, OnInit {
     this.notificationService.solicitarPermissaoDeNotificacao(onGranted, onDeniedOrDismissed);
   }
 
+  private removeUrlParams(params: string[]): void {
+    const queryParams: any = {};
+    params.forEach(param => queryParams[param] = null);
+    this.router.navigate([], {
+      queryParams,
+      queryParamsHandling: 'merge',
+      replaceUrl: true
+    });
+  }
+
   onLogin(): void {
     if (this.loginForm.invalid) return;
 
@@ -961,7 +978,13 @@ export class MapaComponent implements AfterViewInit, OnInit {
         if (syncResponse?.syncedEstablishmentIds) {
           this.notificationService.triggerSubscriptionSync(syncResponse.syncedEstablishmentIds);
         }
-        this.router.navigate(['/'], { replaceUrl: true });
+        // Limpa o query param 'action' da URL para evitar que o modal de login reapareça.
+        this.removeUrlParams(['action']);
+        if (this.isActionLogin) {
+          this.isLoggingIn = false;
+          this.finalizarTour();
+          return;
+        }
         this.avancarTour(); // Avança para o próximo passo do tour (instalação)
       },
       error: (err) => {
@@ -978,7 +1001,8 @@ export class MapaComponent implements AfterViewInit, OnInit {
       finalize(() => this.isRegistering = false)
     ).subscribe({
       next: (syncResponse) => {
-        this.router.navigate(['/'], { replaceUrl: true });
+        // Limpa o query param 'action' da URL para evitar que o modal de login reapareça.
+        this.removeUrlParams(['action']);
         this.avancarTour(); // Avança para o próximo passo do tour (instalação)
         const userRole = this.authService.getUserRole();
         if (userRole === 'lojista') {
@@ -1044,6 +1068,12 @@ export class MapaComponent implements AfterViewInit, OnInit {
       if (skipped) localStorage.setItem('notificationPermissionSkipped', 'true');
       this.tourStep = 'login';
     } else if (this.tourStep === 'login') {
+      if (this.isActionLogin) {
+        this.removeUrlParams(['action']);
+        this.isActionLogin = false;
+        this.finalizarTour();
+        return;
+      }
       this.tourStep = 'interface-tour';
       this.interfaceTourSubStep = 1;
     } else if (this.tourStep === 'interface-tour') {
@@ -1094,6 +1124,17 @@ export class MapaComponent implements AfterViewInit, OnInit {
     }
   }
 
+  pularTour(): void {
+    this.selectedEstabelecimento = null;
+    // Acabou a interface, checa PWA
+    if (this.installPrompt) {
+      this.tourStep = 'install';
+    } else {
+      this.finalizarTour();
+    }
+  }
+
+
   finalizarTour(): void {
     this.tourStep = null;
     localStorage.setItem('hasVisited', 'true');
@@ -1101,6 +1142,7 @@ export class MapaComponent implements AfterViewInit, OnInit {
     // Se o marcador do usuário ainda não foi criado (ex: pulou o tour),
     // inicializa o fluxo de dados para usar a localização padrão e carregar o mapa.
     if (!this.userMarker) {
+      this.requestUserLocation();
       // Garante que o fluxo de dados só comece após a localização (real ou padrão) ser definida.
       this.location$.pipe(
         filter((loc): loc is { lat: number; lng: number } => loc !== null),

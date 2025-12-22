@@ -13,7 +13,7 @@
 </div>
 
 <div class="tour-overlay" [class.transparent-overlay]="tourStep === 'interface-tour'" *ngIf="tourStep">
-  <div class="tour-step" *ngIf="tourStep === 'welcome'">
+  <div class="tour-step" [style.display]="tourStep === 'welcome' ? 'flex' : 'none'">
     <div class="tour-content">
       <video preload="auto" autoplay [muted]="true" playsinline width="90%" class="welcome-video">
         <source src="assets/videos/inicio.mp4" type="video/mp4">
@@ -30,18 +30,18 @@
     </div>
   </div>
 
-  <div class="tour-step" *ngIf="tourStep === 'location'">
+  <div class="tour-step" [style.display]="tourStep === 'location' ? 'flex' : 'none'">
     <div class="tour-content">
       <video preload="auto" autoplay loop [muted]="true" playsinline width="90%" class="welcome-video location-video">
         <source src="assets/videos/location.mp4" type="video/mp4">
       </video>
       <h2 class="tour-title">Encontre pão perto de você</h2>
       <p class="tour-description">Para mostrar as padarias e confeitarias próximas, precisamos acessar sua localização.
-        </p>
+      </p>
     </div>
     <div class="tour-actions">
       <button mat-flat-button color="primary" (click)="solicitarPermissaoLocalizacao()"
-      [disabled]="isRequestingLocation" class="auth-button">
+        [disabled]="isRequestingLocation" class="auth-button">
         <span *ngIf="!isRequestingLocation">Permitir localização</span>
         <mat-spinner *ngIf="isRequestingLocation" diameter="24"></mat-spinner>
       </button>
@@ -49,7 +49,7 @@
     </div>
   </div>
 
-  <div class="tour-step" *ngIf="tourStep === 'notification'">
+  <div class="tour-step" [style.display]="tourStep === 'notification' ? 'flex' : 'none'">
     <div class="tour-content">
       <video preload="auto" autoplay loop [muted]="true" playsinline class="welcome-video" width="90%">
         <source src="assets/videos/notification.mp4" type="video/mp4">
@@ -60,7 +60,7 @@
     </div>
     <div class="tour-actions">
       <button mat-flat-button color="primary" (click)="solicitarPermissaoNotificacao()"
-      [disabled]="isRequestingNotification" class="auth-button">
+        [disabled]="isRequestingNotification" class="auth-button">
         <span *ngIf="!isRequestingNotification">Ativar notificações</span>
         <mat-spinner *ngIf="isRequestingNotification" diameter="24"></mat-spinner>
       </button>
@@ -68,14 +68,15 @@
     </div>
   </div>
 
-  <div class="tour-step" *ngIf="tourStep === 'login'">
+  <div class="tour-step" [style.display]="tourStep === 'login' ? 'flex' : 'none'">
     <div class="tour-content auth-form-container">
-      <video preload="auto" #avatarVideo [muted]="true" playsinline preload="auto" width="90%" class="welcome-video login-video">
+      <video preload="auto" #avatarVideo [muted]="true" playsinline preload="auto" width="90%"
+        class="welcome-video login-video">
         <source src="assets/videos/login.mp4" type="video/mp4">
       </video>
       <h2 class="tour-title">Crie sua conta ou faça login</h2>
       <mat-tab-group #tabGroup mat-stretch-tabs="false" animationDuration="0ms" class="auth-tabs"
-      (selectedIndexChange)="activeTabIndex = $event">
+        (selectedIndexChange)="activeTabIndex = $event">
 
         <mat-tab label="Cadastrar">
           <form [formGroup]="registerForm" (ngSubmit)="onRegister()" class="auth-form" id="registerForm">
@@ -83,17 +84,17 @@
               <mat-label>Nome</mat-label>
               <input matInput formControlName="name" required (focus)="playAction('olharBaixo')"
                 (blur)="playAction('idle')">
-              </mat-form-field>
+            </mat-form-field>
             <mat-form-field appearance="outline">
               <mat-label>Email</mat-label>
               <input matInput formControlName="email" type="email" required (focus)="playAction('olharBaixo')"
                 (blur)="playAction('idle')">
             </mat-form-field>
-                        <mat-form-field appearance="outline">
+            <mat-form-field appearance="outline">
               <mat-label>Senha</mat-label>
               <input matInput formControlName="password" [type]="hideRegisterPassword ? 'password' : 'text'" required
                 (focus)="playAction('cobrirOlhos')" (blur)="playAction('idle')">
-               <button mat-icon-button matSuffix (click)="hideRegisterPassword = !hideRegisterPassword" type="button"
+              <button mat-icon-button matSuffix (click)="hideRegisterPassword = !hideRegisterPassword" type="button"
                 [attr.aria-label]="'Esconder senha'" [attr.aria-pressed]="hideRegisterPassword">
                 <mat-icon>{{hideRegisterPassword ? 'visibility_off' : 'visibility'}}</mat-icon>
               </button>
@@ -108,7 +109,7 @@
               <mat-icon>error_outline</mat-icon>
               <span>{{ registerErrorMessage }}</span>
             </div>
-            </form>
+          </form>
         </mat-tab>
 
         <mat-tab label="Entrar">
@@ -118,7 +119,7 @@
               <input matInput formControlName="email" type="email" required (focus)="playAction('olharBaixo')"
                 (blur)="playAction('idle')">
             </mat-form-field>
-                        <mat-form-field appearance="outline">
+            <mat-form-field appearance="outline">
               <mat-label>Senha</mat-label>
               <input matInput formControlName="password" [type]="hideLoginPassword ? 'password' : 'text'" required
                 (focus)="playAction('cobrirOlhos')" (blur)="playAction('idle')">
@@ -156,11 +157,11 @@
     <div class="guide-balloon" [ngClass]="'step-' + interfaceTourSubStep">
       <div class="balloon-content">
         <h3 class="balloon-title">
-          {{ interfaceTourSubStep === 1 ? 'Busca por Endereço' : 
-             interfaceTourSubStep === 2 ? 'Sua Localização' :
-             interfaceTourSubStep === 3 ? 'Seu Perfil' :
-             interfaceTourSubStep === 4 ? 'Alcance' : 
-             interfaceTourSubStep === 5 ? 'Legenda do Mapa' : 'Detalhes do estabelecimento' }}
+          {{ interfaceTourSubStep === 1 ? 'Busca por Endereço' :
+          interfaceTourSubStep === 2 ? 'Sua Localização' :
+          interfaceTourSubStep === 3 ? 'Seu Perfil' :
+          interfaceTourSubStep === 4 ? 'Alcance' :
+          interfaceTourSubStep === 5 ? 'Legenda do Mapa' : 'Detalhes do estabelecimento' }}
         </h3>
         <p *ngIf="interfaceTourSubStep === 1">Pesquise por nome, rua ou CEP para mudar a região.</p>
         <p *ngIf="interfaceTourSubStep === 2">Clique aqui para voltar o mapa para sua posição atual.</p>
@@ -177,7 +178,9 @@
         <p *ngIf="interfaceTourSubStep === 6">Aqui você consegue ver os detalhes do estabelecimento</p>
       </div>
       <div class="balloon-actions">
-        <button mat-flat-button color="primary" (click)="avancarTour()">{{ interfaceTourSubStep < 6 ? 'Próximo' : 'Entendi!' }}</button>
+        <button mat-button class="skip-button" (click)="pularTour()">Pular tour</button>
+        <button mat-flat-button color="primary" (click)="avancarTour()">{{ interfaceTourSubStep < 6 ? 'Próximo'
+            : 'Entendi!' }}</button>
       </div>
     </div>
   </div>
@@ -201,15 +204,15 @@
     <mat-form-field appearance="outline" class="search-input" subscriptSizing="dynamic"
       [class.highlight-ui]="tourStep === 'interface-tour' && interfaceTourSubStep === 1">
       <input matInput [formControl]="searchControl" (keyup.enter)="buscarEndereco()"
-      placeholder="Buscar por Endereço ou CEP">
+        placeholder="Buscar por Endereço ou CEP">
       <button mat-icon-button matSuffix (click)="buscarEndereco()" aria-label="Buscar">
         <mat-icon>search</mat-icon>
       </button>
     </mat-form-field>
 
-    <button mat-icon-button (click)="centralizarNoUsuario()" class="location-button" 
+    <button mat-icon-button (click)="centralizarNoUsuario()" class="location-button"
       [class.highlight-ui]="tourStep === 'interface-tour' && interfaceTourSubStep === 2"
-       aria-label="Centralizar na sua localização atual">
+      aria-label="Centralizar na sua localização atual">
       <mat-icon>my_location</mat-icon>
     </button>
 
@@ -222,7 +225,8 @@
   <div #map id="map"></div>
 
   <mat-button-toggle-group class="radius-filter" [value]="raio" (change)="definirRaio($event.value)"
-  *ngIf="!routingControl || interfaceTourSubStep === 4" [class.highlight-ui-radius-filter]="tourStep === 'interface-tour' && interfaceTourSubStep === 4">
+    *ngIf="!routingControl || interfaceTourSubStep === 4"
+    [class.highlight-ui-radius-filter]="tourStep === 'interface-tour' && interfaceTourSubStep === 4">
     <mat-button-toggle [value]="500">500m</mat-button-toggle>
     <mat-button-toggle [value]="1000">1km</mat-button-toggle>
     <mat-button-toggle [value]="5000">5km</mat-button-toggle>
@@ -273,12 +277,19 @@
       <mat-icon>logout</mat-icon>Sair
     </button>
   </ng-container>
-  <ng-template #loggedOutMenu><button mat-menu-item (click)="authService.requestLogin()">Entrar /
-      Cadastrar</button></ng-template>
+  <ng-template #loggedOutMenu>
+    <button mat-menu-item (click)="authService.requestLogin()">Entrar /
+      Cadastrar</button>
+    <button mat-menu-item (click)="navigateTo(['/sobre'])">
+      <mat-icon>info_outline</mat-icon><span>Sobre</span>
+    </button>
+    <button mat-menu-item (click)="navigateTo(['/ajuda'])">
+      <mat-icon>help_outline</mat-icon><span>Preciso de ajuda</span>
+    </button></ng-template>
 </mat-menu>
 
 <div id="bottomSheet" [class.open]="isListOpen" *ngIf="!routingControl && !isLoading && !tourStep"
-     (touchstart)="onTouchStart($event)" (touchmove)="onTouchMove($event)" (touchend)="onTouchEnd($event)">
+  (touchstart)="onTouchStart($event)" (touchmove)="onTouchMove($event)" (touchend)="onTouchEnd($event)">
   <div class="handle" (click)="alternarLista()">
     <div class="handle-bar"></div>
   </div>

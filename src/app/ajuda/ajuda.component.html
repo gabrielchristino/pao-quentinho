@@ -40,4 +40,23 @@
       Entrar em contato
     </a>
   </div>
+
+  <mat-divider class="section-divider"></mat-divider>
+
+  <mat-card class="advanced-options-card">
+    <mat-card-header>
+      <mat-icon mat-card-avatar>build_circle</mat-icon>
+      <mat-card-title>Opções Avançadas</mat-card-title>
+      <mat-card-subtitle>Zona de perigo</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <p>Se o aplicativo apresentar problemas ou se você quiser refazer o tour inicial, use o botão abaixo. Isso limpará todos os dados salvos neste dispositivo.</p>
+    </mat-card-content>
+    <mat-card-actions align="end">
+      <button mat-stroked-button color="warn" (click)="resetarApp()">
+        <mat-icon>restore</mat-icon>
+        Reiniciar App
+      </button>
+    </mat-card-actions>
+  </mat-card>
 </div>

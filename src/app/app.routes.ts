@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { MapaComponent } from './mapa/mapa.component';
 import { notificationRedirectGuard } from './notification-redirect.guard';
 import { lojistaGuard } from './services/lojista.guard';
+import { logadoGuard } from './services/logado';
 
 export const routes: Routes = [
   // Rota principal, exibe a lista de estabelecimentos
@@ -38,6 +39,7 @@ export const routes: Routes = [
   {
     path: 'minhas-inscricoes',
     loadComponent: () => import('./minhas-inscricoes/minhas-inscricoes.component').then(m => m.MinhasInscricoesComponent),
+    canActivate: [logadoGuard], // Protege esta rota para usuários logados
     title: 'Padarias que sigo'
   },
 
@@ -67,6 +69,7 @@ export const routes: Routes = [
   {
     path: 'planos',
     loadComponent: () => import('./planos/plans.component').then(m => m.PlansComponent),
+    canActivate: [logadoGuard], // Protege esta rota para usuários logados
     title: 'Meus planos'
   }
 ];
