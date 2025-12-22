@@ -21,10 +21,10 @@ export const notificationRedirectGuard: CanActivateFn = (route: ActivatedRouteSn
     // Se vieram parâmetros de rota (Path Params) de reserva, converte para Query Params
     if (fornadaId) {
       queryParams['action'] = 'reserve';
-      queryParams['fornadaId'] = fornadaId;
+      queryParams['fornadaId'] = decodeURIComponent(fornadaId);
     } else if (time) {
       queryParams['action'] = 'reserve';
-      queryParams['time'] = time;
+      queryParams['time'] = decodeURIComponent(time);
     }
 
     // Redireciona para a raiz (Mapa) com os parâmetros normalizados
