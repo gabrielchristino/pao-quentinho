@@ -13,7 +13,7 @@
 </div>
 
 <div class="tour-overlay" [class.transparent-overlay]="tourStep === 'interface-tour'" *ngIf="tourStep">
-  <div class="tour-step" *ngIf="tourStep === 'welcome'">
+  <div class="tour-step" [style.display]="tourStep === 'welcome' ? 'flex' : 'none'">
     <div class="tour-content">
       <video preload="auto" autoplay [muted]="true" playsinline width="90%" class="welcome-video">
         <source src="assets/videos/inicio.mp4" type="video/mp4">
@@ -30,7 +30,7 @@
     </div>
   </div>
 
-  <div class="tour-step" *ngIf="tourStep === 'location'">
+  <div class="tour-step" [style.display]="tourStep === 'location' ? 'flex' : 'none'">
     <div class="tour-content">
       <video preload="auto" autoplay loop [muted]="true" playsinline width="90%" class="welcome-video location-video">
         <source src="assets/videos/location.mp4" type="video/mp4">
@@ -49,7 +49,7 @@
     </div>
   </div>
 
-  <div class="tour-step" *ngIf="tourStep === 'notification'">
+  <div class="tour-step" [style.display]="tourStep === 'notification' ? 'flex' : 'none'">
     <div class="tour-content">
       <video preload="auto" autoplay loop [muted]="true" playsinline class="welcome-video" width="90%">
         <source src="assets/videos/notification.mp4" type="video/mp4">
@@ -68,7 +68,7 @@
     </div>
   </div>
 
-  <div class="tour-step" *ngIf="tourStep === 'login'">
+  <div class="tour-step" [style.display]="tourStep === 'login' ? 'flex' : 'none'">
     <div class="tour-content auth-form-container">
       <video preload="auto" #avatarVideo [muted]="true" playsinline preload="auto" width="90%"
         class="welcome-video login-video">
