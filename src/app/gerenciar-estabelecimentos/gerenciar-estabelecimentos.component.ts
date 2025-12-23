@@ -11,6 +11,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
@@ -33,6 +34,7 @@ import { SwPush } from '@angular/service-worker';
     MatExpansionModule,
     MatTooltipModule,
     MatChipsModule,
+    MatProgressSpinnerModule,
   ],
   templateUrl: './gerenciar-estabelecimentos.component.html',
   styleUrl: './gerenciar-estabelecimentos.component.scss'
@@ -51,6 +53,8 @@ export class GerenciarEstabelecimentosComponent implements OnInit, OnDestroy {
   meusEstabelecimentos: Estabelecimento[] = [];
   isSubscribing = false;
   isLoading = true;
+  public diaAtualIndex: number = new Date().getDay();
+
   diasDaSemana = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
 
   ngOnInit(): void {
@@ -97,38 +101,7 @@ export class GerenciarEstabelecimentosComponent implements OnInit, OnDestroy {
 
   editar(id: number): void {
     // Navega para a rota de edição, passando o ID do estabelecimento
-    this.router.navigate(['/editar-estabelecimento', id]);
-  }
-
-  apagar(id: number, nome: string): void {
-    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
-      data: {
-        title: 'Confirmar Exclusão',
-        message: `Tem certeza que deseja apagar o estabelecimento "${nome}"? Esta ação não pode ser desfeita.`
-      }
-    });
-
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) { // Se o usuário confirmou no diálogo
-        this.isLoading = true;
-        this.estabelecimentosService.deleteEstabelecimento(id).pipe(
-          finalize(() => this.isLoading = false)
-        ).subscribe({
-          next: () => {
-            this.snackBar.open('Estabelecimento apagado com sucesso!', 'Ok', { duration: 3000 });
-            // Remove o item da lista local para atualizar a UI instantaneamente
-            this.meusEstabelecimentos = this.meusEstabelecimentos.filter(est => {
-              est.proximaFornada = est.proximaFornada || [];
-              return est.id !== id;
-            });
-          },
-          error: (err) => {
-            const message = err.error?.message || 'Erro ao apagar o estabelecimento.';
-            this.snackBar.open(message, 'Fechar', { duration: 4000 });
-          }
-        });
-      }
-    });
+    this.router.navigate(['/estabelecimento', id, 'editar']);
   }
 
   notificar(id: number, nome: string): void {
@@ -198,5 +171,9 @@ export class GerenciarEstabelecimentosComponent implements OnInit, OnDestroy {
     this.router.navigate(['/estabelecimento', id, 'banner'], {
       state: { nomeEstabelecimento: nome }
     });
+  }
+
+  abrirListaReservas(id: number): void {
+    this.router.navigate(['/estabelecimento', id, 'reservas']);
   }
 } 

@@ -15,6 +15,20 @@
   padding: 24px 12px;
 }
 
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  color: #666;
+
+  p {
+    margin-top: 16px;
+    font-size: 16px;
+  }
+}
+
 .footer-action {
   position: fixed;
   bottom: 0;
@@ -34,31 +48,51 @@
   font-size: 1rem;
 }
 
-.icon-actions {
-  display: flex;
-}
-
 // Estilos para painéis de expansão (Expansion Panel)
 .mat-expansion-panel-header {
-  padding: 24px !important;
+  padding: 16px 24px !important;
+  height: auto !important;
 }
 
 .panel-title-container {
   display: flex;
-  align-items: center;
-  gap: 16px;
+  flex-direction: column;
+  gap: 12px;
   width: 100%;
 
   .panel-text-content {
     display: flex;
     flex-direction: column;
     gap: 4px;
+    flex-grow: 1;
   }
 
   .item-line {
     font-size: 0.9em;
     color: rgba(0,0,0,0.6);
   }
+}
+
+.header-top {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+}
+
+.header-bottom {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  width: 100%;
+  button {
+    width: 100%;
+  }
+}
+
+.crud-actions {
+  display: flex;
+  gap: 4px;
 }
 
 .panel-content-wrapper {

@@ -1,0 +1,58 @@
+<div class="container page-container">
+  <div *ngIf="isLoading" class="loading-container">
+    <mat-progress-spinner mode="indeterminate" diameter="40"></mat-progress-spinner>
+    <p>Carregando reservas...</p>
+  </div>
+
+  <div class="search-container" *ngIf="!isLoading && allGruposReservas.length > 0">
+    <mat-form-field appearance="outline" class="search-field">
+      <mat-label>Buscar cliente por nome ou email</mat-label>
+      <mat-icon matPrefix>search</mat-icon>
+      <input matInput [formControl]="searchControl" placeholder="Ex: Maria">
+      <button *ngIf="searchControl.value" matSuffix mat-icon-button aria-label="Limpar" (click)="searchControl.setValue('')">
+        <mat-icon>close</mat-icon>
+      </button>
+    </mat-form-field>
+  </div>
+
+  <div *ngIf="!isLoading && allGruposReservas.length === 0" class="empty-state">
+    <video preload="auto" autoplay loop [muted]="true" playsinline
+      class="welcome-video notification-video" width="100%">
+      <source src="assets/videos/notification.mp4" type="video/mp4">
+      Seu navegador não suporta a tag de vídeo.
+    </video>
+    <h2>Nenhuma reserva encontrada.</h2>
+    <p>As reservas feitas pelos clientes aparecerão aqui. Divulgue seu estabelecimento!</p>
+  </div>
+
+  <div *ngIf="!isLoading && allGruposReservas.length > 0 && gruposReservas.length === 0" class="empty-state">
+    <mat-icon class="empty-icon">search_off</mat-icon>
+    <p>Nenhuma reserva encontrada para "{{ searchControl.value }}".</p>
+  </div>
+
+  <mat-accordion class="reservation-list" multi *ngIf="!isLoading && gruposReservas.length > 0">
+    <mat-expansion-panel *ngFor="let grupo of gruposReservas; let first = first" [expanded]="first">
+      <mat-expansion-panel-header>
+        <mat-panel-title class="panel-title-container">
+          <mat-icon matListItemIcon>schedule</mat-icon>
+          <div class="panel-text-content">
+            <div class="item-title">
+              {{ grupo.horario }}
+              <span *ngIf="grupo.descricao" class="fornada-badge">{{ grupo.descricao }}</span>
+            </div>
+            <div class="item-line">{{ grupo.data }}</div>
+          </div>
+        </mat-panel-title>
+      </mat-expansion-panel-header>
+      <div class="panel-content-wrapper">
+        <mat-list>
+          <mat-list-item *ngFor="let reserva of grupo.reservas">
+            <mat-icon matListItemIcon>person</mat-icon>
+            <div matListItemTitle>{{ reserva.user_name }}</div>
+            <div matListItemLine>{{ reserva.user_email }}</div>
+          </mat-list-item>
+        </mat-list>
+      </div>
+    </mat-expansion-panel>
+  </mat-accordion>
+</div>

@@ -9,7 +9,10 @@ export const routes: Routes = [
   { path: '', component: MapaComponent, pathMatch: 'full', title: 'Pão Quentinho' },
 
   // Rota para interceptar cliques de notificação.
-  { path: 'estabelecimento/:id', component: MapaComponent, canActivate: [notificationRedirectGuard], title: 'Detalhes do Estabelecimento' },
+  { path: 'estabelecimento/:id', component: MapaComponent, canActivate: [notificationRedirectGuard], pathMatch: 'full', title: 'Detalhes do Estabelecimento' },
+  
+  // Rotas para reserva via notificação (Path Params para melhor compatibilidade mobile)
+  { path: 'reservar/:token', component: MapaComponent, canActivate: [notificationRedirectGuard], title: 'Reservar Fornada' },
   
   // Rota para cadastrar estabelecimentos
   {
@@ -21,7 +24,7 @@ export const routes: Routes = [
 
   // Rota para editar um estabelecimento existente
   {
-    path: 'editar-estabelecimento/:id',
+    path: 'estabelecimento/:id/editar',
     loadComponent: () => import('./cadastro-estabelecimento/cadastro-estabelecimento.component').then(m => m.CadastroEstabelecimentoComponent),
     canActivate: [lojistaGuard], // Protege esta rota para lojistas
     title: 'Editar Estabelecimento'
@@ -49,6 +52,14 @@ export const routes: Routes = [
     loadComponent: () => import('./banner-estabelecimento/banner-estabelecimento.component').then(m => m.BannerEstabelecimentoComponent),
     canActivate: [lojistaGuard], // Protege esta rota para lojistas
     title: 'Banner do Estabelecimento'
+  },
+
+  // Rota para a lista de reservas (Nova)
+  {
+    path: 'estabelecimento/:id/reservas',
+    loadComponent: () => import('./lista-reservas/lista-reservas.component').then(m => m.ListaReservasComponent),
+    canActivate: [lojistaGuard],
+    title: 'Lista de Reservas'
   },
 
   // Rota para a página de ajuda
