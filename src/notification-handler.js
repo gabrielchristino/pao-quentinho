@@ -33,6 +33,12 @@ self.addEventListener('notificationclick', (event) => {
     return;
   }
 
+  // Garante que a URL seja absoluta para evitar problemas em alguns navegadores Android
+  // ao clicar nos botões de ação.
+  if (urlToOpen && !urlToOpen.startsWith('http')) {
+    urlToOpen = new URL(urlToOpen, self.location.origin).href;
+  }
+
   // Usa `clients.openWindow()` para abrir a URL. Este método é a forma
   // correta de abrir uma nova janela a partir de um Service Worker,
   // garantindo que o PWA seja focado se já estiver aberto, ou aberto em
