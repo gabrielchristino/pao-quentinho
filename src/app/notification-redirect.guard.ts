@@ -24,7 +24,8 @@ export const notificationRedirectGuard: CanActivateFn = (route: ActivatedRouteSn
   // Se houver um token de reserva, redireciona para a raiz com o token
   if (token) {
     return router.createUrlTree(['/'], { queryParams: { 
-      token: decodeURIComponent(token) 
+      token: decodeURIComponent(token),
+      ...route.queryParams // Mantém os parâmetros de debug (debug_source) para você ver na URL
     }});
   }
 

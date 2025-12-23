@@ -13,15 +13,26 @@ self.addEventListener('notificationclick', (event) => {
   const action = event.action;
   let urlToOpen;
 
+  console.log('Notification Clicked. Action:', action, 'Data:', data);
+
   // Suporte para a estrutura onActionClick (Angular PWA / Novo Backend)
   if (data?.onActionClick) {
+    // Se a ação for 'dismiss' (botão 'Agora não'), não fazemos nada (a notificação já fechou).
+    if (action === 'dismiss') {
+      return;
+    }
+
     // Se uma ação específica foi clicada e possui uma URL, use-a.
     if (action && data.onActionClick[action]?.url) {
       urlToOpen = data.onActionClick[action].url;
+      // DEBUG: Adiciona na URL para visualizarmos na barra de endereço do celular
+      urlToOpen += (urlToOpen.includes('?') ? '&' : '?') + 'debug_source=BUTTON_' + action;
     } else {
       // Caso contrário, use a URL da ação padrão.
       // Isso cobre o clique no corpo da notificação ou em uma ação sem URL específica.
       urlToOpen = data.onActionClick['default']?.url;
+      // DEBUG: Adiciona na URL para visualizarmos na barra de endereço do celular
+      if (urlToOpen) urlToOpen += (urlToOpen.includes('?') ? '&' : '?') + 'debug_source=DEFAULT_BODY';
     }
   } else {
     // Fallback para estrutura antiga
