@@ -15,10 +15,13 @@ self.addEventListener('notificationclick', (event) => {
 
   // Suporte para a estrutura onActionClick (Angular PWA / Novo Backend)
   if (data?.onActionClick) {
-    if (action && data.onActionClick[action]) {
+    // Se uma ação específica foi clicada e possui uma URL, use-a.
+    if (action && data.onActionClick[action]?.url) {
       urlToOpen = data.onActionClick[action].url;
-    } else if (data.onActionClick['default']) {
-      urlToOpen = data.onActionClick['default'].url;
+    } else {
+      // Caso contrário, use a URL da ação padrão.
+      // Isso cobre o clique no corpo da notificação ou em uma ação sem URL específica.
+      urlToOpen = data.onActionClick['default']?.url;
     }
   } else {
     // Fallback para estrutura antiga
