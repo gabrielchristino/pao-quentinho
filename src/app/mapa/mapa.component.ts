@@ -295,7 +295,7 @@ export class MapaComponent implements AfterViewInit, OnInit {
       }
 
       if (token) {
-        this.handleReserveWithToken(token);
+        this.confirmReservation(token);
         paramsToRemove.push('token');
       }
 
@@ -879,6 +879,44 @@ export class MapaComponent implements AfterViewInit, OnInit {
       .find(h => h.mins > currentMinutes);
 
     return proximoHorario || normalized[0]; // Se todos já passaram, mostra o primeiro do dia seguinte
+  }
+
+  /**
+   * Abre um modal para confirmar a reserva antes de processá-la.
+   */
+  private confirmReservation(token: string): void {
+    // Tenta decodificar o token para obter informações extras (opcional)
+    // Formato esperado: TIPO:EST_ID:VALOR
+    let message = 'Deseja confirmar a reserva para esta fornada?';
+    try {
+      const decoded = atob(token);
+      const parts = decoded.split(':');
+      if (parts.length >= 2) {
+        const estId = Number(parts[1]);
+        const est = this.todosEstabelecimentos.find(e => e.id === estId);
+        if (est) {
+          message = `Deseja confirmar a reserva em ${est.nome}?`;
+        }
+      }
+    } catch (e) {
+      // Se falhar a decodificação, usa a mensagem padrão
+    }
+
+    const dialogRef = this.dialog.open(PermissionDialogComponent, {
+      data: {
+        icon: 'shopping_bag',
+        title: 'Confirmar Reserva',
+        content: message,
+        confirmButton: 'Sim, reservar',
+        cancelButton: 'Cancelar'
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result === true) {
+        this.handleReserveWithToken(token);
+      }
+    });
   }
 
   /**
