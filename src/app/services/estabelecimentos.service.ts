@@ -96,10 +96,10 @@ export class EstabelecimentosService {
 
   /**
    * Envia uma solicitação de reserva para um estabelecimento específico.
-   * @param token O token da reserva (contendo ID do estabelecimento e detalhes).
+   * Aceita apenas o token de reserva.
    * @returns Um Observable com a resposta da API.
    */
-  reserveEstablishment(token: string): Observable<any> { 
+  reserveEstablishment(token: string): Observable<any> {
     return this.http.post(`${this.apiUrl}/reserve`, { reservationToken: token });
   }
 }

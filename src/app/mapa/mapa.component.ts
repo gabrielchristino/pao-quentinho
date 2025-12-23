@@ -282,8 +282,7 @@ export class MapaComponent implements AfterViewInit, OnInit {
     ).subscribe(params => {
       const establishmentIdToOpen = params['open_establishment_id'];
       const action = params['action'];
-      const time = params['time'];
-      const fornadaId = params['fornadaId'];
+      const token = params['token'];
       const paramsToRemove: string[] = [];
 
       if (action === 'login') {
@@ -293,13 +292,11 @@ export class MapaComponent implements AfterViewInit, OnInit {
           localStorage.setItem('hasVisited', 'true');
         }
         this.tourStep = 'login';
-      } else if (action === 'reserve') {
-        if (establishmentIdToOpen) {
-          this.handleReserveAction(Number(establishmentIdToOpen), time, fornadaId);
-          paramsToRemove.push('action');
-          paramsToRemove.push('time');
-          paramsToRemove.push('fornadaId');
-        }
+      }
+
+      if (token) {
+        this.handleReserveWithToken(token);
+        paramsToRemove.push('token');
       }
 
       if (establishmentIdToOpen) {
@@ -885,23 +882,24 @@ export class MapaComponent implements AfterViewInit, OnInit {
   }
 
   /**
-  * Lida com a ação de reserva de um estabelecimento, chamando o backend.
-  * @param establishmentId O ID do estabelecimento a ser reservado.
-  * @param time O horário da fornada que está sendo reservada (opcional).
-  * @param fornadaId O ID da fornada (opcional, preferencial).
-  */
-  private handleReserveAction(establishmentId: number, time?: string, fornadaId?: string): void {
-    this.estabelecimentoService.reserveEstablishment(establishmentId, { time, fornadaId }).pipe(
-      take(1) // Pega apenas uma emissão e completa
+   * Lida com a ação de reserva via token (vindo de notificação).
+   * O token contém todas as informações necessárias (estabelecimento, fornada, etc).
+   */
+  private handleReserveWithToken(token: string): void {
+    this.estabelecimentoService.reserveEstablishment(token).pipe(
+      take(1)
     ).subscribe({
-      next: () => {
+      next: (response: any) => {
         this._snackBar.open('Sua solicitação de reserva foi enviada ao estabelecimento!', 'Ok', {
           duration: 5000,
           panelClass: ['pao-quentinho-snackbar']
         });
+        // Se o backend retornar o ID do estabelecimento, selecionamos ele no mapa
+        if (response && response.establishmentId) {
+          this.mapStateService.selectEstablishment(response.establishmentId);
+        }
       },
       error: (err) => {
-        // Verifica se o erro é de limite de reservas atingido
         if (err.error?.limitReached === true) {
           this.dialog.open(PermissionDialogComponent, {
             data: {
@@ -912,13 +910,11 @@ export class MapaComponent implements AfterViewInit, OnInit {
               cancelButton: 'Agora não'
             }
           }).afterClosed().subscribe(result => {
-            if (result === true) {
-              this.router.navigate(['/planos']);
-            }
+            if (result === true) this.router.navigate(['/planos']);
           });
         } else {
-          console.error('Erro ao enviar solicitação de reserva:', err);
-          this._snackBar.open('Não foi possível enviar sua solicitação de reserva. Tente novamente.', 'Fechar', { duration: 5000, panelClass: ['pao-quentinho-snackbar'] });
+          console.error('Erro ao enviar solicitação de reserva via token:', err);
+          this._snackBar.open('Não foi possível processar sua reserva. Tente novamente.', 'Fechar', { duration: 5000, panelClass: ['pao-quentinho-snackbar'] });
         }
       }
     });

@@ -39,11 +39,26 @@ self.addEventListener('notificationclick', (event) => {
     urlToOpen = new URL(urlToOpen, self.location.origin).href;
   }
 
-  // Usa `clients.openWindow()` para abrir a URL. Este método é a forma
-  // correta de abrir uma nova janela a partir de um Service Worker,
-  // garantindo que o PWA seja focado se já estiver aberto, ou aberto em
-  // uma nova janela se estiver fechado.
+  // Tenta focar em uma janela existente antes de abrir uma nova.
   event.waitUntil(
-    clients.openWindow(urlToOpen)
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
+      // Procura por uma janela que já esteja aberta na mesma origem
+      for (let i = 0; i < windowClients.length; i++) {
+        const client = windowClients[i];
+        // Se encontrar, foca nela e navega para a URL desejada
+        if ('focus' in client) {
+          return client.focus().then((focusedClient) => {
+            if ('navigate' in focusedClient) {
+              return focusedClient.navigate(urlToOpen);
+            }
+          });
+        }
+      }
+
+      // Se não houver janela aberta, abre uma nova
+      if (clients.openWindow) {
+        return clients.openWindow(urlToOpen);
+      }
+    })
   );
 });

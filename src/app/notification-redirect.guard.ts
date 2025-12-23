@@ -9,8 +9,7 @@ import { ActivatedRouteSnapshot, CanActivateFn, Router } from '@angular/router';
 export const notificationRedirectGuard: CanActivateFn = (route: ActivatedRouteSnapshot) => {
   const router = inject(Router);
   const establishmentId = route.paramMap.get('id');
-  const fornadaId = route.paramMap.get('fornadaId');
-  const time = route.paramMap.get('time');
+  const token = route.paramMap.get('token');
 
   if (establishmentId) {
     const queryParams: any = {
@@ -18,18 +17,17 @@ export const notificationRedirectGuard: CanActivateFn = (route: ActivatedRouteSn
       open_establishment_id: establishmentId 
     };
 
-    // Se vieram parâmetros de rota (Path Params) de reserva, converte para Query Params
-    if (fornadaId) {
-      queryParams['action'] = 'reserve';
-      queryParams['fornadaId'] = decodeURIComponent(fornadaId);
-    } else if (time) {
-      queryParams['action'] = 'reserve';
-      queryParams['time'] = decodeURIComponent(time);
-    }
-
     // Redireciona para a raiz (Mapa) com os parâmetros normalizados
     return router.createUrlTree(['/'], { queryParams });
   }
+
+  // Se houver um token de reserva, redireciona para a raiz com o token
+  if (token) {
+    return router.createUrlTree(['/'], { queryParams: { 
+      token: decodeURIComponent(token) 
+    }});
+  }
+
   // Se não houver ID, apenas redireciona para a raiz.
   return router.createUrlTree(['/'], { queryParams: route.queryParams });
 };

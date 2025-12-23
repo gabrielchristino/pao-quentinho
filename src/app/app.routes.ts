@@ -12,8 +12,7 @@ export const routes: Routes = [
   { path: 'estabelecimento/:id', component: MapaComponent, canActivate: [notificationRedirectGuard], pathMatch: 'full', title: 'Detalhes do Estabelecimento' },
   
   // Rotas para reserva via notificação (Path Params para melhor compatibilidade mobile)
-  { path: 'reservar/:id/fornada/:fornadaId', component: MapaComponent, canActivate: [notificationRedirectGuard], title: 'Reservar Fornada' },
-  { path: 'reservar/:id/horario/:time', component: MapaComponent, canActivate: [notificationRedirectGuard], title: 'Reservar Fornada' },
+  { path: 'reservar/:token', component: MapaComponent, canActivate: [notificationRedirectGuard], title: 'Reservar Fornada' },
   
   // Rota para cadastrar estabelecimentos
   {
