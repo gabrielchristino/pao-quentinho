@@ -145,6 +145,7 @@ export class MapaComponent implements AfterViewInit, OnInit {
   public activeTabIndex = 0;
   contactEmail: string = 'paoquentinho.sac@gmail.com';
   contactSubject: string = 'Ajuda com o aplicativo Pão Quentinho';
+  private processingToken: string | null = null;
 
   get isLojista(): boolean {
     return this.authService.getUserRole() === 'lojista';
@@ -295,8 +296,13 @@ export class MapaComponent implements AfterViewInit, OnInit {
       }
 
       if (token) {
-        this.confirmReservation(token);
-        paramsToRemove.push('token');
+        if (this.processingToken !== token) {
+          this.processingToken = token;
+          this.confirmReservation(token);
+          paramsToRemove.push('token');
+        }
+      } else {
+        this.processingToken = null;
       }
 
       if (establishmentIdToOpen) {
